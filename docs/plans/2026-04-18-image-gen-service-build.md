@@ -21,7 +21,7 @@
 ## Global checklist
 
 ### Foundation
-- [ ] **Cycle 0** — Repo bootstrap (pyproject, tooling, CI skeleton, dev compose override)
+- [x] **Cycle 0** — Repo bootstrap (pyproject, tooling, CI skeleton, dev compose override) — commit `1943d18`, Sprint 3
 - [ ] **Cycle 1** — FastAPI skeleton + auth + SQLite job store + structured logging + /health
 - [ ] **Cycle 2** — ComfyUI sidecar image + adapter (HTTP + WS) + NoobAI workflow template + anchor resolver
 - [ ] **Cycle 3** — MinIO uploader + first sync `/v1/images/generations` end-to-end
@@ -48,20 +48,20 @@
 
 ## Cycle overview table
 
-| # | Name | Est | Files (new/mod) | Blocks |
-|---|---|---|---|---|
-| 0 | Repo bootstrap | S | 8 | all |
-| 1 | FastAPI + auth + SQLite + logging | M | 12 | 2+ |
-| 2 | ComfyUI sidecar + adapter + NoobAI workflow | L | 10 | 3+ |
-| 3 | MinIO upload + first sync endpoint | M | 6 | 4+ |
-| 4 | Queue + disconnect + reaper + restart recovery | M | 7 | 8, 9 |
-| 5 | LoRA local + graph injection | L | 8 | 6 |
-| 6 | Civitai fetcher hardened | L | 5 | — |
-| 7 | Chroma model #2 | M | 4 | — |
-| 8 | Async mode + polling | M | 3 | 9 |
-| 9 | Webhook dispatcher | XL | 9 | — |
-| 10 | Startup validation + smoke test | M | 4 | — |
-| 11 | LoreWeave integration-guide PR | S | 1 (external repo) | — |
+| # | Name | Est | Files (new/mod) | Blocks | Status |
+|---|---|---|---|---|---|
+| 0 | Repo bootstrap | S→**XL** (actual 14) | 14 | all | [x] `1943d18` |
+| 1 | FastAPI + auth + SQLite + logging | M | 12 | 2+ | [ ] |
+| 2 | ComfyUI sidecar + adapter + NoobAI workflow | L | 10 | 3+ | [ ] |
+| 3 | MinIO upload + first sync endpoint | M | 6 | 4+ | [ ] |
+| 4 | Queue + disconnect + reaper + restart recovery | M | 7 | 8, 9 | [ ] |
+| 5 | LoRA local + graph injection | L | 8 | 6 | [ ] |
+| 6 | Civitai fetcher hardened | L | 5 | — | [ ] |
+| 7 | Chroma model #2 | M | 4 | — | [ ] |
+| 8 | Async mode + polling | M | 3 | 9 | [ ] |
+| 9 | Webhook dispatcher | XL | 9 | — | [ ] |
+| 10 | Startup validation + smoke test | M | 4 | — | [ ] |
+| 11 | LoreWeave integration-guide PR | S | 1 (external repo) | — | [ ] |
 
 ---
 
@@ -542,7 +542,7 @@ Resolve these in the cycle's CLARIFY phase so they don't stall BUILD:
 
 | Cycle | Unknown | Resolution owner | When |
 |---|---|---|---|
-| 0 | Docker Desktop + NVIDIA Container Toolkit working on Win11 host? | @letuhao1994 | before Cycle 0 CLARIFY |
+| 0 | ~~Docker Desktop + NVIDIA Container Toolkit working on Win11 host?~~ | ~~@letuhao1994~~ | ~~before Cycle 0 CLARIFY~~ — **resolved Sprint 3**: GPU passthrough works, RTX 4090 + CUDA 13 in container |
 | 2 | Exact ComfyUI tag/commit to pin; exact `city96/ComfyUI-GGUF` commit | me + @letuhao1994 | during Cycle 2 CLARIFY |
 | 3 | LoreWeave's HTTP client timeout (risk #1 from pre-BUILD concerns) | @letuhao1994 | before Cycle 3 |
 | 5 | Which Civitai LoRA to use for visible-effect integration test | @letuhao1994 | during Cycle 5 CLARIFY |

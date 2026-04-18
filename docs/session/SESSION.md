@@ -2,6 +2,8 @@
 
 > Append the newest sprint at the top. Keep each entry short: one-line outcome, changed files, notable decisions, what's next.
 
+**Last session ended:** 2026-04-18 after Sprint 3 / Cycle 0 complete. Resume from [HANDOFF.md](HANDOFF.md) — it holds the pick-up-where-you-left-off summary.
+
 ---
 
 ## Sprint 3 — 2026-04-18 — Cycle 0 repo bootstrap complete
