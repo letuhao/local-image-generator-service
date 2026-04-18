@@ -208,3 +208,12 @@ __marimo__/
 
 # Workflow state (per-session, not committed)
 .workflow-state.json
+
+# Runtime data (dev only — never committed)
+/data/
+/minio-data/
+/models/
+/loras/
+
+# Dev docker overrides (copy from .example)
+/docker-compose.override.yml

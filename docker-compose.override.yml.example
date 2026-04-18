@@ -1,0 +1,20 @@
+# Dev overrides — copy to `docker-compose.override.yml` and customise.
+# This file is loaded automatically by `docker compose up` when it exists.
+# It MUST stay out of production — the base `docker-compose.yml` keeps
+# ComfyUI and MinIO on the private `internal` network only.
+
+services:
+  image-gen-service:
+    ports:
+      - "127.0.0.1:8700:8000"     # local-only: curl http://127.0.0.1:8700/health
+
+  comfyui:
+    ports:
+      - "127.0.0.1:8188:8188"     # local-only: ComfyUI web UI for debugging
+
+  minio:
+    ports:
+      # Host 9100/9101 to avoid clashing with other MinIO instances on 9000/9001.
+      # Container-internal port stays 9000 so S3_INTERNAL_ENDPOINT works unchanged.
+      - "127.0.0.1:9100:9000"     # S3 API  → http://127.0.0.1:9100
+      - "127.0.0.1:9101:9001"     # Console → http://127.0.0.1:9101

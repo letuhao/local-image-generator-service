@@ -4,6 +4,58 @@
 
 ---
 
+## Sprint 3 — 2026-04-18 — Cycle 0 repo bootstrap complete
+
+**Outcome:** `docker compose up` brings up three services on a private network (`image-gen-service`, `comfyui` placeholder, `minio`). `curl http://127.0.0.1:8700/health` returns `{"status":"ok"}`. Unit tests green (4/4), ruff clean, image size 285 MB. All three containers Docker-healthy. Ready for Cycle 1 (auth + SQLite + structured logging).
+
+**GPU toolkit check (per plan prerequisite):** passed. RTX 4090 visible, driver 581.80, CUDA 13.0 inside containers. **Flag for Cycle 7:** 17.2 / 24 GB VRAM in use on host before load — only ~7 GB free. Chroma Q8's 9 GB floor will exceed budget unless something is freed before Cycle 7.
+
+**Files created (14):**
+
+- `pyproject.toml`, `.python-version`, `.dockerignore`, `.env.example`, `.pre-commit-config.yaml`
+- `Dockerfile` (two-stage: builder with uv → runtime without), `docker/entrypoint.sh`
+- `docker-compose.yml`, `docker-compose.override.yml.example`, `docker/comfyui-placeholder/default.conf`
+- `app/__init__.py`, `app/main.py`
+- `tests/__init__.py`, `tests/conftest.py`, `tests/test_health.py`
+- `README.md` rewritten from a one-liner to a real README
+
+Also: `.gitignore` extended with runtime-data paths (`data/`, `minio-data/`, `models/`, `loras/`, `docker-compose.override.yml`).
+
+**`/review-impl` pass found 14 findings, all fixed in v0.1.1:**
+
+- HIGH: MinIO healthcheck curl-only → curl-with-wget-fallback; Python pin excluded 3.13 host → relaxed to `<3.14` + `.python-version` pins image to 3.12.
+- MED: two-stage Dockerfile drops ~30 MB of uv dead weight (315 → 285 MB); `entrypoint.sh` propagates `SHUTDOWN_GRACE_S` to `uvicorn --timeout-graceful-shutdown`; `depends_on: comfyui: service_healthy`; ruff `S104` ignore + policy comment; `.dockerignore` symmetric on override files; HEAD + Content-Type tests (also discovered `@app.get` doesn't auto-register HEAD, fixed with `api_route`).
+- LOW: Dockerfile `HEALTHCHECK` directive using `urllib.request` (no extra binary); `asgi-lifespan.LifespanManager` in `conftest.py` so future startup hooks fire in tests; `.env.example` `API_KEYS=` blank for fail-closed posture; forward-compat deps documented per-cycle.
+
+**Live verification:**
+
+```
+pytest    4/4 pass
+ruff      clean
+curl /health    {"status":"ok"}
+compose ps      all three services Up (healthy)
+PID 1 in container    uvicorn ... --timeout-graceful-shutdown 90
+```
+
+**Dev-env note:** moved MinIO dev ports to 127.0.0.1:9100/9101 because `free-context-hub-minio-1` already occupies 9000/9001 on this host. Base compose still uses internal port 9000.
+
+### Retro — lessons worth keeping
+
+- **`/review-impl` on a trivial cycle still catches material issues** — 14 findings on what I'd called "boilerplate". Two were genuine HIGHs (MinIO healthcheck, Python pin). Author blindness is real even on config files. Budget ~5–10 min per cycle for the adversarial pass.
+- **`@app.get` in FastAPI does NOT auto-register HEAD.** Reviewer flagged HEAD coverage gap; writing the test revealed FastAPI's actual behavior. Use `api_route(methods=["GET","HEAD"])` for probe endpoints.
+- **Python pin ceilings are load-bearing.** `>=3.12,<3.13` appeared conservative but actually excluded the dev host (3.13). Relax ceilings to match reality, pin the *floor* via `.python-version` for Docker determinism.
+- **First `uv sync` in Docker will try to build the project unless `--no-install-project`.** Hatchling demands README.md at build time even if it's not copied yet. The `--no-install-project + PATH=.venv/bin` pattern is the clean way to avoid that.
+
+**What's next (Sprint 4 plan):**
+
+1. Start Cycle 1 — `app/auth.py` (multi-key parser, constant-time compare), `app/queue/store.py` (aiosqlite layer + migration 001), `app/middleware/logging.py` (JSON logs + correlation id), `app/api/health.py` (deep probe of DB + dependents).
+2. Tests: `test_auth.py`, `test_job_store.py`, updated `test_health.py` for dependent-down → 503.
+3. Still no image generation in Cycle 1 — that's Cycle 2.
+
+**Commits this sprint:** 1 expected (all Cycle 0 + Cycle 0 v0.1.1 fixes).
+
+---
+
 ## Sprint 2 — 2026-04-18 — Implementation plan written (11 cycles)
 
 **Outcome:** Decomposed the v0.4 architecture into 11 vertical-slice cycles with explicit dependencies, per-cycle files/tests/verification/descope, and an owner-assigned unknowns table. Each cycle is independently runnable through the 12-phase workflow. Ready to CLARIFY Cycle 0.

@@ -1,0 +1,40 @@
+.git/
+.github/
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Local data
+data/
+minio-data/
+models/
+loras/
+
+# Workflow state (per-session)
+.workflow-state.json
+
+# Source bundle (tooling, not shipped)
+agentic-workflow/
+
+# Docs
+docs/
+
+# Env + overrides (neither the real override nor the example belongs in the image)
+.env
+.env.local
+docker-compose.override.yml
+docker-compose.override.yml.example
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Tests don't ship in runtime image
+tests/
