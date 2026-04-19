@@ -83,11 +83,14 @@ async def client_with_fakes(
     client: AsyncClient, fake_adapter: _FakeAdapter, fake_storage: _FakeStorage
 ) -> AsyncClient:
     """The shared `client` fixture boots the app through lifespan; then we swap
-    adapter + storage on app.state with our fakes. Registry stays real."""
+    adapter + storage both on app.state (for GET-gateway code paths) and on the
+    worker's internal refs (where the POST handler actually ends up calling them)."""
     from app.main import app
 
     app.state.adapter = fake_adapter
     app.state.s3 = fake_storage
+    app.state.worker._adapter = fake_adapter  # type: ignore[attr-defined]
+    app.state.worker._s3 = fake_storage  # type: ignore[attr-defined]
     return client
 
 
@@ -98,6 +101,39 @@ def _body(**overrides: Any) -> dict:
 
 
 # ───────────────────────── happy path ─────────────────────────
+
+
+async def test_sync_generation_sets_response_delivered_and_handover(
+    client_with_fakes: AsyncClient,
+) -> None:
+    """Cycle 4: normal happy path → BackgroundTask flips response_delivered=true
+    AND webhook_handover=true in SQLite after the response flushes. This is the
+    arch §4.8 suppress-webhook prerequisite."""
+    import asyncio
+
+    from app.main import app
+    from app.queue.jobs import get_by_id
+
+    resp = await client_with_fakes.post(
+        "/v1/images/generations",
+        json=_body(),
+        headers={"Authorization": "Bearer test-gen-key"},
+    )
+    assert resp.status_code == 200
+    job_id = resp.headers["x-job-id"]
+
+    # BackgroundTask runs after the response returns; give it a moment.
+    for _ in range(20):
+        row = await get_by_id(app.state.store, job_id)
+        if row is not None and row.response_delivered and row.webhook_handover:
+            return
+        await asyncio.sleep(0.05)
+    row = await get_by_id(app.state.store, job_id)
+    pytest.fail(
+        f"BackgroundTask did not flip flags: response_delivered="
+        f"{row.response_delivered if row else None} "
+        f"webhook_handover={row.webhook_handover if row else None}"
+    )
 
 
 async def test_sync_generation_returns_url_response(
@@ -244,9 +280,10 @@ async def test_sync_unknown_model_returns_400(client_with_fakes: AsyncClient) ->
 # ───────────────────────── adapter / S3 failure surfaces ─────────────────────────
 
 
-async def test_sync_empty_adapter_output_returns_500_internal(
+async def test_sync_empty_adapter_output_returns_500_comfy_error(
     client_with_fakes: AsyncClient, fake_adapter: _FakeAdapter
 ) -> None:
+    """Cycle 4: zero outputs classified as `comfy_error` (arch §13)."""
     fake_adapter.images = []
     fake_adapter.n_outputs = 0
     resp = await client_with_fakes.post(
@@ -255,12 +292,13 @@ async def test_sync_empty_adapter_output_returns_500_internal(
         headers={"Authorization": "Bearer test-gen-key"},
     )
     assert resp.status_code == 500
-    assert resp.json()["error"]["code"] == "internal"
+    assert resp.json()["error"]["code"] == "comfy_error"
 
 
-async def test_sync_non_png_bytes_returns_500_internal(
+async def test_sync_non_png_bytes_returns_500_comfy_error(
     client_with_fakes: AsyncClient, fake_adapter: _FakeAdapter
 ) -> None:
+    """Cycle 4: non-PNG bytes classified as `comfy_error` (ComfyUI's output problem)."""
     fake_adapter.images = [b"not-a-png"]
     resp = await client_with_fakes.post(
         "/v1/images/generations",
@@ -268,7 +306,7 @@ async def test_sync_non_png_bytes_returns_500_internal(
         headers={"Authorization": "Bearer test-gen-key"},
     )
     assert resp.status_code == 500
-    assert resp.json()["error"]["code"] == "internal"
+    assert resp.json()["error"]["code"] == "comfy_error"
 
 
 async def test_sync_comfy_unreachable_returns_503(

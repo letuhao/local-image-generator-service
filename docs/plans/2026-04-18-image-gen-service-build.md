@@ -27,7 +27,7 @@
 - [x] **Cycle 3** — MinIO gateway + model registry + first sync `/v1/images/generations` end-to-end — Sprint 6
 
 ### Hardening the happy path
-- [ ] **Cycle 4** — asyncio queue + worker + sync disconnect handler + orphan reaper + restart recovery
+- [x] **Cycle 4** — asyncio queue + worker + disconnect handler + orphan reaper + restart recovery — Sprint 7
 - [ ] **Cycle 5** — LoRA local directory + injection algorithm + vpred injection + path-traversal guard
 - [ ] **Cycle 6** — Civitai fetcher with 11-rule hardening (host allowlist, SHA-256, lock, admin scope, audit)
 
@@ -54,7 +54,7 @@
 | 1 | FastAPI + auth + SQLite + logging | M→**XL** (actual 20) | 20 | 2+ | [x] Sprint 4 |
 | 2 | ComfyUI sidecar + adapter + NoobAI workflow | L→**XL** (actual 23) | 23 | 3+ | [x] Sprint 5 |
 | 3 | MinIO gateway + first sync endpoint | M→**L** (actual 18) | 18 | 4+ | [x] Sprint 6 |
-| 4 | Queue + disconnect + reaper + restart recovery | M | 7 | 8, 9 | [ ] |
+| 4 | Queue + disconnect + reaper + restart recovery | M→**L** (actual 14) | 14 | 8, 9 | [x] Sprint 7 |
 | 5 | LoRA local + graph injection | L | 8 | 6 | [ ] |
 | 6 | Civitai fetcher hardened | L | 5 | — | [ ] |
 | 7 | Chroma model #2 | M | 4 | — | [ ] |

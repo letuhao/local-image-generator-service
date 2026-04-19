@@ -144,6 +144,8 @@ webhook_handover          BOOL DEFAULT 0    -- sync handler has handed off to di
 - `queued` → re-enqueue (idempotent).
 - `running` → mark `failed` with `error_code="service_restarted"` and emit the terminal status so async pollers get an answer rather than a 404.
 
+**Seed non-determinism on recovery.** When a caller submits `seed=-1` (the OpenAI "random" sentinel), the resolved random seed is chosen by the worker at pipeline time and persisted in `result_json.resolved_seed`. If the job is `queued` at restart time (never reached the worker), recovery re-runs the pipeline and picks a **new** random seed — the same caller who saw `X-Job-Id=gen_xxx` and polls later will see a different image than the first attempt would have produced. Callers who care about reproducibility across restarts MUST pass an explicit seed; `-1` implies "I accept whatever the service picks, even across retries."
+
 **Orphan reaper.** A background task deletes S3 objects belonging to jobs that reached `completed` but whose result was never fetched within `ORPHAN_REAPER_TTL` (default 24h). MinIO also has a bucket lifecycle policy (belt and braces).
 
 **TTL eviction.** SQLite rows are pruned at `JOB_RECORD_TTL` (default 7d).

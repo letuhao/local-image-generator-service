@@ -59,9 +59,16 @@ async def gateway_client(client: AsyncClient) -> AsyncClient:
 
 async def test_get_image_returns_png_bytes(gateway_client: AsyncClient) -> None:
     from app.main import app
+    from app.queue.jobs import get_by_id
 
     job_id = app.state._test_job_id
     expected = app.state._test_png0
+
+    # Pre-fetch: fetched_at starts NULL.
+    pre = await get_by_id(app.state.store, job_id)
+    assert pre is not None
+    assert pre.fetched_at is None
+
     resp = await gateway_client.get(
         f"/v1/images/{job_id}/0.png",
         headers={"Authorization": "Bearer test-gen-key"},
@@ -69,6 +76,11 @@ async def test_get_image_returns_png_bytes(gateway_client: AsyncClient) -> None:
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "image/png"
     assert resp.content == expected
+
+    # Post-fetch: fetched_at is set (Cycle 4: marks the orphan reaper "fetched" signal).
+    post = await get_by_id(app.state.store, job_id)
+    assert post is not None
+    assert post.fetched_at is not None
 
 
 async def test_get_image_without_auth_returns_401(

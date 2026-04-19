@@ -55,13 +55,14 @@ class Job:
     webhook_headers: dict[str, str] | None
     webhook_delivery_status: WebhookDeliveryStatus | None
     webhook_handover: bool
+    fetched_at: str | None  # Cycle 4: set by the GET gateway on first 2xx fetch.
 
 
 _COLUMNS = (
     "id, model_name, input_json, mode, status, result_json, error_code, error_message, "
     "created_at, updated_at, client_id, prompt_id, output_keys, response_delivered, "
     "initial_response_delivered, webhook_url, webhook_headers_json, webhook_delivery_status, "
-    "webhook_handover"
+    "webhook_handover, fetched_at"
 )
 
 
@@ -86,6 +87,7 @@ def _row_to_job(row: tuple) -> Job:
         webhook_headers_json,
         webhook_delivery_status,
         webhook_handover,
+        fetched_at,
     ) = row
     return Job(
         id=id_,
@@ -107,6 +109,7 @@ def _row_to_job(row: tuple) -> Job:
         webhook_headers=json.loads(webhook_headers_json) if webhook_headers_json else None,
         webhook_delivery_status=webhook_delivery_status,
         webhook_handover=bool(webhook_handover),
+        fetched_at=fetched_at,
     )
 
 
@@ -130,8 +133,9 @@ async def create_queued(
         # bundled sqlite is 3.40+). Status is parameter-bound, not inline literal.
         cursor = await conn.execute(
             # _COLUMNS is a module constant (not user input); f-string is safe here.
+            # Column count: 20 (fetched_at added in migration 002).
             f"INSERT INTO jobs ({_COLUMNS}) VALUES "  # noqa: S608
-            "(?, ?, ?, ?, ?, NULL, NULL, NULL, ?, ?, NULL, NULL, NULL, 0, 0, ?, ?, NULL, 0) "
+            "(?, ?, ?, ?, ?, NULL, NULL, NULL, ?, ?, NULL, NULL, NULL, 0, 0, ?, ?, NULL, 0, NULL) "
             f"RETURNING {_COLUMNS}",
             (
                 job_id,
@@ -219,3 +223,88 @@ async def set_failed(store: JobStore, job_id: str, *, error_code: str, error_mes
     fetched = await get_by_id(store, job_id)
     assert fetched is not None
     return fetched
+
+
+async def set_abandoned(
+    store: JobStore, job_id: str, *, error_code: str = "service_stopping"
+) -> Job:
+    """Mark a non-terminal job as abandoned. Cycle 4: used for client-drop recovery."""
+    async with store.write() as conn:
+        current = await _fetch_status(conn, job_id)
+        _assert_allowed(current, "abandoned")
+        await conn.execute(
+            "UPDATE jobs SET status='abandoned', error_code=?, updated_at=? WHERE id=?",
+            (error_code, _now(), job_id),
+        )
+    log.info("job.abandoned", job_id=job_id, error_code=error_code)
+    fetched = await get_by_id(store, job_id)
+    assert fetched is not None
+    return fetched
+
+
+# ───────────────────────── Cycle 4: flag / counter helpers ─────────────────────────
+
+
+async def count_active(store: JobStore) -> int:
+    """Return count of jobs in `queued` or `running`. MAX_QUEUE gate uses this."""
+    conn = await store.read()
+    cursor = await conn.execute("SELECT COUNT(*) FROM jobs WHERE status IN ('queued', 'running')")
+    row = await cursor.fetchone()
+    return int(row[0]) if row else 0
+
+
+async def scan_non_terminal(store: JobStore) -> list[Job]:
+    """Return all jobs currently in `queued` or `running`, oldest first.
+
+    Used by boot recovery (`app.queue.recovery`). Centralizes the SELECT SQL +
+    column-order contract inside this module — callers don't import `_COLUMNS`.
+    """
+    conn = await store.read()
+    cursor = await conn.execute(
+        f"SELECT {_COLUMNS} FROM jobs WHERE status IN ('queued', 'running') "  # noqa: S608
+        "ORDER BY created_at ASC"
+    )
+    rows = await cursor.fetchall()
+    return [_row_to_job(row) for row in rows]
+
+
+async def set_fetched(store: JobStore, job_id: str) -> None:
+    """Record first-fetch timestamp via the GET gateway. Idempotent — WHERE
+    fetched_at IS NULL means re-fetches don't overwrite the original timestamp."""
+    async with store.write() as conn:
+        await conn.execute(
+            "UPDATE jobs SET fetched_at=? WHERE id=? AND fetched_at IS NULL",
+            (_now(), job_id),
+        )
+
+
+async def mark_response_delivered(store: JobStore, job_id: str) -> None:
+    """BackgroundTask commits after sync response flush. Sets both flags at once
+    (arch §4.8 suppress rule needs webhook_handover=true alongside response_delivered).
+    Noop if the disconnect watcher has already flipped the row to async-mode."""
+    async with store.write() as conn:
+        await conn.execute(
+            "UPDATE jobs SET response_delivered=1, webhook_handover=1, updated_at=? "
+            "WHERE id=? AND mode='sync'",
+            (_now(), job_id),
+        )
+
+
+async def mark_async_with_handover(store: JobStore, job_id: str) -> None:
+    """Disconnect watcher commits this when `request.is_disconnected()` returns True.
+    Flips mode + handover; leaves response_delivered=false so the dispatcher fires."""
+    async with store.write() as conn:
+        await conn.execute(
+            "UPDATE jobs SET mode='async', webhook_handover=1, updated_at=? WHERE id=?",
+            (_now(), job_id),
+        )
+
+
+async def mark_handover(store: JobStore, job_id: str) -> None:
+    """Sets webhook_handover=1 only. Used by boot recovery for rows being
+    transitioned running→failed: dispatcher needs the barrier to fire."""
+    async with store.write() as conn:
+        await conn.execute(
+            "UPDATE jobs SET webhook_handover=1, updated_at=? WHERE id=?",
+            (_now(), job_id),
+        )

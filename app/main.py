@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -16,7 +17,10 @@ from app.backends.comfyui import ComfyUIAdapter
 from app.errors import install_error_envelope
 from app.logging_config import configure_logging
 from app.middleware.logging import RequestContextMiddleware
+from app.queue.reaper import OrphanReaper
+from app.queue.recovery import recover_jobs
 from app.queue.store import JobStore
+from app.queue.worker import QueueWorker
 from app.registry.models import load_registry
 from app.storage.s3 import S3Config, S3Storage
 
@@ -69,6 +73,37 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         )
     app.state.public_base_url = public_base_url
     app.state.job_timeout_s = float(os.environ.get("JOB_TIMEOUT_S", "300"))
+    max_queue = int(os.environ.get("MAX_QUEUE", "20"))
+    app.state.max_queue = max_queue
+
+    # Cycle 4: queue worker + orphan reaper + restart recovery.
+    # IMPORTANT ordering: worker must be running BEFORE recover_jobs calls
+    # worker.enqueue_recovery (blocking put), otherwise recovery deadlocks on
+    # a full queue waiting for a consumer.
+    worker = QueueWorker(
+        store=store,
+        adapter=adapter,
+        s3=s3,
+        registry=registry,
+        public_base_url=public_base_url,
+        job_timeout_s=app.state.job_timeout_s,
+        max_queue=max_queue,
+        async_mode_enabled=app.state.async_mode_enabled,
+    )
+    app.state.worker = worker
+    app.state.worker_task = asyncio.create_task(worker.run(), name="queue-worker")
+
+    reaper = OrphanReaper(
+        store=store,
+        s3=s3,
+        ttl_seconds=int(os.environ.get("ORPHAN_REAPER_TTL", "86400")),
+        scan_interval_seconds=int(os.environ.get("ORPHAN_REAPER_SCAN_INTERVAL_S", "600")),
+    )
+    app.state.reaper = reaper
+    app.state.reaper_task = asyncio.create_task(reaper.run(), name="orphan-reaper")
+
+    # Recovery scan. Worker + reaper are already spawned above.
+    recovery_stats = await recover_jobs(store, worker)
 
     log.info(
         "service.started",
@@ -78,12 +113,24 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         admin_keys=len(app.state.keyset.admin),
         models=registry.names(),
         public_base_url=app.state.public_base_url,
+        recovery=recovery_stats,
     )
 
     try:
         yield
     finally:
         log.info("service.stopping")
+        # Hard-cancel only. Arch §12 specifies SHUTDOWN_GRACE_S=90 for a drain
+        # period that waits for the active GPU job; that's Cycle 10's work.
+        # Cycle 4 clients in flight at shutdown receive 500s (handler cancelled).
+        for task_attr in ("reaper_task", "worker_task"):
+            task = getattr(app.state, task_attr, None)
+            if task is not None and not task.done():
+                task.cancel()
+                try:
+                    await task
+                except asyncio.CancelledError:
+                    pass
         await adapter.close()
         await store.close()
 

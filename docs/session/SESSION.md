@@ -2,7 +2,89 @@
 
 > Append the newest sprint at the top. Keep each entry short: one-line outcome, changed files, notable decisions, what's next.
 
-**Last session ended:** 2026-04-19 after Sprint 6 / Cycle 3 complete. Resume from [HANDOFF.md](HANDOFF.md) — it holds the pick-up-where-you-left-off summary.
+**Last session ended:** 2026-04-19 after Sprint 7 / Cycle 4 complete. Resume from [HANDOFF.md](HANDOFF.md) — it holds the pick-up-where-you-left-off summary.
+
+---
+
+## Sprint 7 — 2026-04-19 — Cycle 4 queue worker + disconnect handler + orphan reaper + restart recovery complete
+
+**Outcome:** `POST /v1/images/generations` now routes through an `asyncio.Queue`-bounded single worker. Client disconnect mid-request flips `mode=async, webhook_handover=true` (dispatcher-ready for Cycle 9). Process restart recovers left-over rows cleanly. Orphan S3 objects get reaped via `fetched_at IS NULL` scan every 10 min. 180 tests green (177 unit + 3 integration), ruff + format clean. Live end-to-end through the queue confirmed.
+
+**Files created / modified (14):**
+
+- **Schema:** `migrations/002_fetched_at.sql` — `ADD COLUMN fetched_at TEXT` + `idx_jobs_completed_unfetched` composite index.
+- **Worker:** `app/queue/worker.py` — `QueueWorker` class. Re-validates `job.input_json` on every dequeue so fresh requests and boot-recovered jobs share one pipeline. Timeout path calls `_safe_cancel` + `_safe_free` to release VRAM (arch §12). `set_running` failure cancels the ComfyUI prompt to avoid untracked runs.
+- **Reaper:** `app/queue/reaper.py` — periodic scan keyed on `status='completed' AND fetched_at IS NULL AND updated_at < cutoff`; deletes S3 objects, leaves job rows alone (Cycle 10 owns `JOB_RECORD_TTL`).
+- **Recovery:** `app/queue/recovery.py` — boot scan. `running` → `failed{service_restarted}, webhook_handover=true`. `queued` → `enqueue_recovery` (blocking put; worker MUST already be consuming — lifespan order enforces it).
+- **Jobs helpers** (`app/queue/jobs.py`): +`count_active`, `scan_non_terminal`, `set_fetched` (idempotent via `WHERE fetched_at IS NULL`), `mark_response_delivered` (sets both flags, guarded by `mode='sync'`), `mark_async_with_handover`, `mark_handover`, `set_abandoned`. `Job` dataclass gains `fetched_at`.
+- **Handler:** `app/api/images.py` — POST now enqueues, awaits under `asyncio.shield` (client disconnect cancelling the handler doesn't cancel the worker), spawns a per-request disconnect watcher polling `is_disconnected()` every 500ms, uses `BackgroundTasks` to flush `response_delivered` after the response writes. GET updates `fetched_at` via `set_fetched`.
+- **Lifespan** (`app/main.py`): spawns `worker_task` + `reaper_task` BEFORE `recover_jobs` (recovery deadlock fix — recovery's `await queue.put` needs a consumer). Threads `async_mode_enabled` into `QueueWorker`. Hard-cancel on shutdown (graceful-drain deferred to Cycle 10, documented inline).
+- **S3 storage:** `app/storage/s3.py` — `+delete_object` (idempotent on NoSuchKey) for the reaper.
+- **Tests:** `test_queue_worker.py` (5), `test_disconnect.py` (2), `test_restart_recovery.py` (3), `test_orphan_reaper.py` (4). `test_sync_endpoint.py` updated with a post-response `response_delivered` flush assertion. `test_image_get.py` updated with pre/post `fetched_at` assertion. `test_job_store.py` gains 7 tests for the new jobs.py helpers.
+- **Arch §4.2** gains a "Seed non-determinism on recovery" paragraph — seed=-1 is re-randomized on a recovery-triggered re-run; callers needing reproducibility across restarts MUST pass an explicit seed.
+
+**Decisions locked in CLARIFY:**
+
+- `fetched_at` column (not `response_delivered`) keys the reaper — gateway-GET is the first-fetch signal.
+- SQLite `count_active` before `create_queued` — no DB rows for rejected requests.
+- `asyncio.shield` wraps ONLY the future await; worker task runs independently.
+- Disconnect watcher polls every 500 ms.
+- `BackgroundTasks` for post-response `response_delivered=true` flush.
+
+**Bugs caught during BUILD:**
+
+- **Cycle 3 sync-endpoint tests broke after the handler rewrite.** They swapped `app.state.adapter` but the handler now delegates to `app.state.worker._adapter`. Fixture updated to patch both.
+- **`comfy_error` vs `internal` classification.** Zero-output + non-PNG now map to `comfy_error` (ComfyUI's output problem, not unclassified 5xx). DB + handler + tests aligned.
+- **Disconnect test initially raced.** Watcher polls at 500 ms; worker was finishing in 301 ms. Made the fake adapter slower (1.2 s) + forced `is_disconnected=True` on first call.
+
+**`/review-impl` pass found 10 findings, all fixed in the same cycle:**
+
+- **MED-1** Worker now calls `_safe_cancel` + `_safe_free` on `ComfyTimeoutError` (arch §12). Previously ComfyUI would keep running the prompt with VRAM stuck.
+- **MED-2** `set_running` wrapped; on SQLite write failure, we cancel the submitted ComfyUI prompt. Prevents "untracked running prompt" if a recovery-triggered rerun would otherwise duplicate generation.
+- **MED-3** Shutdown is hard-cancel only; comment in lifespan flags the `SHUTDOWN_GRACE_S=90` as Cycle 10 deferred.
+- **LOW-4** `async_mode_enabled` threaded into `QueueWorker.__init__` + read in re-validation. Future-proofs against flag flips during ongoing ops.
+- **LOW-5** Arch §4.2 documents seed=-1 non-determinism across restarts.
+- **LOW-6** Accepted — `mark_async_with_handover`'s unconditional UPDATE is correct per arch §4.8 decision table.
+- **LOW-7** `test_get_image_returns_png_bytes` now asserts `fetched_at` is NULL pre-fetch and set post-fetch.
+- **LOW-8** New `test_sync_generation_sets_response_delivered_and_handover` — poll-and-assert on the BackgroundTask's DB commit.
+- **COSMETIC-9** Deferred per arch (Cycle 10 JOB_RECORD_TTL owns row prune).
+- **COSMETIC-10** Added `scan_non_terminal` public helper in `app/queue/jobs.py`; `app/queue/recovery.py` no longer imports `_COLUMNS` / `_row_to_job`.
+
+**Live verification:**
+
+```
+pytest (full)     180/180 pass (177 unit + 3 integration)
+ruff              clean
+ruff format       clean
+docker compose    image-gen-service rebuilt; lifespan log:
+                     registry.loaded → queue_worker.started →
+                     orphan_reaper.started → recovery.done{req=0,fail=0} →
+                     service.started
+Live POST         routes through queue; worker picks up; 200 + gateway URL
+Live GET          streams from S3; fetched_at set; reaper on next scan skips it
+```
+
+### Retro — lessons worth keeping
+
+- **`asyncio.shield(fut)` scope matters more than it looks.** Wrapping JUST the future awaits lets the handler take client-disconnect cancellation while the worker task (running independently) continues. Wrapping too much (e.g. the whole adapter call) would delay shutdown; wrapping too little would cancel the worker mid-job. The worker-in-its-own-task design makes the shield unnecessary for the worker itself; shield only protects the handler's view.
+- **Lifespan task ordering matters when recovery is blocking.** `recover_jobs` → `enqueue_recovery` → `await queue.put()` — and that await blocks on capacity UNLESS a worker is draining. My initial intuition was "run recovery before starting worker task" (feels safer); that deadlocks if MAX_QUEUE recovered rows come up. Spawning worker first + relying on its concurrent consumption is correct. Captured in spec §9 risk #9 + lifespan comment.
+- **BackgroundTasks are "after response" but not "after flush".** Starlette runs them after the handler returns the Response object, which is before uvicorn writes the last byte. A crash between "response returned" and "bytes hit wire" leaves `response_delivered=false` committed, dispatcher fires the webhook, client never sees the response. That's at-least-once by design (arch §4.2); don't try to make it exactly-once — the dispatcher contract already mandates durable dedupe at the receiver.
+- **`Literal` annotations still lie at runtime, part 2.** Cycle 3's lesson came back: the `mark_async_with_handover` helper doesn't guard on `mode IN ('sync',)` — it unconditionally flips. That's deliberate (race with completion) but means typed annotations ≠ runtime invariants. Whenever a mutation crosses a state boundary, decide and document whether the mutation is idempotent or has preconditions.
+- **The "worker runs independently" model simplifies error semantics dramatically.** Every worker error → DB write → future.set_exception. Handler just catches the future exception. No shared state between handler's cancellation path and worker's processing path. Clean.
+
+**What's next (Sprint 8 plan / Cycle 5):**
+
+1. `app/loras/scanner.py` — walk `./loras/`, read sidecars (`<name>.json`), return `LoraMeta` list.
+2. `app/api/loras.py` — `GET /v1/loras` (any scope).
+3. `app/registry/workflows.py` gets two new functions: `inject_loras(graph, loras)` implementing arch §9 chain algorithm, `inject_vpred(graph)` (deferred body but scaffolded).
+4. `app/validation.py` stops rejecting `loras`; adds the §6.0 bounds + path-realpath containment check.
+5. `workflows/sdxl_eps.json` stays anchor-tagged as-is; injection runs at request time.
+6. Tests: `test_lora_scanner.py`, `test_graph_injection.py`, `test_path_traversal.py`. Integration test with a real LoRA showing visible-effect difference.
+
+**Prerequisites for Cycle 5:**
+- At least one compatible SDXL LoRA placed in `./loras/` with a `<name>.json` sidecar (user to provide or fetch from Civitai manually pre-cycle).
+
+**Commits this sprint:** 1 feat + 1 docs session-close.
 
 ---
 

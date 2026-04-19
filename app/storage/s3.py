@@ -164,3 +164,17 @@ class S3Storage:
             return resp["Body"].read()
 
         return await asyncio.to_thread(_sync)
+
+    async def delete_object(self, bucket: str, key: str) -> None:
+        """Delete an S3 object. 404 is silently tolerated (idempotent)."""
+
+        def _sync() -> None:
+            try:
+                self._client.delete_object(Bucket=bucket, Key=key)
+            except ClientError as exc:
+                code = exc.response.get("Error", {}).get("Code", "")
+                if code in ("NoSuchKey", "404"):
+                    return
+                raise StorageError(f"delete_object failed: {exc}") from exc
+
+        await asyncio.to_thread(_sync)

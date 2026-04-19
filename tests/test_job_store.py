@@ -11,10 +11,16 @@ from app.queue.jobs import (
     InvalidTransitionError,
     Job,
     JobNotFoundError,
+    count_active,
     create_queued,
     get_by_id,
+    mark_async_with_handover,
+    mark_handover,
+    mark_response_delivered,
+    set_abandoned,
     set_completed,
     set_failed,
+    set_fetched,
     set_running,
 )
 from app.queue.store import JobStore
@@ -206,3 +212,101 @@ async def test_migration_runner_is_idempotent_on_reapply(tmp_path: Path) -> None
 
         fourth = await apply_migrations(conn, tmp_path)
         assert fourth == []
+
+
+# ───────────────────────── Cycle 4 additions ─────────────────────────
+
+
+async def test_fetched_at_column_exists(store: JobStore) -> None:
+    """Migration 002_fetched_at.sql adds the column."""
+    conn = await store.read()
+    cursor = await conn.execute("PRAGMA table_info(jobs)")
+    cols = {row[1] for row in await cursor.fetchall()}
+    assert "fetched_at" in cols
+
+
+async def test_count_active_counts_queued_and_running(store: JobStore) -> None:
+    assert await count_active(store) == 0
+    j1 = await create_queued(store, model_name="m", input_json="{}")
+    await create_queued(store, model_name="m", input_json="{}")
+    assert await count_active(store) == 2
+    await set_running(store, j1.id, prompt_id="pid", client_id="cid")
+    assert await count_active(store) == 2  # running still counts
+    await set_completed(store, j1.id, output_keys=[], result_json="{}")
+    assert await count_active(store) == 1  # completed does not
+
+
+async def test_set_fetched_is_idempotent_on_first_only(store: JobStore) -> None:
+    """First call sets the timestamp; second call leaves the original in place."""
+    job = await create_queued(store, model_name="m", input_json="{}")
+    await set_running(store, job.id, prompt_id="pid", client_id="cid")
+    await set_completed(store, job.id, output_keys=["a"], result_json="{}")
+
+    await set_fetched(store, job.id)
+    after_first = await get_by_id(store, job.id)
+    assert after_first is not None
+    assert after_first.fetched_at is not None
+    first_stamp = after_first.fetched_at
+
+    # Sleep briefly so now() would be different, then re-fetch.
+    await asyncio.sleep(0.01)
+    await set_fetched(store, job.id)
+    after_second = await get_by_id(store, job.id)
+    assert after_second is not None
+    assert after_second.fetched_at == first_stamp  # unchanged
+
+
+async def test_mark_response_delivered_sets_both_flags(store: JobStore) -> None:
+    job = await create_queued(store, model_name="m", input_json="{}")
+    await set_running(store, job.id, prompt_id="pid", client_id="cid")
+    await set_completed(store, job.id, output_keys=["a"], result_json="{}")
+    await mark_response_delivered(store, job.id)
+    fetched = await get_by_id(store, job.id)
+    assert fetched is not None
+    assert fetched.response_delivered is True
+    assert fetched.webhook_handover is True
+
+
+async def test_mark_async_with_handover_flips_mode_keeps_response_delivered_false(
+    store: JobStore,
+) -> None:
+    job = await create_queued(store, model_name="m", input_json="{}")
+    assert job.mode == "sync"
+    await mark_async_with_handover(store, job.id)
+    fetched = await get_by_id(store, job.id)
+    assert fetched is not None
+    assert fetched.mode == "async"
+    assert fetched.webhook_handover is True
+    assert fetched.response_delivered is False
+
+
+async def test_mark_handover_only_sets_handover_flag(store: JobStore) -> None:
+    job = await create_queued(store, model_name="m", input_json="{}")
+    await mark_handover(store, job.id)
+    fetched = await get_by_id(store, job.id)
+    assert fetched is not None
+    assert fetched.webhook_handover is True
+    assert fetched.response_delivered is False
+    assert fetched.mode == "sync"  # unchanged
+
+
+async def test_set_abandoned_transitions(store: JobStore) -> None:
+    """queued or running → abandoned is allowed; terminal states can't."""
+    job = await create_queued(store, model_name="m", input_json="{}")
+    abandoned = await set_abandoned(store, job.id)
+    assert abandoned.status == "abandoned"
+
+    # From running
+    j2 = await create_queued(store, model_name="m", input_json="{}")
+    await set_running(store, j2.id, prompt_id="pid", client_id="cid")
+    await set_abandoned(store, j2.id)
+    row = await get_by_id(store, j2.id)
+    assert row is not None
+    assert row.status == "abandoned"
+
+    # From completed should refuse.
+    j3 = await create_queued(store, model_name="m", input_json="{}")
+    await set_running(store, j3.id, prompt_id="pid", client_id="cid")
+    await set_completed(store, j3.id, output_keys=[], result_json="{}")
+    with pytest.raises(InvalidTransitionError):
+        await set_abandoned(store, j3.id)
