@@ -98,6 +98,9 @@ bash scripts/workflow-gate.sh phase clarify
 cd d:/Works/source/local-image-generator-service
 git status                                        # clean on main
 bash scripts/workflow-gate.sh status              # empty
+# First-boot prereq on a fresh clone: both dirs are gitignored so each dev
+# must create the stubs before compose will start.
+mkdir -p models/loras data/comfyui-user
 docker compose up -d                              # all 3 services; rebuilds image-gen-service for LORAS_ROOT+loras mount
 until docker compose ps --format json comfyui | grep -q '"Health":"healthy"'; do sleep 5; done
 curl -sf -H "Authorization: Bearer $API_KEY" http://127.0.0.1:8700/health | jq .

@@ -71,8 +71,20 @@ services:
       # subtree so ComfyUI's LoraLoader can resolve names requested by our
       # `inject_loras` chain without us reshuffling the ./models/ tree.
       - ./loras:/workspace/ComfyUI/models/loras:ro
-      # Workflows bind-mounted so the sidecar's web UI can load them for debugging.
-      - ./workflows:/workspace/ComfyUI/user/default/workflows:ro
+      # Writable user tree — ComfyUI ≥0.9 persists settings.json + an asset DB
+      # (SQLite) here. Without a writable mount, the web UI throws
+      # PermissionError on save and the asset scanner's Session factory stays
+      # None. Host-side state lives under ./data/comfyui-user/ (gitignored).
+      #
+      # NOTE: previously we also mounted ./workflows as :ro at
+      # /workspace/ComfyUI/user/default/workflows so the ComfyUI web UI could
+      # browse our JSON templates. On Docker Desktop / Windows that :ro overlay
+      # forced Docker to pre-create `default/` as root-owned, blocking the
+      # container's `comfy` user from writing settings.json. Our API does not
+      # depend on ComfyUI's workflow browser (we send graphs directly via
+      # /prompt). If you want to inspect a workflow in the UI, drag-load the
+      # JSON from ./workflows/ on the host.
+      - ./data/comfyui-user:/workspace/ComfyUI/user
     networks:
       - internal
     healthcheck:
