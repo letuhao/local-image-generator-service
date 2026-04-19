@@ -9,17 +9,11 @@
 
 ## Where we are
 
-- **Branch:** `main`, **9 commits ahead** of `origin/main` (will be 10 after Cycle 5 commit).
-- **Commits since origin:**
-  - `9b13ea9` feat(cycle-1): FastAPI auth + SQLite job store + structured JSON logging
-  - `08e67aa` docs: session close — rewrite HANDOFF.md for Cycle 2 pickup
-  - `2ff43a7` feat(cycle-2): ComfyUI sidecar + BackendAdapter + anchor-tagged NoobAI workflow
-  - `b053021` docs: session close — rewrite HANDOFF.md for Cycle 3 pickup
-  - `f9713aa` feat(cycle-3): MinIO gateway + model registry + POST /v1/images/generations
-  - `d3e3c54` docs: session close — rewrite HANDOFF.md for Cycle 4 pickup
+- **Branch:** `main`, **1 commit ahead** of `origin/main` (Cycle 5; earlier cycles pushed).
+- **Latest commits:**
+  - `af615a5` feat(cycle-5): LoRA scanner + graph injection + GET /v1/loras + path-traversal defense  ← unpushed
+  - `b9fb515` docs: session close — rewrite HANDOFF.md for Cycle 5 pickup
   - `6f850c8` feat(cycle-4): queue worker + disconnect handler + orphan reaper + restart recovery
-  - `5ecef6b` docs: session close — tick Cycle 0, add HANDOFF.md, update SESSION pointer
-  - `<cycle5>` feat(cycle-5): LoRA scanner + graph injection + GET /v1/loras + path-traversal defense
 - **Plan progress:** 6 / 11 cycles complete.
 
 ```
