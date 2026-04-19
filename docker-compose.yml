@@ -10,10 +10,18 @@ services:
     image: image-gen-service:0.1.0
     environment:
       IMAGEGEN_ENV: ${IMAGEGEN_ENV:-dev}
-      # Cycle 0: only a subset of env vars are actually read by the service.
-      # The full set is documented in .env.example for forward-compatibility.
+      # Cycle 1: auth + SQLite + logging are live. Later cycles bring more env into use.
+      API_KEYS: ${API_KEYS:-}
+      ADMIN_API_KEYS: ${ADMIN_API_KEYS:-}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      LOG_PROMPTS: ${LOG_PROMPTS:-false}
+      DATABASE_PATH: ${DATABASE_PATH:-/app/data/jobs.db}
       COMFYUI_URL: http://comfyui:8188
       S3_INTERNAL_ENDPOINT: http://minio:9000
+    volumes:
+      # SQLite job store. Bind mount in dev so operators can `sqlite3 data/jobs.db`.
+      # Prod deploys should replace this with a named volume.
+      - ./data:/app/data
     depends_on:
       minio:
         condition: service_healthy

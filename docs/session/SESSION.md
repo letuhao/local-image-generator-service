@@ -2,7 +2,87 @@
 
 > Append the newest sprint at the top. Keep each entry short: one-line outcome, changed files, notable decisions, what's next.
 
-**Last session ended:** 2026-04-18 after Sprint 3 / Cycle 0 complete. Resume from [HANDOFF.md](HANDOFF.md) — it holds the pick-up-where-you-left-off summary.
+**Last session ended:** 2026-04-19 after Sprint 4 / Cycle 1 complete. Resume from [HANDOFF.md](HANDOFF.md) — it holds the pick-up-where-you-left-off summary.
+
+---
+
+## Sprint 4 — 2026-04-19 — Cycle 1 auth + SQLite + structured logging complete
+
+**Outcome:** Every request to the service now carries a JSON-structured log line with `request_id`, every job is persistable via `JobStore` CRUD through arch §4.2's full schema, and `/health` has a boolean-vs-verbose shape gated by Bearer auth. 53 pytest cases green, ruff + format clean, in-container smoke confirms JSON logs + envelope responses. Ready for Cycle 2 (ComfyUI sidecar + adapter).
+
+**Files created / modified (20):**
+
+- `app/auth.py` — multi-key parser, kid derivation, `hmac.compare_digest`, FastAPI deps with contextvars binding, public `verify_key` helper.
+- `app/errors.py` — error-envelope handler covering both `StarletteHTTPException` (404s/405s) and generic `Exception` (500s).
+- `app/logging_config.py` — structlog + stdlib bridge, recursive `redact_sensitive` processor that drops sensitive keys at any nesting depth and regex-scrubs `Bearer`/`X-Amz-Signature`/`Authorization:` from the `event` + `exception` strings.
+- `app/middleware/logging.py` — **pure ASGI** `RequestContextMiddleware` (not `BaseHTTPMiddleware`): binds `request_id`, echoes header, logs access line with float `duration_ms`.
+- `app/queue/store.py` — `JobStore` class (connect/close/write/read/healthcheck), `apply_migrations` with strict `NNN_<name>.sql` filename enforcement.
+- `app/queue/jobs.py` — `Job` dataclass, CRUD via `INSERT ... RETURNING` (one round-trip), transition guard with `InvalidTransitionError` + `JobNotFoundError`.
+- `app/api/health.py` — DB-probing `/health`, 503 on unreachable, auth-gated verbose shape.
+- `app/main.py` — rewrote with lifespan (configure_logging → JobStore.connect → keyset load), error envelope install, pure-ASGI middleware mount.
+- `migrations/001_init.sql` — arch §4.2 jobs schema + schema_version tracking table + two indexes for Cycle 4 reapers.
+- `docker-compose.yml` — added `./data:/app/data` bind mount + `API_KEYS`/`ADMIN_API_KEYS`/`LOG_LEVEL`/`LOG_PROMPTS`/`DATABASE_PATH` env.
+- `.env.example` — +3 vars (`LOG_LEVEL`, `LOG_PROMPTS=false`, `DATABASE_PATH`).
+- `pyproject.toml` — added `aiosqlite`, `structlog`, `svix-ksuid` to runtime deps.
+- Tests (new/updated): `tests/test_auth.py` (16), `tests/test_job_store.py` (13), `tests/test_logging.py` (14), `tests/test_health.py` (10 updated), `tests/conftest.py` (per-test DB + broken-DB fixture, `raise_app_exceptions=False`).
+- Docs: `docs/specs/2026-04-19-cycle-1-fastapi-auth-sqlite-logging.md` (spec + design §12), `docs/plans/2026-04-19-cycle-1-tasks.md` (6-chunk task plan).
+
+**Decisions locked:**
+
+- **structlog over stdlib.** `contextvars.merge_contextvars` processor gives automatic `request_id`/`key_id`/`job_id` propagation across async hops; rolling this in stdlib would have meant hand-rolling a `ContextVar[dict]` + custom formatter.
+- **SQLite posture:** `WAL + synchronous=NORMAL + busy_timeout=5000 + foreign_keys=ON`, single long-lived connection, `asyncio.Lock` guarding writes. Reader-writer split deferred to Cycle 4 if contention surfaces.
+- **Prompt logging off by default** (`LOG_PROMPTS=false`) and further gated to DEBUG level — neither flag alone is enough.
+- **Kid width 8 hex chars** — documented birthday bound at ~65k distinct keys; sufficient for the roadmap, flagged for reconsideration if ever multi-tenant.
+- **Pure ASGI middleware** (not `BaseHTTPMiddleware`) — required to keep FastAPI's exception-handler chain working cleanly.
+
+**`/review-impl` pass found 10 findings, all fixed in same cycle:**
+
+- MED-1: 401 responses now carry `WWW-Authenticate: Bearer` (RFC 7235 §3.1).
+- MED-2: Bearer scheme comparison is now case-insensitive (RFC 6750 §2.1) — accepts `Bearer` / `bearer` / `BEARER`.
+- MED-3: Added generic `Exception` handler to `install_error_envelope` so unhandled 500s carry `{"error":{"code":"internal",...}}` rather than FastAPI's default plain text.
+- MED-4: `redact_sensitive` now walks dicts/lists recursively (strips sensitive keys at any depth, redacts prompts at any depth) and applies regex scrubs to the `event` + `exception` fields catching `Bearer <tok>`, `X-Amz-Signature=...`, `Authorization: ...` leaks via f-string templating or frame-local traceback rendering.
+- LOW-5: 3 pytest cases for migration runner (bad filename rejection, duplicate prefix rejection, idempotent re-apply).
+- LOW-6: Simplified the redundant dedupe check in `apply_migrations`.
+- LOW-7: `duration_ms` is now a float with 3-decimal (µs) resolution — sub-millisecond requests no longer log as `0`.
+- LOW-8: `create_queued` uses `INSERT ... RETURNING` (SQLite ≥ 3.35) — single round-trip instead of INSERT+SELECT.
+- COSMETIC-9: `status='queued'` is parameter-bound in the INSERT, not inline literal.
+- COSMETIC-10: `kid_for` docstring documents the 32-bit birthday bound and when to widen.
+
+**Side effect of MED-3 fix:** uncovered a latent bug — `RequestContextMiddleware` was a `BaseHTTPMiddleware` subclass, which wraps each request in an anyio task group. The task group converts caught exceptions into `ExceptionGroup` and breaks FastAPI's exception-handler chain for unhandled errors. Rewrote as pure ASGI middleware. Simpler, faster (no context-switch per request), and correct.
+
+**Live verification:**
+
+```
+pytest      53/53 pass
+ruff        clean
+ruff fmt    clean
+curl /health (no auth)              {"status":"ok"}
+curl /health (bearer probe-gen)     {"status":"ok","db":"ok"}
+curl /health (Authorization: bearer …)   200 (case-insensitive scheme)
+curl /nonexistent                   {"error":{"code":"not_found","message":"Not Found"}}
+in-container log line               {"method":"GET","path":"/health","status":200,"duration_ms":0.088,"event":"request.served","request_id":"…"}
+boot line                           {"event":"service.started","generation_keys":1,"admin_keys":1,"imagegen_env":"dev",…}
+no double access log                one request.served per curl; uvicorn.access silenced
+```
+
+### Retro — lessons worth keeping
+
+- **`BaseHTTPMiddleware` is a trap when the app has exception handlers.** It wraps requests in an anyio task group that converts caught exceptions into `ExceptionGroup`, which breaks FastAPI's handler chain for `Exception` — unhandled errors propagate to the test client instead of being converted to 500 responses. Only surfaced when we added the generic-exception test during /review-impl. For any middleware that isn't doing stream body transformation, prefer pure ASGI (`async def __call__(self, scope, receive, send)`). Save `BaseHTTPMiddleware` for middleware that *must* rewrite response bodies.
+- **RFC correctness pays off under adversarial review, not before.** `WWW-Authenticate` on 401 and case-insensitive `Bearer` were trivial to add, but neither the spec nor the PO review surfaced them — /review-impl did. Budget time for RFC checks on every auth/HTTP surface.
+- **Redaction processors that look at top-level keys only are inadequate.** A nested dict (e.g. request context in an error payload) with `{"Authorization": "Bearer foo"}` would have slipped through. The fix — recursive walk + string-level regex — is 20 LOC and catches a whole class of future leaks.
+- **`ASGITransport(raise_app_exceptions=True)` is the wrong default for apps with exception handlers.** httpx re-raises any exception that transited the ASGI chain even when the handler converted it to a response. Our `conftest.py` now sets `raise_app_exceptions=False` so tests see the actual response body.
+- **INSERT ... RETURNING is supported in SQLite 3.35+; Python 3.12 ships with 3.40+.** Worth using from the start — cuts a round-trip in every create-and-return CRUD helper.
+
+**What's next (Sprint 5 plan / Cycle 2):**
+
+1. Write `docker/comfyui/Dockerfile` pinned to a specific ComfyUI tag + `city96/ComfyUI-GGUF` commit, on `nvidia/cuda:12.x-runtime-ubuntu22.04`.
+2. Create `workflows/sdxl_vpred.json` anchor-tagged for NoobAI-XL Vpred (`%MODEL_SOURCE%`, `%CLIP_SOURCE%`, `%POSITIVE_PROMPT%`, `%NEGATIVE_PROMPT%`, `%KSAMPLER%`, `%OUTPUT%`, + `ModelSamplingDiscrete` for vpred injection).
+3. Build `app/backends/base.py` (Protocol) + `app/backends/comfyui.py` (HTTP + WebSocket adapter with poll fallback + `/interrupt` + `/free`).
+4. Build `app/registry/workflows.py` (anchor validation + find-by-anchor).
+5. Unit tests for anchor resolver; integration test `tests/integration/test_comfyui_adapter.py` (real GPU — skipped in CI).
+6. Prereq: confirm `NoobAI-XL-Vpred-1.0.safetensors` + `sdxl_vae.safetensors` in `./models/` on the host.
+
+**Commits this sprint:** 1 expected (all Cycle 1 + review-impl fixes).
 
 ---
 

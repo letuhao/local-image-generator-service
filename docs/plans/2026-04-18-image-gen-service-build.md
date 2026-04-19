@@ -22,7 +22,7 @@
 
 ### Foundation
 - [x] **Cycle 0** — Repo bootstrap (pyproject, tooling, CI skeleton, dev compose override) — commit `1943d18`, Sprint 3
-- [ ] **Cycle 1** — FastAPI skeleton + auth + SQLite job store + structured logging + /health
+- [x] **Cycle 1** — FastAPI skeleton + auth + SQLite job store + structured logging + /health — Sprint 4
 - [ ] **Cycle 2** — ComfyUI sidecar image + adapter (HTTP + WS) + NoobAI workflow template + anchor resolver
 - [ ] **Cycle 3** — MinIO uploader + first sync `/v1/images/generations` end-to-end
 
@@ -51,7 +51,7 @@
 | # | Name | Est | Files (new/mod) | Blocks | Status |
 |---|---|---|---|---|---|
 | 0 | Repo bootstrap | S→**XL** (actual 14) | 14 | all | [x] `1943d18` |
-| 1 | FastAPI + auth + SQLite + logging | M | 12 | 2+ | [ ] |
+| 1 | FastAPI + auth + SQLite + logging | M→**XL** (actual 20) | 20 | 2+ | [x] Sprint 4 |
 | 2 | ComfyUI sidecar + adapter + NoobAI workflow | L | 10 | 3+ | [ ] |
 | 3 | MinIO upload + first sync endpoint | M | 6 | 4+ | [ ] |
 | 4 | Queue + disconnect + reaper + restart recovery | M | 7 | 8, 9 | [ ] |
