@@ -17,11 +17,21 @@ services:
       LOG_PROMPTS: ${LOG_PROMPTS:-false}
       DATABASE_PATH: ${DATABASE_PATH:-/app/data/jobs.db}
       COMFYUI_URL: http://comfyui:8188
+      COMFYUI_WS_URL: ws://comfyui:8188/ws
       S3_INTERNAL_ENDPOINT: http://minio:9000
+      S3_BUCKET: ${S3_BUCKET:-image-gen}
+      S3_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
+      S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      VRAM_BUDGET_GB: ${VRAM_BUDGET_GB:-12}
+      IMAGE_GEN_PUBLIC_BASE_URL: ${IMAGE_GEN_PUBLIC_BASE_URL:-http://127.0.0.1:8700}
     volumes:
       # SQLite job store. Bind mount in dev so operators can `sqlite3 data/jobs.db`.
       # Prod deploys should replace this with a named volume.
       - ./data:/app/data
+      # Registry + workflows + models are read-only by the service. Cycle 3+.
+      - ./config:/app/config:ro
+      - ./workflows:/app/workflows:ro
+      - ./models:/app/models:ro
     depends_on:
       minio:
         condition: service_healthy

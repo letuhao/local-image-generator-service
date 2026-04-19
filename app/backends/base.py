@@ -30,10 +30,7 @@ class ComfyTimeoutError(BackendError):
 
 @dataclass(frozen=True, slots=True)
 class ModelConfig:
-    """Static per-model configuration; loaded from `config/models.yaml` in Cycle 3.
-
-    Cycle 2 passes a hand-built literal for tests.
-    """
+    """Static per-model configuration; loaded from `config/models.yaml` by the Registry."""
 
     name: str
     backend: Literal["comfyui"]
@@ -41,12 +38,11 @@ class ModelConfig:
     checkpoint: str  # relative to models/ (e.g. "checkpoints/NoobAI-XL-v1.1.safetensors")
     vae: str | None  # None = use checkpoint's baked-in VAE
     vram_estimate_gb: float
-    defaults: dict[str, Any] = field(
-        default_factory=dict
-    )  # Cycle 3+: size/steps/cfg/sampler/scheduler
-    limits: dict[str, Any] = field(
-        default_factory=dict
-    )  # Cycle 3+: steps_max/n_max/size_max_pixels
+    # "eps" | "vpred" — informational in Cycle 3; Cycle 5+ uses it for graph injection.
+    prediction: Literal["eps", "vpred"] = "eps"
+    capabilities: dict[str, Any] = field(default_factory=dict)  # e.g. {"image_gen": True}
+    defaults: dict[str, Any] = field(default_factory=dict)  # size/steps/cfg/sampler/scheduler
+    limits: dict[str, Any] = field(default_factory=dict)  # steps_max/n_max/size_max_pixels
 
 
 @dataclass(frozen=True, slots=True)

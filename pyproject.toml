@@ -16,6 +16,10 @@ dependencies = [
     "structlog>=24.4,<25",
     "svix-ksuid>=0.6.2,<0.7",
     "websockets>=13,<14",
+    "httpx>=0.27,<0.28",
+    "boto3>=1.35,<2",
+    "tenacity>=9",
+    "PyYAML>=6.0.2",
 ]
 
 [dependency-groups]
@@ -25,13 +29,13 @@ dev = [
     "httpx>=0.27,<0.28",
     "asgi-lifespan>=2.1",     # lets the test client trigger FastAPI startup/shutdown hooks
     "respx>=0.21,<0.22",      # httpx mocking for adapter unit tests (Cycle 2)
+    "moto[s3]>=5,<6",         # S3 mock for storage unit tests (Cycle 3)
     "ruff>=0.8",
 ]
 
 # Forward-looking runtime deps (arch §14) deliberately deferred until the
 # cycle that first needs them — adding them now pollutes the lockfile and
 # slows Docker builds. Add per-cycle:
-#   Cycle 3:  boto3, tenacity
 #   Cycle 9:  watchfiles
 
 [build-system]

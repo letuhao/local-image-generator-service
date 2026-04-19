@@ -1,0 +1,34 @@
+# Model registry for image-gen-service.
+#
+# Cycle 3 seed: one SDXL model using ComfyUI backend. Future cycles add entries:
+#   Cycle 7: chroma-hd-q8 (GGUF, dual CLIP)
+#
+# Paths are relative:
+#   workflow:   relative to repo root
+#   checkpoint: relative to ./models/  (subdir layout per arch v0.5)
+#   vae:        relative to ./models/  (optional; omit to use checkpoint's baked VAE)
+#
+# Startup validation fails fast on missing files, missing workflow anchors,
+# or vram_estimate_gb > VRAM_BUDGET_GB.
+
+models:
+  - name: noobai-xl-v1.1
+    backend: comfyui
+    workflow: workflows/sdxl_eps.json
+    checkpoint: checkpoints/NoobAI-XL-v1.1.safetensors
+    prediction: eps
+    vae: vae/sdxl_vae.safetensors
+    capabilities:
+      image_gen: true
+    defaults:
+      size: "1024x1024"
+      steps: 28
+      cfg: 5.0
+      sampler: euler_ancestral
+      scheduler: karras
+      negative_prompt: "worst quality, low quality"
+    limits:
+      steps_max: 60
+      n_max: 4
+      size_max_pixels: 1572864   # 1024×1536 ceiling per arch §4.4
+    vram_estimate_gb: 7

@@ -280,23 +280,25 @@ Or via URL (the service parses `civitai.com/models/<id>(?modelVersionId=<vid>)?`
 
 **Apply.** Request payload carries `loras: [{name, weight}]`. The ComfyUI adapter injects `LoraLoader` nodes between the model/clip anchors and downstream consumers (algorithm in §9). LoRA names are validated against `^[A-Za-z0-9_][A-Za-z0-9_\-.]*$` (no path components); missing files return `error_code="lora_missing"` before workflow submission.
 
-### 4.6 Output uploader (MinIO / S3)
+### 4.6 Output uploader (MinIO / S3) — v0.6 backend gateway model
 
-Flow: after ComfyUI returns PNG bytes → upload → presign → respond.
+Flow: after ComfyUI returns PNG bytes → upload to S3 (internal only) → respond with a URL pointing at **our** service → caller GETs the image through us.
 
-**Two-URL model for MinIO:**
-- `S3_INTERNAL_ENDPOINT` (default `http://minio:9000`) — used by the **upload** client inside Compose.
-- `S3_PUBLIC_ENDPOINT` (default same as internal in dev; set to a public URL in prod) — used by the **signing** client that generates presigned GET URLs for LoreWeave.
+**Single-client model:**
+- `S3_INTERNAL_ENDPOINT` (default `http://minio:9000`) — the only S3 endpoint configured. One boto3 client.
+- No presigned URLs in Cycle 3+ (v0.6 amendment). Callers never touch S3 directly.
 
-`S3_PUBLIC_URL` host-swap via string replacement is **not used** — SigV4 includes the `Host` header in the signature, so the signing client must be constructed with `endpoint_url=S3_PUBLIC_ENDPOINT` directly. Two boto3 clients; one job uses both.
+**Response URL shape.** `data[].url = <IMAGE_GEN_PUBLIC_BASE_URL>/v1/images/<job_id>/<index>.png`, e.g. `http://127.0.0.1:8700/v1/images/gen_abc123/0.png`. Base URL is operator-configured, normalized at load time (trailing slash stripped, scheme required).
+
+**Image fetch gateway** — `GET /v1/images/{job_id}/{index}.png` (see §6.X). Authenticates via the same Bearer key as the POST; streams bytes from S3 back to the caller. No time-boxed URLs; caller must hold a valid key for the duration.
 
 **Upload retry.** 3 attempts with jittered exponential backoff (`500ms`, `1.5s`, `4.5s`). On terminal failure → `error_code="storage_error"`.
 
-**Presign TTL.** Default 3600 s (1 h), configurable via `PRESIGN_TTL_S`. Integration-guide target is ~10 min; generous for LoreWeave retry but capped.
+**Object key layout:** `generations/<YYYY>/<MM>/<DD>/<job_id>/<index>.png` (unchanged from v0.5).
 
-**Object key layout:** `generations/<YYYY>/<MM>/<DD>/<job_id>/<index>.png`.
+**Log redaction.** Object keys are fine to log as `(bucket, key)` tuples. The gateway URL is safe to log (it's auth-gated by Bearer, not by URL-embedded tokens). Error response bodies return the opaque gateway URL, never the internal object key.
 
-**Log redaction.** Full presigned URL (including `X-Amz-Signature`) is **never** logged. Logs reference objects by `(bucket, key)` only. Error response bodies return the object key, never the signed URL.
+**Rationale for the gateway redirect (v0.6):** unified auth (no separate presign credential surface), exact fetch observability (orphan reaper sees every fetch directly in Cycle 4), simpler code. Trade-off is bandwidth amplification through the uvicorn process — acceptable at LoreWeave's scale; revisitable post-v1.
 
 ### 4.7 ComfyUI sidecar — custom nodes & Dockerfile
 
@@ -467,10 +469,10 @@ services:
       COMFYUI_URL: http://comfyui:8188
       COMFYUI_WS_URL: ws://comfyui:8188/ws
       S3_INTERNAL_ENDPOINT: http://minio:9000
-      S3_PUBLIC_ENDPOINT: http://minio:9000      # override in prod
       S3_BUCKET: image-gen
       S3_ACCESS_KEY: ${MINIO_ROOT_USER}
       S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      IMAGE_GEN_PUBLIC_BASE_URL: ${IMAGE_GEN_PUBLIC_BASE_URL:-http://127.0.0.1:8700}  # v0.6 gateway; replaces presigned URLs
       CIVITAI_API_TOKEN: ${CIVITAI_API_TOKEN}
       VRAM_BUDGET_GB: "12"
       ASYNC_MODE_ENABLED: "false"
@@ -564,9 +566,20 @@ Response (200):
 ```json
 {
   "created": 1713456000,
-  "data": [{ "url": "https://.../...png" }]
+  "data": [{ "url": "http://127.0.0.1:8700/v1/images/gen_abc123/0.png" }]
 }
 ```
+
+The URL points at **our** `/v1/images/{job_id}/{index}.png` gateway (see §6.X), not at S3 directly. Bearer auth required on the GET. Dev emits `http://…`; prod ingress should expose `https://…` via `IMAGE_GEN_PUBLIC_BASE_URL`.
+
+### 6.1.1 `GET /v1/images/{job_id}/{index}.png` — image fetch gateway (v0.6)
+
+Streams the generated PNG back to the caller. Auth: `require_auth` (either generation or admin scope).
+
+- **Path parameters:** `job_id` must match `gen_<ksuid>`; `{index}.png` must match `^\d+\.png$` (index out of range → 404).
+- **Status:** 200 on success with `Content-Type: image/png` + PNG bytes; 401 on missing/invalid Bearer; 404 on unknown job, unfetched-yet-job, out-of-range index, or missing S3 object; 502 on S3 transport failure.
+- **Response body on error:** standard envelope `{"error":{"code":...,"message":...}}`. Image bytes never included in error responses.
+- **Caching:** response carries no `Cache-Control`; callers SHOULD treat fetches as authed resources (not CDN-safe).
 
 ### 6.2 `POST /v1/images/generations` with `"mode": "async"` (extension — feature-flagged)
 
@@ -958,6 +971,10 @@ func VerifyImageGenWebhook(r *http.Request, acceptedSecrets []string, skewSecond
 
 - **Health-endpoint info leak.** Unauthenticated `/health` returns `{status: ok|degraded}` only. Authenticated callers (either scope) get the verbose shape.
 
+- **Data at rest — jobs table (v0.6 posture note).** The `jobs` SQLite table stores `input_json` (caller's full POST body, including `prompt`) in plaintext. Logging redacts prompts (`LOG_PROMPTS` gate + redaction processor) but the on-disk SQLite file does not. An attacker with filesystem access to `./data/jobs.db` can read every prompt ever generated. Mitigations in scope for v1: restrict filesystem perms on the mounted volume; rely on volume encryption at the host level. Out of scope for v1: application-level encryption of prompts. Revisit if LoreWeave sends PII-grade content.
+
+- **Image-fetch gateway auth (v0.6).** `GET /v1/images/{job_id}/{index}.png` requires a valid Bearer key (either scope) — no per-key job ownership check. A compromised generation key can enumerate any job's images by iterating `gen_<ksuid>` values. ksuid is 128-bit so brute-force enumeration is impractical, but a leaked key + access to our audit logs (which include `X-Job-Id`) is enough to pull arbitrary images. Mitigation: rotate keys promptly; the `kid` in logs scopes blast-radius auditing. Revisit if multi-tenant posture is adopted.
+
 ---
 
 ## 12. Concurrency / resource model
@@ -1170,6 +1187,28 @@ Failures at any step produce a clear `startup_failed{stage, reason}` log and a n
 ---
 
 ## 20. Change log
+
+### v0.6 (2026-04-19) — Cycle 3 amendment: backend gateway replaces presigned URLs
+
+Cycle 3 CLARIFY Q4 redirected the S3 access model. v0.4/v0.5 mandated two boto3 clients (internal for upload, public for presign) and returned S3-presigned URLs directly to the caller. v0.6 collapses this to a single internal client + a backend-gateway endpoint.
+
+**Contract changes (§4.6, §6.1, §6.X new):**
+- `data[].url` now points at `{IMAGE_GEN_PUBLIC_BASE_URL}/v1/images/{job_id}/{index}.png` instead of a MinIO presigned URL.
+- New `GET /v1/images/{job_id}/{index}.png` endpoint streams the image through our service with `require_auth` (either scope).
+- `S3_PUBLIC_ENDPOINT` and `PRESIGN_TTL_S` removed from the active config surface (kept in `.env.example` as commented-out for migration; removed entirely in Cycle 10 after downstream verification).
+- New env `IMAGE_GEN_PUBLIC_BASE_URL` (dev default `http://127.0.0.1:8700`, prod set to real ingress).
+
+**Why:**
+- **Unified auth.** Bearer keys gate both the POST (create) and the GET (fetch) — one credential surface, not one for API + one for presign URLs.
+- **Observability.** Cycle 4's orphan reaper sees every image fetch directly (request log) rather than inferring from S3 bucket access logs.
+- **Simpler code.** One boto3 client, one config path, no SigV4 `Host` header shenanigans.
+
+**Trade-off:** bandwidth amplification — every image byte flows through the uvicorn process. At LoreWeave's expected scale (≤ 100 concurrent requests × a few MB per image) this is comfortable headroom; if it becomes a bottleneck post-v1, we can re-introduce presigned URLs behind a feature flag.
+
+**Schema / config:**
+- `.env.example`: `IMAGE_GEN_PUBLIC_BASE_URL=http://127.0.0.1:8700`; `S3_PUBLIC_ENDPOINT` + `PRESIGN_TTL_S` deprecated.
+- Error codes: no new codes; `not_found` (existing §13) covers unknown/unfetched/out-of-range on GET.
+- §11 security: image-fetch auth posture documented alongside POST auth.
 
 ### v0.5 (2026-04-19) — Cycle 2 amendments (model roster + models/ mount)
 

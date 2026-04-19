@@ -32,8 +32,9 @@ WORKDIR /app
 # Copy the pre-built virtualenv from the builder stage
 COPY --from=builder /app/.venv /app/.venv
 
-# Copy application code + entrypoint
+# Copy application code + entrypoint + migrations (SQLite schema applied on lifespan).
 COPY app/ ./app/
+COPY migrations/ ./migrations/
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 

@@ -8,26 +8,44 @@ import pytest
 from asgi_lifespan import LifespanManager
 from httpx import ASGITransport, AsyncClient
 
-# Set required env BEFORE app.main is ever imported. Values deliberately weak —
-# these are test-only keys, not secrets.
+# ───────────────────────── test-wide env ─────────────────────────
+# Required by lifespan. Values deliberately weak — these are test-only.
 os.environ.setdefault("API_KEYS", "test-gen-key,test-gen-key-2")
 os.environ.setdefault("ADMIN_API_KEYS", "test-admin-key")
 os.environ.setdefault("LOG_LEVEL", "INFO")
 os.environ.setdefault("LOG_PROMPTS", "false")
 os.environ.setdefault("IMAGEGEN_ENV", "dev")
+# S3 — ensure_bucket is monkeypatched in the `client` fixture so these don't hit a network.
+os.environ.setdefault("S3_INTERNAL_ENDPOINT", "http://test-s3:9000")
+os.environ.setdefault("S3_BUCKET", "image-gen-test")
+os.environ.setdefault("S3_ACCESS_KEY", "test-s3-key")
+os.environ.setdefault("S3_SECRET_KEY", "test-s3-secret")
+# Registry paths — point at the real committed files on disk.
+os.environ.setdefault("MODELS_YAML_PATH", "config/models.yaml")
+os.environ.setdefault("MODELS_ROOT", str(Path(__file__).parent.parent / "models"))
+os.environ.setdefault("WORKFLOWS_ROOT", str(Path(__file__).parent.parent))
+os.environ.setdefault("VRAM_BUDGET_GB", "12")
+# Gateway URL for response URLs in tests.
+os.environ.setdefault("IMAGE_GEN_PUBLIC_BASE_URL", "http://testserver")
+# ComfyUI — test env uses a placeholder; adapter is swapped out by sync-endpoint tests.
+os.environ.setdefault("COMFYUI_URL", "http://test-comfy:8188")
+os.environ.setdefault("COMFYUI_WS_URL", "ws://test-comfy:8188/ws")
+
+
+async def _noop_ensure_bucket(self) -> None:
+    return None
 
 
 @pytest.fixture
 async def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> AsyncIterator[AsyncClient]:
-    """App instance with a fresh SQLite file per test."""
+    """App instance with a fresh SQLite file + S3.ensure_bucket patched to no-op."""
     monkeypatch.setenv("DATABASE_PATH", str(tmp_path / "jobs.db"))
+    # Patch ensure_bucket BEFORE app.main is imported so the lifespan sees the no-op.
+    monkeypatch.setattr("app.storage.s3.S3Storage.ensure_bucket", _noop_ensure_bucket)
 
     from app.main import app
 
     async with LifespanManager(app):
-        # raise_app_exceptions=False: our Exception handler catches + converts to 500,
-        # but httpx's default re-raises on the client side regardless. Turn that off
-        # so the test sees the actual response body.
         transport = ASGITransport(app=app, raise_app_exceptions=False)
         async with AsyncClient(transport=transport, base_url="http://testserver") as c:
             yield c
@@ -37,19 +55,15 @@ async def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> AsyncIterat
 async def broken_db_client(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> AsyncIterator[AsyncClient]:
-    """App wired to a DB path that exists but gets closed mid-test so healthcheck fails."""
+    """App wired to a DB that gets closed mid-test so healthcheck fails."""
     db_path = tmp_path / "jobs.db"
     monkeypatch.setenv("DATABASE_PATH", str(db_path))
+    monkeypatch.setattr("app.storage.s3.S3Storage.ensure_bucket", _noop_ensure_bucket)
 
     from app.main import app
 
     async with LifespanManager(app):
-        # Force the store into an unhealthy state by closing its connection
-        # without tearing down the full lifespan. healthcheck() then returns False.
         await app.state.store.close()
-        # raise_app_exceptions=False: our Exception handler catches + converts to 500,
-        # but httpx's default re-raises on the client side regardless. Turn that off
-        # so the test sees the actual response body.
         transport = ASGITransport(app=app, raise_app_exceptions=False)
         async with AsyncClient(transport=transport, base_url="http://testserver") as c:
             yield c

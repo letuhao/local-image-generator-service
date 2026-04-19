@@ -76,7 +76,7 @@ class ComfyUIAdapter:
     ) -> None:
         if poll_interval_ms <= 0:
             raise ValueError(f"poll_interval_ms must be > 0, got {poll_interval_ms}")
-        self._client_id = uuid4().hex
+        self.client_id = uuid4().hex
         self._http = httpx.AsyncClient(base_url=http_url, timeout=http_timeout_s)
         self._ws_url_base = ws_url
         self._poll_interval_s = poll_interval_ms / 1000
@@ -91,7 +91,7 @@ class ComfyUIAdapter:
     # ───────────────────────── submit ─────────────────────────
 
     async def submit(self, graph: dict) -> str:
-        body = {"prompt": graph, "client_id": self._client_id}
+        body = {"prompt": graph, "client_id": self.client_id}
         try:
             resp = await self._http.post("/prompt", json=body)
         except httpx.ConnectError as exc:
@@ -122,7 +122,7 @@ class ComfyUIAdapter:
         prompt_id = data.get("prompt_id") or ""
         if not prompt_id:
             raise ComfyNodeError(f"/prompt response missing prompt_id: {data}")
-        log.info("comfy.submit", prompt_id=prompt_id, client_id=self._client_id)
+        log.info("comfy.submit", prompt_id=prompt_id, client_id=self.client_id)
         return prompt_id
 
     # ───────────────────────── wait_for_completion ─────────────────────────
@@ -237,7 +237,7 @@ class ComfyUIAdapter:
                 and not self._reader_task.done()
             ):
                 return
-            url = f"{self._ws_url_base}?clientId={self._client_id}"
+            url = f"{self._ws_url_base}?clientId={self.client_id}"
             self._ws = await self._ws_connect(url)
             self._reader_task = asyncio.create_task(self._ws_reader(), name="comfy-ws-reader")
 

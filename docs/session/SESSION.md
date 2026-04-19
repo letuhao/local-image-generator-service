@@ -2,7 +2,90 @@
 
 > Append the newest sprint at the top. Keep each entry short: one-line outcome, changed files, notable decisions, what's next.
 
-**Last session ended:** 2026-04-19 after Sprint 5 / Cycle 2 complete. Resume from [HANDOFF.md](HANDOFF.md) — it holds the pick-up-where-you-left-off summary.
+**Last session ended:** 2026-04-19 after Sprint 6 / Cycle 3 complete. Resume from [HANDOFF.md](HANDOFF.md) — it holds the pick-up-where-you-left-off summary.
+
+---
+
+## Sprint 6 — 2026-04-19 — Cycle 3 MinIO gateway + registry + first sync POST endpoint complete
+
+**Outcome:** `POST /v1/images/generations` now accepts a prompt + model name and returns a JSON body pointing at our own `GET /v1/images/{job_id}/{index}.png` gateway. The GET streams PNG bytes back from internal MinIO via Bearer auth. First cycle where LoreWeave can actually call the service end-to-end. 158 tests green (155 unit + 3 integration), ruff + format clean. Arch v0.6 landed covering the Q4 gateway-vs-presign redirect.
+
+**Files created / modified (26):**
+
+- **Storage:** `app/storage/s3.py` (single boto3 client, tenacity retry on transient codes only, idempotent `ensure_bucket`, `object_key_for` pure helper).
+- **Registry:** `app/registry/models.py` + `config/models.yaml` — `Registry` + `load_registry` with 9-stage validation (checkpoint/vae/workflow existence + anchors + VRAM + sampler/scheduler enums + duplicate-name + prediction/backend enums + empty-registry).
+- **Validation:** `app/validation.py` — Pydantic `GenerateRequest` with `extra=forbid` + post-Pydantic `resolve_and_validate` merging model defaults + enforcing per-model limits. Rejects webhook/lora/mode=async/unknown fields. seed=-1 triggers `secrets.randbelow(2**53)` in the handler.
+- **API:** `app/api/images.py` — POST sync handler (Pydantic → registry → workflow graph prep → adapter → S3 upload → response) + GET gateway (auth → job lookup → S3 fetch → stream). `app/api/models.py` — OpenAI-compatible `GET /v1/models`.
+- **Wiring:** `app/main.py` lifespan extended to load registry + ensure bucket + instantiate adapter; exposes 4 items on app.state (store, registry, s3, adapter, keyset, public_base_url, async_mode_enabled, job_timeout_s). `public_base_url` scheme-validated.
+- **Deps:** pyproject adds `boto3 + tenacity + PyYAML` runtime, `moto[s3]` dev. Also **fixed Cycle 2 latent bug**: added `httpx` to runtime deps (was dev-only despite being imported by the adapter).
+- **Dockerfile:** adds `COPY migrations/ ./migrations/` — fixed a Cycle 1 latent bug (migrations never shipped in image, `jobs` table missing when running in container).
+- **Compose:** service container now mounts `./config:/app/config:ro`, `./workflows:/app/workflows:ro`, `./models:/app/models:ro`, plus `IMAGE_GEN_PUBLIC_BASE_URL` passthrough.
+- **Tests:** 23 validation + 13 registry + 9 storage + 17 sync + 6 gateway + 3 models + 1 integration.
+- **Arch v0.6:** §4.6 rewritten (backend gateway replaces presign — one boto3 client, no `S3_PUBLIC_ENDPOINT`, no `PRESIGN_TTL_S`); §6.1 response URL format; new §6.1.1 gateway endpoint spec; §11 adds data-at-rest posture note + gateway-auth posture note; §20 change log entry.
+
+**Decisions locked in CLARIFY:**
+
+- **Gateway model replaces presigned URLs** (Q4) — unified Bearer auth for create + fetch, exact fetch observability for the Cycle 4 orphan reaper, no SigV4 Host-header shenanigans. Bandwidth amplification acceptable at LoreWeave's scale.
+- **LoreWeave client timeout is not our concern** (Q1) — server-side uses `JOB_TIMEOUT_S=300` + `size_max_pixels=1572864`; if their client gives up sooner, that's their config.
+- **MinIO bucket init via lifespan** (Q2) — `S3Storage.ensure_bucket()` idempotent, fail-fast if MinIO unreachable at startup.
+- **b64_json response format supported** (Q6) — always upload to S3 (orphan reaper invariant), plus inline base64 when requested.
+- **PNG magic pre-upload validation** (Q7) — cheap defensive guard against ComfyUI weirdness.
+
+**Bugs caught during BUILD:**
+
+- **Cycle 2 latent: `httpx` missing from runtime deps.** Imported by the adapter, only listed under dev. Service container built at Cycle 0 never had it. Added to runtime.
+- **Cycle 1 latent: `migrations/` not copied into Docker image.** `jobs` table never created inside container; only surfaced now because /health doesn't query jobs. Added `COPY migrations/` to Dockerfile.
+- **Compose mounts missing `config/workflows/models` on service container.** Registry startup validation failed with `yaml_missing`. Added three `:ro` mounts.
+- **`adapter._client_id` private-member leak into handler.** Promoted to public `adapter.client_id`; updated callers.
+- **Workflow `ckpt_name` + `vae_name` included subdir prefix.** ComfyUI's `CheckpointLoaderSimple.ckpt_name` is already scoped to `models/checkpoints/` (same for `VAELoader` and `models/vae/`); prefix causes 400 `value_not_in_list`. Stripped.
+- **Adapter misclassified `400 + node_errors` as `ComfyUnreachableError`.** Reclassified as `ComfyNodeError` (client bug, not unreachable backend).
+
+**`/review-impl` pass found 12 findings, all fixed in the same cycle:**
+
+- **MED-1** `seed=-1` was deterministically producing identical images every call (hardcoded 0). Now `secrets.randbelow(2**53)` on -1, with the resolved seed persisted in `result_json` so callers can reproduce. OpenAI API convention restored.
+- **MED-2** `JOB_TIMEOUT_S` env plumbed into the handler via `app.state.job_timeout_s`. Previously hardcoded 300s regardless of env.
+- **MED-3** S3 retry limited to `_TRANSIENT_S3_CODES` (ServiceUnavailable/SlowDown/Throttling/RequestTimeout/InternalError/OperationAborted). Permanent errors (AccessDenied, NoSuchBucket, InvalidAccessKeyId) fail fast with 1 call instead of burning 6+ seconds on retries that can't succeed.
+- **LOW-4** Registry validates `defaults.sampler` / `defaults.scheduler` against `ALLOWED_SAMPLERS`/`ALLOWED_SCHEDULERS` at load time. Typos in YAML fail startup, not request time.
+- **LOW-5** Registry detects duplicate `name` entries, raises `RegistryValidationError("duplicate_name", ...)`.
+- **LOW-6** Registry validates `prediction` against `{eps, vpred}` and `backend` against `{comfyui}` — Python `Literal` type annotations are ignored at runtime, so typos slip through without explicit checks.
+- **LOW-7** `IMAGE_GEN_PUBLIC_BASE_URL` scheme-validated at lifespan — must start with `http://` or `https://`. Prevents emitting bogus URLs like `invalid-no-scheme/v1/images/...`.
+- **LOW-8** New `tests/test_models_endpoint.py` covers auth + shape + either-scope paths for `GET /v1/models`.
+- **LOW-9** Arch §11 gains paragraphs on jobs-table plaintext (prompts on disk) + gateway-auth posture (no per-key job ownership; ksuid makes enumeration impractical but not impossible).
+- **LOW-10** New test for `b64_json` with `n=2` (gap: existing coverage was only n=1 for b64 and n=2 for url).
+- **COSMETIC-11** Empty-string on sampler/scheduler now rejected (Pydantic `min_length=1`), consistent with prompt's min_length=1. Empty is a client bug, not a signal to use defaults.
+- **COSMETIC-12** Handler logs `sync.multiple_latent_nodes` warning if >1 `EmptyLatentImage` is found in the graph (defensive for future multi-stage workflows in Cycle 5/7).
+
+**Live verification:**
+
+```
+pytest (full)     158/158 pass (155 unit + 3 integration)
+ruff              clean
+ruff format       clean
+POST /v1/images/generations → 200 + {url: http://127.0.0.1:8700/v1/images/gen_<ksuid>/0.png}
+GET  /v1/images/<ksuid>/0.png → 200 + Content-Type: image/png + valid PNG (512×512, 257 KB)
+/v1/models        {"object":"list","data":[{"id":"noobai-xl-v1.1", ...capabilities, backend}]}
+service lifespan  registry.loaded + s3.ensure_bucket.ok + service.started logged at INFO
+```
+
+### Retro — lessons worth keeping
+
+- **Dev-only deps are a trap.** `httpx` was fine in test (pulled in via `httpx` → dev dep → venv). Fine in `uv run pytest`. Not fine in the Docker image, which installs `--no-dev`. Every `import x` in `app/` must have `x` in runtime deps. Tie this to a CI lint: `python -c "import app.main"` against a `--no-dev` venv catches it every time. Same gotcha applied to Cycle 1's migrations/ — file existed on disk, tests found it, but container image didn't include it.
+- **`Literal` type annotations are comments at runtime.** `backend: Literal["comfyui"]` doesn't reject `"local"` — Python accepts any value. For config-loaded fields, always pair the annotation with an explicit membership check (`_ALLOWED_BACKENDS = frozenset(...)`). Same trap for `prediction`. Annotations inform IDE + mypy; they don't defend the runtime.
+- **OpenAI's `seed=-1` convention is load-bearing.** Callers assume -1 means random, not 0. Our initial translation `job.seed if job.seed >= 0 else 0` silently broke that contract. Fix was three lines but the bug would have become a flood of "all my images look identical" bug reports. Whenever a public API has a sentinel value (`null`, `-1`, `"auto"`), trace what it means all the way to the underlying system — not just "it's valid per the regex".
+- **Retry too broad is worse than retry too narrow.** `retry_if_exception_type(ClientError)` retries on AccessDenied. Six wasted seconds per request before the user sees the error. Enumerate the transient-only codes explicitly; be willing to add one later if you discover a new transient, rather than start with "everything retries".
+- **Background monitor pattern + pytest output capture can silently drop stdout on Windows.** Ran pytest 3-4 times before realizing the background task was writing to a 0-byte file (not a pytest crash, just stdout capture weirdness with `run_in_background`). Fix: redirect to a real file (`> /tmp/pytest_out.txt 2>&1`), then use Monitor to watch the file. Saves 10 minutes of "is it still running?".
+
+**What's next (Sprint 7 plan / Cycle 4):**
+
+1. `app/queue/worker.py` — single asyncio task, pulls Job from `asyncio.Queue`, serial GPU execution, `MAX_QUEUE` bounded.
+2. `app/queue/orphan_reaper.py` — background task, TTL-driven, deletes S3 objects for completed-but-never-fetched jobs.
+3. `app/queue/recovery.py` — boot scan: `queued` → re-enqueue, `running` → `failed{service_restarted}` with terminal state flushed so async pollers get an answer.
+4. `app/api/images.py` extensions — sync handler enqueues instead of calling adapter directly; watches `Request.is_disconnected()` via `asyncio.shield`; on disconnect sets `mode=async, webhook_handover=true`.
+5. Tests: `test_queue_worker.py`, `test_disconnect.py`, `test_restart_recovery.py`.
+
+**Prerequisites for Cycle 4:** none external. Plan's unknowns table shows none for Cycle 4.
+
+**Commits this sprint:** 1 feat + 1 docs session-close.
 
 ---
 
