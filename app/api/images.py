@@ -81,8 +81,14 @@ async def create_image(
     # 2. Resolve registry + enforce limits.
     registry = request.app.state.registry
     async_mode = request.app.state.async_mode_enabled
+    loras_root = request.app.state.loras_root
     try:
-        resolve_and_validate(body, registry=registry, async_mode_enabled=async_mode)
+        resolve_and_validate(
+            body,
+            registry=registry,
+            async_mode_enabled=async_mode,
+            loras_root=loras_root,
+        )
     except ValidationFailureError as exc:
         return _error(400, exc.error_code, exc.message)
 

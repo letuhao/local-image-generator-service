@@ -217,3 +217,5 @@ __marimo__/
 
 # Dev docker overrides (copy from .example)
 /docker-compose.override.yml
+
+LoRA/

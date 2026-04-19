@@ -28,7 +28,7 @@
 
 ### Hardening the happy path
 - [x] **Cycle 4** — asyncio queue + worker + disconnect handler + orphan reaper + restart recovery — Sprint 7
-- [ ] **Cycle 5** — LoRA local directory + injection algorithm + vpred injection + path-traversal guard
+- [x] **Cycle 5** — LoRA local directory + injection algorithm + vpred injection + path-traversal guard — Sprint 8
 - [ ] **Cycle 6** — Civitai fetcher with 11-rule hardening (host allowlist, SHA-256, lock, admin scope, audit)
 
 ### Expanding capability

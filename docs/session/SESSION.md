@@ -2,7 +2,62 @@
 
 > Append the newest sprint at the top. Keep each entry short: one-line outcome, changed files, notable decisions, what's next.
 
-**Last session ended:** 2026-04-19 after Sprint 7 / Cycle 4 complete. Resume from [HANDOFF.md](HANDOFF.md) — it holds the pick-up-where-you-left-off summary.
+**Last session ended:** 2026-04-19 after Sprint 8 / Cycle 5 complete. Resume from [HANDOFF.md](HANDOFF.md) — it holds the pick-up-where-you-left-off summary.
+
+---
+
+## Sprint 8 — 2026-04-19 — Cycle 5 LoRA scanner + graph injection + GET /v1/loras + path-traversal defense complete
+
+**Outcome:** `POST /v1/images/generations` now accepts `loras: [{name, weight}]`. Worker threads a `LoraLoader` chain between `%MODEL_SOURCE%`/`%CLIP_SOURCE%` and downstream consumers per arch §9. `GET /v1/loras` serves scanned sidecars from `./loras/` with a per-entry `addressable` + `sidecar_status` flag. Path-traversal and symlink-escape attempts rejected at two layers (Pydantic regex + realpath containment). 213 tests green / 2 skipped (Windows symlink gate), +33 new tests vs Cycle 4. ruff + format clean. Scanner hand-verified against real `./loras/` — 280 files, 235 addressable, 45 unaddressable (spaces/parens).
+
+**Files created / modified (19):**
+
+- **Scanner:** `app/loras/__init__.py`, `app/loras/scanner.py` — `LoraMeta` dataclass with `sidecar_status: "ok"|"missing"|"malformed"|"oversized"`, `scan_loras(root: Path)` walks recursively, POSIX-path names, realpath-skip outside root (symlink defense), sidecar capped at 1 MiB. `missing_sidecar` log line is DEBUG so a dir with hundreds of bare `.safetensors` doesn't flood INFO logs.
+- **Endpoint:** `app/api/loras.py` — `GET /v1/loras` (any-auth per arch §6.5). Handler wraps the sync scan in `asyncio.to_thread` to keep the event loop free.
+- **Validation:** `app/validation.py` — new Pydantic `LoraSpec(name pattern, weight bounds)` + `GenerateRequest.loras: list[LoraSpec] | None`. `resolve_and_validate` takes `loras_root: Path` as an explicit kwarg, realpath-contains each requested name, raises `lora_missing` if the `.safetensors` isn't on disk.
+- **Injection:** `app/registry/workflows.py` — `ResolvedLoraRef` runtime dataclass, `inject_loras(graph, loras, *, model_cfg)` chains `LoraLoader` nodes + rewrites downstream `[%MODEL_SOURCE%, 0]` and `[%CLIP_SOURCE%, 1]` consumers to the last chain node. `inject_vpred(graph, *, model_cfg)` raises on `prediction="vpred"` (defense-in-depth).
+- **Registry:** `app/registry/models.py` — new stage-10 check refuses to boot any model with `prediction="vpred"` per arch v0.5 (`stage="vpred_deferred"`). Boot-time failure, not per-request.
+- **Worker:** `app/queue/worker.py` — ctor takes `loras_root: Path`; `_run_pipeline` calls `inject_vpred` then `inject_loras` between anchor-fill and `adapter.submit`.
+- **Lifespan:** `app/main.py` — resolves `LORAS_ROOT` env once into `app.state.loras_root`, passes it to `QueueWorker`. Single source of truth shared by GET endpoint, POST validation, and worker re-validation on recovery.
+- **Handler:** `app/api/images.py` — POST reads `request.app.state.loras_root` and passes to `resolve_and_validate`.
+- **Compose:** `docker-compose.yml` — `./loras:/app/loras:ro` for service; `./loras:/workspace/ComfyUI/models/loras:ro` for comfyui (arch v0.5 Option B). `.env.example` documents `LORAS_ROOT`.
+- **Tests:** `test_lora_scanner.py` (14 incl. symlink defense, oversized sidecar, unknown source label), `test_graph_injection.py` (8), `test_path_traversal.py` (4), `test_loras_endpoint.py` (4), `test_validation.py` (+9: Pydantic bounds, resolve paths, subdir names, empty list), `test_model_registry.py` (+1 vpred fail-fast), `conftest.py` adds `client_with_loras` fixture seeding a scratch LoRA tree.
+- **Integration:** `tests/integration/test_lora_effect.py` — module-scope fixture picks the first addressable LoRA from `./loras/` (or skips if none); submits same prompt+seed with/without and asserts output SHA-256 differs. `urlparse`'d path rather than string-slicing `HOST_BASE_URL`.
+
+**Decisions locked in CLARIFY (10 items):**
+
+- `./loras/` kept top-level; comfyui gets an additional `:ro` mount (arch v0.5 Option B).
+- Scanner is tolerant of missing sidecars (synthesizes minimal `LoraMeta`, logs DEBUG).
+- Worker already deepcopies the graph template; `inject_loras` mutates the copy.
+- Integration fixture skips if `./loras/` has no addressable entries (no download required).
+- `inject_vpred` is a scaffold + fails fast on `prediction="vpred"` per-request; registry stage-10 refuses the model at boot (defense-in-depth).
+- `lora_missing` check via per-request `os.stat` inside `resolve_and_validate`.
+- Single `weight` field → `strength_model == strength_clip`.
+- Recursive scan; `name="subdir/basename"`; regex permits `/`.
+- Filenames with spaces/parens surfaced as `addressable=false` with a human-readable `reason`.
+- Non-`.safetensors` files silently ignored.
+
+**REVIEW-DESIGN refinements:**
+
+- Renamed dataclass `LoraSpec` (in `workflows.py`) → `ResolvedLoraRef` to disambiguate from the Pydantic `LoraSpec` request model.
+- Added stage-10 vpred fail-fast in `load_registry` so a future YAML bump fails boot, not first request.
+
+**`/review-impl` pass found 10 findings; all fixed in the same cycle:**
+
+- **MED-1** Scanner's per-file `missing_sidecar` log demoted to DEBUG (was flooding INFO at ~280 lines/request on real dirs); summary `lora.scan.complete` stays at INFO.
+- **MED-2** Deleted `validation._loras_root()` (was re-reading env per-request). Threaded `loras_root: Path` explicitly through `resolve_and_validate`, handler, worker ctor. Single source of truth = `app.state.loras_root`.
+- **MED-3** `GET /v1/loras` wraps `scan_loras` in `asyncio.to_thread` — sync disk I/O no longer blocks the event loop.
+- **MED-4** Scanner now realpath-contains each walked path; entries reachable only via a directory symlink pointing outside `root` are dropped with a `skipped_outside_root` warn + counter. Mirrors validator defense on the list side.
+- **LOW-5** `%LORA_INSERT%` retained in `REQUIRED_ANCHORS_SDXL` with a docstring note — it's a marker, not an active injection target.
+- **LOW-6** Sidecar reads capped at 1 MiB; oversized files surface as `sidecar_status="oversized"`.
+- **LOW-7** `sidecar_status` enum (`"ok" | "missing" | "malformed" | "oversized"`) on `LoraMeta`, exposed via `GET /v1/loras` so operators can distinguish "no sidecar" from "broken sidecar".
+- **LOW-8** Dropped stray `list()` wrap in worker (tuple satisfies Sequence).
+- **LOW-9** Scanner warns on unknown `source` labels in sidecars (future Cycle 6 writer regressions won't go silent).
+- **COSMETIC-10** Integration test uses `urlparse(url).path` instead of `url[len(HOST_BASE_URL):]`.
+
+**Test counts:** 213 unit pass / 2 skipped (Windows symlink gate). Cycle 4 baseline was 177 unit; Cycle 5 added 36 gross, dropped 1 (inverted `test_loras_field_rejected` → `accepted`) = +33 net. Scanner hand-verified on 280-file real dir.
+
+**Next:** Cycle 6 — Civitai fetcher hardened. Needs scanner + directory layout from Cycle 5 (done). Writes full sidecars; introduces `LORA_DIR_MAX_SIZE_GB` LRU eviction; relaxes the service-side `./loras:ro` mount to writable.
 
 ---
 

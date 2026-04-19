@@ -269,6 +269,24 @@ def test_unknown_prediction_raises(tmp_path: Path) -> None:
     assert exc.value.stage == "unknown_prediction"
 
 
+def test_vpred_prediction_refused_at_boot(tmp_path: Path) -> None:
+    """Arch v0.5 defers v-prediction injection; a YAML with prediction='vpred'
+    must fail to load so a future model bump can't land undetected."""
+    import copy as _copy
+
+    body = _copy.deepcopy(_BASE_YAML)
+    body["models"][0]["prediction"] = "vpred"
+    yaml_path, models_root, workflows_root = _scaffold_with_yaml_override(tmp_path, body)
+    with pytest.raises(RegistryValidationError) as exc:
+        load_registry(
+            yaml_path,
+            models_root=models_root,
+            workflows_root=workflows_root.parent,
+            vram_budget_gb=12,
+        )
+    assert exc.value.stage == "vpred_deferred"
+
+
 def test_unknown_default_sampler_raises(tmp_path: Path) -> None:
     import copy as _copy
 

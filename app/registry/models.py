@@ -105,6 +105,16 @@ def load_registry(
                 "unknown_prediction",
                 f"{cfg.name}: prediction {cfg.prediction!r} not in {_ALLOWED_PREDICTIONS}",
             )
+        # vpred injection is deferred per arch v0.5. The primary guard lives here
+        # at boot so a YAML bump can't slip past and raise per-request later.
+        if cfg.prediction == "vpred":
+            raise RegistryValidationError(
+                "vpred_deferred",
+                (
+                    f"{cfg.name}: prediction='vpred' is deferred per arch v0.5. "
+                    "Implement inject_vpred and remove this guard before re-enabling."
+                ),
+            )
         default_sampler = (cfg.defaults or {}).get("sampler")
         if default_sampler is not None and default_sampler not in ALLOWED_SAMPLERS:
             raise RegistryValidationError(

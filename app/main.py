@@ -4,6 +4,7 @@ import asyncio
 import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 import structlog
 from fastapi import FastAPI
@@ -11,6 +12,7 @@ from fastapi import FastAPI
 from app import __version__
 from app.api.health import router as health_router
 from app.api.images import router as images_router
+from app.api.loras import router as loras_router
 from app.api.models import router as models_router
 from app.auth import load_keyset_from_env
 from app.backends.comfyui import ComfyUIAdapter
@@ -76,6 +78,14 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     max_queue = int(os.environ.get("MAX_QUEUE", "20"))
     app.state.max_queue = max_queue
 
+    # LoRA root — served by GET /v1/loras and consulted by validation for
+    # realpath containment. Resolved once at boot so the validator does not
+    # re-resolve from CWD per-request (CWD can drift in tests). Startup is
+    # allowed to block on disk; lifespan wraps everything.
+    app.state.loras_root = Path(  # noqa: ASYNC240
+        os.environ.get("LORAS_ROOT", "./loras")
+    ).resolve()
+
     # Cycle 4: queue worker + orphan reaper + restart recovery.
     # IMPORTANT ordering: worker must be running BEFORE recover_jobs calls
     # worker.enqueue_recovery (blocking put), otherwise recovery deadlocks on
@@ -88,6 +98,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         public_base_url=public_base_url,
         job_timeout_s=app.state.job_timeout_s,
         max_queue=max_queue,
+        loras_root=app.state.loras_root,
         async_mode_enabled=app.state.async_mode_enabled,
     )
     app.state.worker = worker
@@ -148,6 +159,7 @@ install_error_envelope(app)
 app.include_router(health_router)
 app.include_router(images_router)
 app.include_router(models_router)
+app.include_router(loras_router)
 
 # RequestContextMiddleware added LAST so it wraps everything (outermost layer).
 app.add_middleware(RequestContextMiddleware)

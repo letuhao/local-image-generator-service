@@ -24,6 +24,7 @@ services:
       S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
       VRAM_BUDGET_GB: ${VRAM_BUDGET_GB:-12}
       IMAGE_GEN_PUBLIC_BASE_URL: ${IMAGE_GEN_PUBLIC_BASE_URL:-http://127.0.0.1:8700}
+      LORAS_ROOT: ${LORAS_ROOT:-/app/loras}
     volumes:
       # SQLite job store. Bind mount in dev so operators can `sqlite3 data/jobs.db`.
       # Prod deploys should replace this with a named volume.
@@ -32,6 +33,9 @@ services:
       - ./config:/app/config:ro
       - ./workflows:/app/workflows:ro
       - ./models:/app/models:ro
+      # LoRA directory — read-only for Cycle 5 (scanner + validation). Cycle 6
+      # (Civitai fetch) will relax this to writable on the service side.
+      - ./loras:/app/loras:ro
     depends_on:
       minio:
         condition: service_healthy
@@ -63,6 +67,10 @@ services:
     volumes:
       # Full ComfyUI models tree — subdirs (checkpoints/, vae/, loras/) live under ./models/.
       - ./models:/workspace/ComfyUI/models:ro
+      # Top-level LoRA dir (arch v0.5 Option B) — mounted over ComfyUI's loras
+      # subtree so ComfyUI's LoraLoader can resolve names requested by our
+      # `inject_loras` chain without us reshuffling the ./models/ tree.
+      - ./loras:/workspace/ComfyUI/models/loras:ro
       # Workflows bind-mounted so the sidecar's web UI can load them for debugging.
       - ./workflows:/workspace/ComfyUI/user/default/workflows:ro
     networks:

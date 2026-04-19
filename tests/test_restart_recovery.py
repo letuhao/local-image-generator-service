@@ -79,7 +79,7 @@ def registry() -> Registry:
 
 @pytest.fixture
 async def worker(
-    store: JobStore, registry: Registry
+    store: JobStore, registry: Registry, tmp_path: Path
 ) -> AsyncIterator[tuple[QueueWorker, asyncio.Task]]:
     w = QueueWorker(
         store=store,
@@ -89,6 +89,7 @@ async def worker(
         public_base_url="http://testserver",
         job_timeout_s=30.0,
         max_queue=20,
+        loras_root=tmp_path,
     )
     task = asyncio.create_task(w.run(), name="recovery-worker")
     try:

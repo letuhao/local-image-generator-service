@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.backends.base import ModelConfig
 from app.registry.models import Registry
+from app.registry.workflows import ResolvedLoraRef
 
 # Allowed ComfyUI samplers + schedulers per arch §6.0. Restrict to the well-supported set;
 # additions land as registry changes with corresponding workflow updates.
@@ -52,11 +54,25 @@ class ValidationFailureError(Exception):
         self.message = message
 
 
+class LoraSpec(BaseModel):
+    """Per-LoRA request entry. Name is a POSIX-style path relative to `LORAS_ROOT`
+    (subdirs allowed, no `.safetensors` suffix). Weight covers both
+    `strength_model` and `strength_clip` per arch §9."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    name: str = Field(
+        pattern=r"^[A-Za-z0-9_][A-Za-z0-9_/\-.]*$",
+        max_length=256,
+    )
+    weight: float = Field(ge=-2.0, le=2.0)
+
+
 class GenerateRequest(BaseModel):
     """Pydantic validation of the POST /v1/images/generations body per arch §6.0.
 
-    `extra="forbid"` → unknown fields (webhook, loras — Cycle 9/5 additions) are rejected
-    now so callers can't silently lose data once those are re-introduced.
+    `extra="forbid"` → unknown fields (webhook — Cycle 9) are rejected now so
+    callers can't silently lose data once that lands.
     """
 
     model_config = ConfigDict(extra="forbid", populate_by_name=True)
@@ -75,6 +91,7 @@ class GenerateRequest(BaseModel):
     scheduler: str | None = Field(default=None, min_length=1)
     response_format: Literal["url", "b64_json"] = "url"
     mode: Literal["sync", "async"] = "sync"
+    loras: list[LoraSpec] | None = Field(default=None, max_length=20)
 
 
 @dataclass(frozen=True, slots=True)
@@ -95,6 +112,7 @@ class ValidatedJob:
     scheduler: str
     response_format: Literal["url", "b64_json"]
     mode: Literal["sync", "async"]
+    loras: tuple[ResolvedLoraRef, ...] = field(default=())
 
 
 def _parse_size(size: str) -> tuple[int, int]:
@@ -107,11 +125,16 @@ def resolve_and_validate(
     *,
     registry: Registry,
     async_mode_enabled: bool,
+    loras_root: Path,
 ) -> ValidatedJob:
     """Merge model defaults + enforce model-scoped limits.
 
     Raises ValidationFailureError with an arch §13 error_code on any violation.
     Pydantic-level failures (shape, regex, range) raise earlier at model_validate.
+
+    `loras_root` must be the already-resolved (absolute) LoRA root. The caller
+    (app.main lifespan → app.state.loras_root) owns resolution so validator,
+    worker recovery, and GET /v1/loras all share one source of truth.
     """
     # 1. Model must exist in registry.
     try:
@@ -189,6 +212,30 @@ def resolve_and_validate(
             message="mode=async requires ASYNC_MODE_ENABLED=true",
         )
 
+    # 7. LoRA resolution: realpath-contain each reference under LORAS_ROOT, then
+    #    confirm the .safetensors exists on disk. Realpath resolution catches
+    #    symlink-escape attempts (e.g. a dev drops a symlink under ./loras/ that
+    #    points at /etc/passwd) — name-regex alone wouldn't catch that.
+    resolved_loras: tuple[ResolvedLoraRef, ...] = ()
+    if req.loras:
+        resolved_list: list[ResolvedLoraRef] = []
+        for spec in req.loras:
+            target = (loras_root / f"{spec.name}.safetensors").resolve()
+            try:
+                target.relative_to(loras_root)
+            except ValueError:
+                raise ValidationFailureError(
+                    error_code="validation_error",
+                    message=f"lora name {spec.name!r} escapes loras root",
+                ) from None
+            if not target.is_file():
+                raise ValidationFailureError(
+                    error_code="lora_missing",
+                    message=f"lora file not found: {spec.name}",
+                )
+            resolved_list.append(ResolvedLoraRef(name=spec.name, weight=spec.weight))
+        resolved_loras = tuple(resolved_list)
+
     return ValidatedJob(
         model=model,
         prompt=req.prompt,
@@ -204,4 +251,5 @@ def resolve_and_validate(
         scheduler=scheduler,
         response_format=req.response_format,
         mode=req.mode,
+        loras=resolved_loras,
     )

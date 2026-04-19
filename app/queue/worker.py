@@ -7,6 +7,7 @@ import json
 import secrets
 import time
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 import structlog
@@ -27,7 +28,12 @@ from app.queue.jobs import (
 )
 from app.queue.store import JobStore
 from app.registry.models import Registry
-from app.registry.workflows import find_anchor, load_workflow
+from app.registry.workflows import (
+    find_anchor,
+    inject_loras,
+    inject_vpred,
+    load_workflow,
+)
 from app.storage.s3 import StorageError
 from app.validation import (
     GenerateRequest,
@@ -81,6 +87,7 @@ class QueueWorker:
         public_base_url: str,
         job_timeout_s: float,
         max_queue: int,
+        loras_root: Path,
         async_mode_enabled: bool = False,
     ) -> None:
         self._store = store
@@ -90,6 +97,7 @@ class QueueWorker:
         self._public_base_url = public_base_url
         self._job_timeout_s = job_timeout_s
         self._async_mode_enabled = async_mode_enabled
+        self._loras_root = loras_root
         self._queue: asyncio.Queue[_WorkerItem] = asyncio.Queue(maxsize=max_queue)
 
     # ───────────────────────── enqueue ─────────────────────────
@@ -183,7 +191,10 @@ class QueueWorker:
             raw = json.loads(job.input_json)
             body = GenerateRequest.model_validate(raw)
             validated = resolve_and_validate(
-                body, registry=self._registry, async_mode_enabled=self._async_mode_enabled
+                body,
+                registry=self._registry,
+                async_mode_enabled=self._async_mode_enabled,
+                loras_root=self._loras_root,
             )
         except (ValidationError, ValidationFailureError, json.JSONDecodeError) as exc:
             await set_failed(
@@ -221,6 +232,12 @@ class QueueWorker:
             graph[nid]["inputs"]["width"] = validated.width
             graph[nid]["inputs"]["height"] = validated.height
             graph[nid]["inputs"]["batch_size"] = validated.n
+
+        # 2b. v-prediction scaffold (no-op for eps) + LoRA chain injection.
+        # Order matters: vpred first (may reshape model-source outputs once
+        # implemented), then inject_loras consumes the final MODEL/CLIP anchors.
+        inject_vpred(graph, model_cfg=validated.model)
+        inject_loras(graph, validated.loras, model_cfg=validated.model)
 
         # 3. Submit to ComfyUI + update DB.
         try:

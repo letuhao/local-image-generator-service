@@ -52,6 +52,39 @@ async def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> AsyncIterat
 
 
 @pytest.fixture
+async def client_with_loras(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> AsyncIterator[AsyncClient]:
+    """App wired to an isolated, seeded `./loras/` directory.
+
+    Layout:
+      <tmp>/loras/style_alpha.safetensors      (addressable, no sidecar)
+      <tmp>/loras/style_alpha.json              (sidecar with metadata)
+      <tmp>/loras/hanfu/Bai_LingMiao.safetensors (addressable, subdir)
+      <tmp>/loras/bad name (1).safetensors     (unaddressable — space+parens)
+    """
+    loras_root = tmp_path / "loras"
+    (loras_root / "hanfu").mkdir(parents=True)
+    (loras_root / "style_alpha.safetensors").write_bytes(b"\x00" * 16)
+    (loras_root / "style_alpha.json").write_text(
+        '{"sha256":"abc","source":"civitai","trigger_words":["anime"]}',
+        encoding="utf-8",
+    )
+    (loras_root / "hanfu" / "Bai_LingMiao.safetensors").write_bytes(b"\x00" * 32)
+    (loras_root / "bad name (1).safetensors").write_bytes(b"\x00" * 8)
+    monkeypatch.setenv("LORAS_ROOT", str(loras_root))
+    monkeypatch.setenv("DATABASE_PATH", str(tmp_path / "jobs.db"))
+    monkeypatch.setattr("app.storage.s3.S3Storage.ensure_bucket", _noop_ensure_bucket)
+
+    from app.main import app
+
+    async with LifespanManager(app):
+        transport = ASGITransport(app=app, raise_app_exceptions=False)
+        async with AsyncClient(transport=transport, base_url="http://testserver") as c:
+            yield c
+
+
+@pytest.fixture
 async def broken_db_client(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> AsyncIterator[AsyncClient]:
