@@ -15,6 +15,7 @@ dependencies = [
     "aiosqlite>=0.20,<0.21",
     "structlog>=24.4,<25",
     "svix-ksuid>=0.6.2,<0.7",
+    "websockets>=13,<14",
 ]
 
 [dependency-groups]
@@ -23,6 +24,7 @@ dev = [
     "pytest-asyncio>=0.24",
     "httpx>=0.27,<0.28",
     "asgi-lifespan>=2.1",     # lets the test client trigger FastAPI startup/shutdown hooks
+    "respx>=0.21,<0.22",      # httpx mocking for adapter unit tests (Cycle 2)
     "ruff>=0.8",
 ]
 
@@ -30,8 +32,7 @@ dev = [
 # cycle that first needs them — adding them now pollutes the lockfile and
 # slows Docker builds. Add per-cycle:
 #   Cycle 3:  boto3, tenacity
-#   Cycle 6:  respx (dev)
-#   Cycle 9:  websockets, watchfiles
+#   Cycle 9:  watchfiles
 
 [build-system]
 requires = ["hatchling"]

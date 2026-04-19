@@ -1,0 +1,11 @@
+# ComfyUI sidecar pin list — Cycle 2 (2026-04-19)
+#
+# One line per component. Format: <name> <ref> # <human comment>
+# <ref> must be either a git tag or a full SHA. Short SHAs are forbidden
+# to avoid ambiguity across repo rebases.
+#
+# Referenced by docker/comfyui/Dockerfile via ARG COMFYUI_REF and ARG COMFYUI_GGUF_REF.
+# Rebuilds pin exactly to these refs; pushing a new image needs a bump here first.
+
+comfyui       v0.9.2  # latest stable tag as of 2026-04-19 (git: 8f40b43e0204d5b9780f3e9618e140e929e80594)
+comfyui-gguf  6ea2651e7df66d7585f6ffee804b20e92fb38b8a  # city96/ComfyUI-GGUF HEAD as of 2026-04-19

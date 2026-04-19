@@ -2,7 +2,86 @@
 
 > Append the newest sprint at the top. Keep each entry short: one-line outcome, changed files, notable decisions, what's next.
 
-**Last session ended:** 2026-04-19 after Sprint 4 / Cycle 1 complete. Resume from [HANDOFF.md](HANDOFF.md) — it holds the pick-up-where-you-left-off summary.
+**Last session ended:** 2026-04-19 after Sprint 5 / Cycle 2 complete. Resume from [HANDOFF.md](HANDOFF.md) — it holds the pick-up-where-you-left-off summary.
+
+---
+
+## Sprint 5 — 2026-04-19 — Cycle 2 ComfyUI sidecar + adapter + anchor-tagged workflow complete
+
+**Outcome:** Real ComfyUI running in a sibling container (pinned to v0.9.2 + city96/ComfyUI-GGUF commit 6ea2651) generates a PNG from NoobAI-XL v1.1 via our BackendAdapter in ~27s on the RTX 4090. 87 tests green (85 unit + 2 integration), ruff + format clean. Arch v0.5 amendment landed covering two CLARIFY-surfaced deviations from the original spec. Ready for Cycle 3 (MinIO + first sync HTTP endpoint).
+
+**Files created / modified (23):**
+
+- **Sidecar image:** `docker/comfyui/Dockerfile` (CUDA 12.4.1-runtime, Python 3.11, uv for pip, non-root comfy user, `HEALTHCHECK` via /system_stats, build-time textual smoke test for GGUF node classes), `docker/comfyui/custom-nodes.txt` (pin source of truth, committed), `docker/comfyui/entrypoint.sh`.
+- **Backend stack:** `app/backends/base.py` (`BackendAdapter` Protocol, `GenerationResult`, `ModelConfig`, error hierarchy mapping to arch §13 codes), `app/backends/comfyui.py` (HTTP + WebSocket, one-retry-then-poll state machine, /interrupt + /free, status_str discriminator).
+- **Registry:** `app/registry/workflows.py` (`load_workflow`, `validate_anchors`, `find_anchor` with comma-separated multi-anchor convention).
+- **Workflow:** `workflows/sdxl_eps.json` — anchor-tagged NoobAI v1.1 SDXL workflow (7 anchors).
+- **Tests:** `tests/test_anchor_resolver.py` (11), `tests/test_comfyui_adapter.py` (22 mocked, up from 14 after /review-impl fixes), `tests/integration/test_comfyui_adapter.py` (2 real-GPU).
+- **Wiring:** `docker-compose.yml` (swap nginx placeholder for real comfyui build, GPU reservation, `./models:/workspace/ComfyUI/models:ro` full-tree mount, `pull_policy: never`), `pyproject.toml` (+websockets, +respx), `.env.example` (+COMFY_POLL_INTERVAL_MS, +JOB_TIMEOUT_S).
+- **Arch v0.5:** §20 change log, §8 model roster (v1.1 replaces Vpred-1.0), §4.4 example (`checkpoints/NoobAI-XL-v1.1.safetensors` + `vae/sdxl_vae.safetensors`), §5 topology (unified `./models` mount), §9 vpred-deferred note.
+- **Cleanup:** deleted `docker/comfyui-placeholder/`, reclaimed 7.1 GB of HuggingFace download extras from `./models/`.
+
+**Decisions locked in CLARIFY:**
+
+- **NoobAI-XL v1.1 (eps)** replaces Vpred-1.0 as the day-1 SDXL model — simpler workflow (no ModelSamplingDiscrete injection), better tool compatibility with default SDXL samplers, NoobAI team's current stable. vpred injection code deferred indefinitely (arch §9 note).
+- **`./models:/workspace/ComfyUI/models:ro`** mounts the full ComfyUI models tree rather than just checkpoints/, so external VAE files resolve via `models/vae/<name>.safetensors`.
+- **One WS reconnect → polling fallback** per CLARIFY Q4. Single `client_id` per adapter instance per arch §4.3, filtered by `prompt_id` on WS events.
+- **ComfyUI + GGUF pins** captured in `custom-nodes.txt` + Dockerfile ARG defaults + compose build.args (three-way consistency required on bumps).
+
+**Bugs caught during BUILD:**
+
+- **Dockerfile smoke test import failed** — `ComfyUI-GGUF` folder has a hyphen (invalid Python module name). Switched from `from ... import` check to `grep` check on node class names.
+- **Workflow `ckpt_name` had directory prefix** — ComfyUI's `CheckpointLoaderSimple.ckpt_name` expects a name relative to `models/checkpoints/`, not including that prefix. Same for `vae_name`.
+- **Adapter misclassified `400 + node_errors`** as `ComfyUnreachableError` — ComfyUI returns 400 (not 200) when the graph fails validation. Reclassified to `ComfyNodeError`.
+
+**`/review-impl` pass found 11 findings, all fixed in the same cycle:**
+
+- **MED-1** `_try_connect` now catches the full `websockets.exceptions.WebSocketException` hierarchy + `TimeoutError` (handshake errors, protocol violations, open-handshake timeouts all route to polling fallback).
+- **MED-2** `free()` loop-verifies VRAM rose per spec §11.3 (baseline reading, POST /free, poll /system_stats up to verify_timeout_s looking for increase; log.warning if it doesn't rise).
+- **MED-3** `wait_for_completion` raises `RuntimeError` on duplicate `prompt_id` registration instead of silently overwriting the first waiter's future (Cycle 4 queue/disconnect-handler risk).
+- **MED-4** `_poll_until_done` + `fetch_outputs` both invoke new `_raise_if_errored` helper that checks `status.status_str != "success"` — previously both paths silently returned "success" on failed jobs because `completed=True` is set for both terminal states.
+- **LOW-5** `cancel()` raises `ComfyUnreachableError` on /queue non-200 instead of silently no-op-ing (treated as "neither running nor pending").
+- **LOW-6** `__init__` validates `poll_interval_ms > 0` — prevents accidental tight-loop CPU burn from misconfigured poll intervals.
+- **LOW-7** `submit()` catches `TypeError` on non-JSON-serializable graph values → `ComfyNodeError("not JSON-serializable: ...")` instead of raw TypeError escaping.
+- **LOW-8** Pin-source-of-truth comment on Dockerfile + compose — explicitly names `custom-nodes.txt` as canonical; all three locations must bump together.
+- **LOW-9** Dockerfile `COPY --from=ghcr.io/astral-sh/uv /uv /uv /usr/local/bin/` → `/uv /uvx /usr/local/bin/` (typo fix; `uvx` is a separate binary the uv image ships).
+- **COSMETIC-10** Renamed `test_fetch_outputs_reads_output_anchored_nodes` → `test_fetch_outputs_reads_all_image_nodes` to reflect actual semantics (ComfyUI's /history doesn't echo `_meta` back; anchor filtering isn't possible there).
+- **COSMETIC-11** `pull_policy: never` on comfyui service suppresses the failing "pull access denied" log on every `docker compose up`.
+
+**Live verification:**
+
+```
+pytest (full)      87/87 pass
+ruff               clean
+ruff format        clean
+docker build       image-gen-comfyui:0.9.2 (4.7 GB)
+docker compose ps  comfyui healthy within 120 s start-period
+integration test   PNG bytes from NoobAI v1.1, PNG magic verified, 27 s warm
+/system_stats      RTX 4090 visible, 22.3 / 24 GB VRAM free
+```
+
+### Retro — lessons worth keeping
+
+- **ComfyUI `ckpt_name` / `vae_name` are scoped-by-subdir automatically — don't include the subdir prefix in the workflow JSON.** `CheckpointLoaderSimple` only accepts names from `get_filename_list("checkpoints")`, which returns names relative to `models/checkpoints/`. The full-tree `./models:/workspace/ComfyUI/models:ro` mount gave us the subdirs, but workflow paths stayed subdir-less. Any future workflow edit has to obey this. Adapter error was ComfyUnreachableError → misleading; fix on both sides (adapter reclassify + workflow prefix strip) caught during integration test.
+- **`custom_nodes/ComfyUI-GGUF` has a hyphen in the folder name.** Python won't import it directly; ComfyUI loads it via path manipulation at runtime. Our build-time smoke test switched to a textual `grep` on the node class names in `nodes.py` rather than a Python import. Any custom node with a hyphenated folder hits this.
+- **`BaseHTTPMiddleware` taint carries forward.** Cycle 1's retro flagged it; Cycle 2 made sure the new `ws_connect` factory + `_ws_reader` task lived outside any middleware. The pattern "inject the factory as a keyword arg, default to real impl" also gives us a clean seam for test mocks without `patch()` globals.
+- **`httpx.ASGITransport` and `websockets.connect` both need wrangling in tests.** httpx: `raise_app_exceptions=False` (Cycle 1). websockets: inject a factory that returns a `FakeWS` backed by `asyncio.Queue`. The Queue pattern gives deterministic event delivery timing — tests can `await _push(ws, event)` and then assert within the same turn.
+- **ComfyUI's `history[pid].status.completed == True` is set for both success AND error terminals.** Must discriminate via `status_str`. Polling-fallback path would silently return "success" on failed jobs without this. The discriminator shape lives in a shared `_raise_if_errored` helper so both `_poll_until_done` and `fetch_outputs` use the same check.
+
+**What's next (Sprint 6 plan / Cycle 3):**
+
+1. `app/storage/s3.py` — two boto3 clients (internal vs public endpoint), `upload_png(job_id, index, bytes)`, `presign_get(bucket, key, ttl)` wrapped in `tenacity` retry.
+2. `app/registry/models.py` + `config/models.yaml` — load the model registry, validate startup (files exist, anchors present, VRAM ≤ budget).
+3. `app/api/images.py` — `POST /v1/images/generations` sync path: validate → resolve model → load workflow → overwrite prompt/sampler params → `adapter.submit()` → `wait_for_completion` → `fetch_outputs` → upload → presign → respond.
+4. `app/api/models.py` — `GET /v1/models` reading from the registry.
+5. `app/validation.py` — Pydantic request model enforcing arch §6.0 bounds (minus webhook fields until Cycle 9).
+6. Tests: `test_model_registry.py`, `test_sync_endpoint.py` (mocked adapter + S3), `test_e2e_sync.py` (integration — real ComfyUI + real MinIO).
+
+**Prerequisites for Cycle 3:**
+- LoreWeave's HTTP client timeout for sync path (plan unknowns §Cycle-3) — need from @letuhao1994 before drafting the Pydantic `size_max_pixels` rule.
+- MinIO bucket creation: needs a startup init (either via entrypoint or a separate `mc` admin step).
+
+**Commits this sprint:** 1 expected for Cycle 2 code + 1 for session close.
 
 ---
 

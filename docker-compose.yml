@@ -32,19 +32,36 @@ services:
     restart: unless-stopped
 
   comfyui:
-    # Cycle 0 placeholder — returns a static 200 on :8188 so Compose
-    # networking is testable without downloading a real GPU image yet.
-    # Cycle 2 replaces this with the custom-built sidecar from
-    # `docker/comfyui/Dockerfile` (pinned ComfyUI + ComfyUI-GGUF).
-    image: nginx:alpine
+    # Real sidecar landed in Cycle 2 — pinned ComfyUI + city96/ComfyUI-GGUF custom nodes.
+    # Pin source of truth: docker/comfyui/custom-nodes.txt. The three pin locations
+    # (custom-nodes.txt, Dockerfile ARG, compose args) must stay in sync on bumps.
+    build:
+      context: ./docker/comfyui
+      args:
+        COMFYUI_REF: ${COMFYUI_REF:-v0.9.2}
+        COMFYUI_GGUF_REF: ${COMFYUI_GGUF_REF:-6ea2651e7df66d7585f6ffee804b20e92fb38b8a}
+    image: image-gen-comfyui:0.9.2
+    # Local-only tag — suppress the failing registry pull attempt every `up` does.
+    pull_policy: never
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
     volumes:
-      - ./docker/comfyui-placeholder/default.conf:/etc/nginx/conf.d/default.conf:ro
+      # Full ComfyUI models tree — subdirs (checkpoints/, vae/, loras/) live under ./models/.
+      - ./models:/workspace/ComfyUI/models:ro
+      # Workflows bind-mounted so the sidecar's web UI can load them for debugging.
+      - ./workflows:/workspace/ComfyUI/user/default/workflows:ro
     networks:
       - internal
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8188/ > /dev/null || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8188/system_stats > /dev/null || exit 1"]
       interval: 10s
       timeout: 3s
+      start_period: 120s
       retries: 3
     restart: unless-stopped
 

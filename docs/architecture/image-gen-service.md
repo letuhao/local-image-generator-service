@@ -196,12 +196,12 @@ Example:
 
 ```yaml
 models:
-  - name: noobai-xl-vpred-1
+  - name: noobai-xl-v1.1
     backend: comfyui
-    workflow: workflows/sdxl_vpred.json
-    checkpoint: NoobAI-XL-Vpred-1.0.safetensors
-    prediction: vpred           # "vpred" | "eps" — triggers ModelSamplingDiscrete injection for vpred
-    vae: sdxl_vae.safetensors
+    workflow: workflows/sdxl_eps.json
+    checkpoint: checkpoints/NoobAI-XL-v1.1.safetensors
+    prediction: eps             # "vpred" | "eps" — Cycle 2 uses eps, vpred injection deferred (§9)
+    vae: vae/sdxl_vae.safetensors
     capabilities: { image_gen: true }
     defaults:
       size: "1024x1024"
@@ -482,7 +482,7 @@ services:
     volumes:
       - ./config:/app/config:ro
       - ./data:/app/data                         # SQLite job store
-      - ./models:/models                         # writable for the service
+      - ./models:/models                         # writable for the service; full ComfyUI tree (checkpoints/, vae/, loras/)
       - ./loras:/loras                           # writable for the service
       - ./workflows:/workflows:ro
     depends_on: [comfyui, minio]
@@ -501,8 +501,9 @@ services:
               count: 1
               capabilities: [gpu]
     volumes:
-      - ./models:/workspace/ComfyUI/models/checkpoints:ro
-      - ./loras:/workspace/ComfyUI/models/loras:ro
+      # v0.5: full ComfyUI models tree from one host dir. Subdirs live at
+      # ./models/{checkpoints,vae,loras}/. Read-only from ComfyUI's perspective.
+      - ./models:/workspace/ComfyUI/models:ro
       - ./workflows:/workspace/ComfyUI/user/default/workflows:ro
     networks: [internal]
 
@@ -734,7 +735,7 @@ Client ──▶ FastAPI /v1/images/generations
 
 | Slot | Model | Backend | Workflow | Approx VRAM | Role |
 |---|---|---|---|---|---|
-| 1 | **NoobAI-XL Vpred-1.0** | ComfyUI | `sdxl_vpred.json` | ~7 GB | Anime / stylized / uncensored. Largest active LoRA ecosystem on Civitai. Default. |
+| 1 | **NoobAI-XL v1.1** (eps) | ComfyUI | `sdxl_eps.json` | ~7 GB | Anime / stylized / uncensored. Largest active LoRA ecosystem on Civitai. Default. |
 | 2 | **Chroma1-HD (Q8 GGUF)** | ComfyUI | `chroma_gguf.json` | ~9 GB | Photoreal / long-prompt (T5). Quantized to stay under budget. Requires custom nodes (§4.7). |
 
 VRAM envelope: target ≤ 12 GB peak. Both slots fit individually with headroom; not loaded simultaneously.
@@ -816,7 +817,7 @@ for each node that references A/B as model/clip:
 
 `%MODEL_SOURCE%` != `%CLIP_SOURCE%` is handled (Chroma/FLUX has `UnetLoaderGGUF` for model and `DualCLIPLoader` for clip).
 
-**vpred injection.** If `model_cfg.prediction == "vpred"`, insert a `ModelSamplingDiscrete` node with `sampling="v_prediction"`, `zsnr=true` between `%MODEL_SOURCE%` and the LoRA chain — added to the anchor algorithm as a prepend step.
+**vpred injection** (deferred per v0.5 — no day-1 model uses v-prediction). If `model_cfg.prediction == "vpred"`, insert a `ModelSamplingDiscrete` node with `sampling="v_prediction"`, `zsnr=true` between `%MODEL_SOURCE%` and the LoRA chain — added to the anchor algorithm as a prepend step. Re-activate only if a future model brings back v-prediction.
 
 **Output collection.** After completion, iterate `history[prompt_id].outputs`; for each node whose `_meta.title == "%OUTPUT%"`, take its `images[]` array.
 
@@ -1169,6 +1170,16 @@ Failures at any step produce a clear `startup_failed{stage, reason}` log and a n
 ---
 
 ## 20. Change log
+
+### v0.5 (2026-04-19) — Cycle 2 amendments (model roster + models/ mount)
+
+Two small but contract-affecting changes landed alongside Cycle 2 BUILD.
+
+**Model roster:** `NoobAI-XL Vpred-1.0` → `NoobAI-XL v1.1` (eps prediction). NoobAI team's current stable; Vpred-1.0 was an experimental branch with unstable training. eps works out-of-the-box with standard SDXL sampler/scheduler defaults, which matters for a service LoreWeave calls without tuning. Fewer moving parts: no `ModelSamplingDiscrete` injection in the workflow, no vpred-specific `prediction` field handling. The vpred injection algorithm in §9 stays documented but is **deferred** — re-introduce only if a future model brings back v-prediction. Workflow filename changes to `workflows/sdxl_eps.json`; `config/models.yaml` example updated.
+
+**`./models/` mount:** `./models:/workspace/ComfyUI/models/checkpoints:ro` → `./models:/workspace/ComfyUI/models:ro` (full ComfyUI models tree under one host directory). ComfyUI expects standard subdirs (`checkpoints/`, `vae/`, `loras/`, etc.) under `models/`; mounting the checkpoints-only subpath prevented external VAE files from resolving. Resulting host layout: `./models/checkpoints/<ckpt>.safetensors`, `./models/vae/<vae>.safetensors`.
+
+**Cycle 5 layout decision deferred:** ComfyUI's `./loras:/workspace/ComfyUI/models/loras:ro` mount was removed from the `comfyui` service in Cycle 2 (no LoRA consumer yet). When Cycle 5 lands, it must pick one of two paths: (A) move LoRAs to `./models/loras/` under the unified tree (requires renaming `/loras` to `/models/loras` on the `image-gen-service` writable mount too), or (B) add `./loras:/workspace/ComfyUI/models/loras:ro` back on the comfyui service alongside the `./models` mount. Option A is cleaner; Option B preserves v0.4's topology. To be resolved in Cycle 5 CLARIFY.
 
 ### v0.4 (2026-04-18) — webhook hardening (`/review-impl` response)
 
