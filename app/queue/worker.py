@@ -39,6 +39,7 @@ from app.validation import (
     GenerateRequest,
     ValidationFailureError,
     resolve_and_validate,
+    touch_last_used_async,
 )
 
 log = structlog.get_logger(__name__)
@@ -196,6 +197,7 @@ class QueueWorker:
                 async_mode_enabled=self._async_mode_enabled,
                 loras_root=self._loras_root,
             )
+            await touch_last_used_async(self._loras_root, validated.loras)
         except (ValidationError, ValidationFailureError, json.JSONDecodeError) as exc:
             await set_failed(
                 self._store,

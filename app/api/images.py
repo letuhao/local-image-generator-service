@@ -29,6 +29,7 @@ from app.validation import (
     GenerateRequest,
     ValidationFailureError,
     resolve_and_validate,
+    touch_last_used_async,
 )
 
 log = structlog.get_logger(__name__)
@@ -83,7 +84,7 @@ async def create_image(
     async_mode = request.app.state.async_mode_enabled
     loras_root = request.app.state.loras_root
     try:
-        resolve_and_validate(
+        validated = resolve_and_validate(
             body,
             registry=registry,
             async_mode_enabled=async_mode,
@@ -91,6 +92,11 @@ async def create_image(
         )
     except ValidationFailureError as exc:
         return _error(400, exc.error_code, exc.message)
+
+    # Update LoRA sidecar last_used timestamps (debounced, best-effort, thread-
+    # pooled). Fires only on successful validation so we don't touch sidecars
+    # for rejected requests.
+    await touch_last_used_async(loras_root, validated.loras)
 
     # 3. MAX_QUEUE gate — SQLite ground truth.
     store = request.app.state.store

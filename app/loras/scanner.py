@@ -34,6 +34,7 @@ class LoraMeta:
     addressable: bool
     reason: str | None
     sidecar_status: SidecarStatus
+    last_used: str | None  # ISO-8601, updated by validation.resolve_and_validate
 
 
 def _unaddressable_reason(name: str) -> str | None:
@@ -111,6 +112,7 @@ def _meta_from_sidecar(
             addressable=addressable,
             reason=reason,
             sidecar_status=sidecar_status,
+            last_used=None,
         )
     trigger_raw = sidecar.get("trigger_words")
     if isinstance(trigger_raw, list):
@@ -159,6 +161,7 @@ def _meta_from_sidecar(
         addressable=addressable,
         reason=reason,
         sidecar_status=sidecar_status,
+        last_used=(sidecar.get("last_used") if isinstance(sidecar.get("last_used"), str) else None),
     )
 
 

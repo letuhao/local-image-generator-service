@@ -65,6 +65,8 @@ select = [
 ignore = [
     "S101",   # asserts are fine; tests use them heavily
     "S104",   # binding 0.0.0.0 is correct in a container — uvicorn CMD does it intentionally
+    "RUF002", # Greek α/β/γ in docstrings are deliberate (eviction protection-rule labels)
+    "RUF003", # same as above, for comments
 ]
 # Policy for other S-codes we'll hit in later cycles:
 #   S113  httpx without timeout → address with explicit `timeout=` on every client

@@ -2,7 +2,68 @@
 
 > Append the newest sprint at the top. Keep each entry short: one-line outcome, changed files, notable decisions, what's next.
 
-**Last session ended:** 2026-04-19 after Sprint 8 / Cycle 5 complete. Resume from [HANDOFF.md](HANDOFF.md) — it holds the pick-up-where-you-left-off summary.
+**Last session ended:** 2026-04-19 after Sprint 9 / Cycle 6 complete. Resume from [HANDOFF.md](HANDOFF.md) — it holds the pick-up-where-you-left-off summary.
+
+---
+
+## Sprint 9 — 2026-04-19 — Cycle 6 Civitai fetcher (async + 11-rule hardened + /review-impl fixes)
+
+**Outcome:** Admin-scope `POST /v1/loras/fetch` accepts a civitai.com / civitai.red URL, returns 202 with a poll URL, and fetches + SHA-256-verifies + sidecars the LoRA onto disk under `./loras/civitai/<slug>_<vid>.safetensors`. Concurrent requests for the same `version_id` dedupe at both handler and DB-unique-index layers. LRU eviction with α/β/γ protection + TOCTOU recheck makes room when the dir budget is exceeded. Cross-restart recovery flips non-terminal rows to `failed{service_restarted, handover=true}` and cleans partial `.tmp` files. 281 tests green (+68 from Cycle 5's 213), ruff + format clean.
+
+**Files created / modified (23):**
+
+- **Fetcher core:** `app/loras/civitai.py` — `CivitaiFetcher` class + streaming download + SHA-256 verify + 5 in-stream safety nets (size cap, throughput floor, mid-stream disk recheck, per-chunk read timeout 30s, overall deadline 1800s). Per-version `asyncio.Lock` cached in a dict that auto-prunes after each fetch. `_validate_download_url()` enforces https + host allowlist on the metadata-supplied URL (SSRF defense).
+- **URL parser:** `app/loras/civitai_url.py` — strict parser accepting `civitai.com` + `civitai.red` pages with explicit `?modelVersionId=` or the `/api/download/models/<vid>` shape. Rejects http, userinfo, ports, case-mismatched query params, suffix-impersonation hosts.
+- **Eviction:** `app/loras/eviction.py` — `evict_for()` reads `./loras/civitai/**` sidecars, protects via α (non-terminal job references), β (last_used within 7 days), γ (no sidecar OR `source != "civitai"`). TOCTOU recheck runs before each `unlink()` to catch jobs enqueued mid-eviction. Raises `InsufficientStorageError` if the budget can't be satisfied.
+- **Store:** `app/queue/fetches.py` — `LoraFetch` dataclass + CRUD mirroring Cycle 1's jobs helpers. Status FSM: `pending → downloading → verifying → done|failed`. `find_active_by_version` + partial unique index on `(version_id) WHERE status IN (pending,downloading,verifying)` provides two-layer dedupe.
+- **Recovery:** `app/queue/fetches_recovery.py` — boot-time scan: non-terminal rows → `failed{service_restarted, handover=true}`; `./loras/civitai/**/*.tmp` glob-unlinked.
+- **Migration:** `migrations/003_lora_fetches.sql` — new table + unique partial index + status/updated_at index.
+- **Endpoint:** `app/api/loras.py` — `POST /v1/loras/fetch` (admin), `GET /v1/loras/fetch/{id}` (admin). Dedupe: find → create → on `IntegrityError` → find again → return winner's id.
+- **Validation debounce:** `app/validation.py` — `_touch_last_used_sync()` + `touch_last_used_async()` helpers. Handler + worker call the async helper after `resolve_and_validate`; 5-min debounce avoids write-amplification on the hot path.
+- **Scanner:** `app/loras/scanner.py` — `LoraMeta` gains `last_used: str | None`, read from sidecar; exposed via `GET /v1/loras`.
+- **Lifespan:** `app/main.py` — installs `CivitaiFetcher` + `fetcher_http` client + runs `recover_fetches` after `recover_jobs`. Shutdown cancels fetcher tasks first, then closes HTTP client, then store.
+- **Compose + env:** `./loras` service-side mount flipped from `:ro` to writable (comfyui stays `:ro`). `.env.example` + compose document 9 new vars (`CIVITAI_API_TOKEN`, `LORA_DIR_MAX_SIZE_GB`, `LORA_MAX_SIZE_BYTES`, `LORA_MAX_CONCURRENT_FETCHES`, `LORA_RECENT_USE_DAYS`, `LORA_LAST_USED_DEBOUNCE_S`, `LORA_FETCH_METADATA_TIMEOUT_S`, `LORA_FETCH_DOWNLOAD_OVERALL_TIMEOUT_S`, `LORA_FETCH_CHUNK_READ_TIMEOUT_S`).
+- **Tests (7 new, 2 modified):** `test_civitai_url_parser.py` (18 including 7 attack surfaces), `test_civitai_fetch.py` (17 respx-mocked + SSRF + OSError + slow-loris + mid-stream-disk + shutdown-shield + lock-prune), `test_lora_eviction.py` (9 including TOCTOU recheck + non-civitai sidecar protection), `test_fetches_store.py` (9 including unique-partial-index race), `test_fetches_endpoint.py` (6 including dedupe race), `test_fetches_recovery.py` (3). `test_validation.py` +4 debounce tests. `test_lora_scanner.py` +1 `last_used` round-trip.
+- **Integration:** `tests/integration/test_civitai_real.py` — gated on `CIVITAI_API_TOKEN` + `CIVITAI_TEST_URL`, submits a real fetch and verifies the sidecar landed.
+- **Lint config:** `pyproject.toml` — added `RUF002`/`RUF003` to ignore list (Greek α/β/γ appear deliberately in eviction's docstring).
+
+**Decisions locked in CLARIFY (8 items):**
+
+- **Q1 URL-based input** — accept both civitai.com + civitai.red.
+- **Q2 Strict URL parsing** — require explicit `?modelVersionId=<vid>` or `/api/download/models/<vid>`.
+- **Q3 Always async** — 202 + poll endpoint.
+- **Q4 Handover on restart** — non-terminal rows flip to failed+handover; no HTTP Range resume.
+- **Q5 Strict SHA-256** — refuse if Civitai metadata's `files[].hashes.SHA256` missing.
+- **Q6 LRU eviction** — sidecar `last_used` sort + α/β/γ protection + InsufficientStorageError on exhaust.
+- **Q7a 2× disk headroom pre-check, 7b tenacity 3×** — no Range resume.
+- **Q8a new `lora_fetches` table**, **Q8b save path `./loras/civitai/<slug>_<vid>.safetensors`** (server-derived from Civitai metadata).
+
+**REVIEW-DESIGN refinements (7 adopted):**
+
+- (A) Debounce `last_used` writes 5 min.
+- (B) UNIQUE partial index + IntegrityError fallback in handler.
+- (C) TOCTOU recheck inside `evict_for` before each unlink.
+- (D) Idempotent existing-file path also writes sidecar if missing.
+- (E) Split error-code table into "sync-return" vs "job-row".
+- (F) Per-chunk httpx `ReadTimeout=30s` separate from `LORA_FETCH_DOWNLOAD_OVERALL_TIMEOUT_S=1800`.
+- (G) Case-insensitive + exact-match hostname; reject userinfo/port.
+
+**`/review-impl` pass found 4 MED + 6 LOW + 1 COSMETIC — all fixed in-cycle:**
+
+- **MED-1** SSRF via metadata-supplied `downloadUrl` — added `_validate_download_url()` scheme + host allowlist. Rejects http://, rejects non-Civitai hosts, accepts `*.civitai.com` CDN subdomains. (+3 tests)
+- **MED-2** OSError mid-write leaked partial `.tmp` file — added explicit `except OSError` with unlink + errno=28 → `insufficient_storage`. (+1 test)
+- **MED-3** Slow-loris via per-chunk timer reset — added minimum-throughput check (10 KiB/s after 30s grace). `_SlowDownloadError` → `civitai_unavailable`. (+1 test)
+- **MED-4** `sizeKB` metadata trust — added mid-stream `shutil.disk_usage` re-check every 16 MiB. `_MidStreamDiskFullError` → `insufficient_storage`. (+1 test)
+- **LOW-5** `httpx.ReadTimeout` → widened to `httpx.TimeoutException` base class (catches PoolTimeout, WriteTimeout, ConnectTimeout).
+- **LOW-6** Shutdown handover write could be re-cancelled — wrapped `set_failed` in `asyncio.shield`. (+1 test)
+- **LOW-7** Eviction didn't check `source` — added filter that skips sidecars with `source != "civitai"` (protects operator hand-drops under `civitai/`). (+1 test)
+- **LOW-8** Folded into MED-1 (scheme enforcement).
+- **LOW-9** `_version_locks` dict grew unbounded — added `_maybe_prune_lock()` in `_run`'s finally. (+1 test)
+- **LOW-10** Broad `except Exception` on `request.json()` — narrowed to `json.JSONDecodeError`.
+
+**Test counts:** 281 unit pass / 2 skipped (Windows symlink gates). Cycle 5 baseline was 213; Cycle 6 added 68 net.
+
+**Next:** Cycle 7 — Chroma1-HD GGUF model #2 + VRAM guard + model unload on swap. Prereqs: `chroma1-hd-q8.gguf`, `t5xxl_fp8_e4m3fn.safetensors`, `ae.safetensors`, `clip_l.safetensors` in `./models/`; free VRAM from the host process that's currently holding ~17 GB before Chroma Q8 (~9 GB) loads on top of NoobAI (~7 GB).
 
 ---
 

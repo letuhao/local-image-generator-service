@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import json
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -7,12 +10,15 @@ from pydantic import ValidationError
 
 from app.backends.base import ModelConfig
 from app.registry.models import Registry
+from app.registry.workflows import ResolvedLoraRef
 from app.validation import (
     ALLOWED_SAMPLERS,
     ALLOWED_SCHEDULERS,
     GenerateRequest,
     ValidationFailureError,
+    _touch_last_used_sync,
     resolve_and_validate,
+    touch_last_used_async,
 )
 
 
@@ -259,3 +265,53 @@ def test_loras_empty_list_ok(registry: Registry, tmp_path: Any) -> None:
         req, registry=registry, async_mode_enabled=False, loras_root=tmp_path
     )
     assert job.loras == ()
+
+
+# ─── Sidecar last_used debounce (Cycle 6) ─────────────────────────
+
+
+def test_touch_sync_writes_when_stale(tmp_path: Path) -> None:
+    """Sidecar with last_used 10 min ago → rewritten."""
+    sidecar = tmp_path / "foo.json"
+    stale = (datetime.now(UTC) - timedelta(minutes=10)).isoformat()
+    sidecar.write_text(json.dumps({"last_used": stale}), encoding="utf-8")
+
+    _touch_last_used_sync(sidecar)
+
+    data = json.loads(sidecar.read_text(encoding="utf-8"))
+    new_ts = datetime.fromisoformat(data["last_used"])
+    assert (datetime.now(UTC) - new_ts).total_seconds() < 5
+
+
+def test_touch_sync_skips_when_fresh(tmp_path: Path, monkeypatch: Any) -> None:
+    """Sidecar touched 2 min ago + 5-min debounce → left alone."""
+    monkeypatch.setenv("LORA_LAST_USED_DEBOUNCE_S", "300")
+    sidecar = tmp_path / "foo.json"
+    fresh = (datetime.now(UTC) - timedelta(minutes=2)).isoformat()
+    payload = json.dumps({"last_used": fresh})
+    sidecar.write_text(payload, encoding="utf-8")
+    mtime_before = sidecar.stat().st_mtime_ns
+
+    _touch_last_used_sync(sidecar)
+
+    assert sidecar.read_text(encoding="utf-8") == payload
+    assert sidecar.stat().st_mtime_ns == mtime_before
+
+
+def test_touch_sync_missing_sidecar_noops(tmp_path: Path) -> None:
+    _touch_last_used_sync(tmp_path / "absent.json")
+    # No exception = pass.
+
+
+async def test_touch_async_touches_every_lora(tmp_path: Path) -> None:
+    (tmp_path / "a.json").write_text(json.dumps({}), encoding="utf-8")
+    (tmp_path / "a.safetensors").write_bytes(b"")
+    (tmp_path / "b.json").write_text(json.dumps({}), encoding="utf-8")
+    (tmp_path / "b.safetensors").write_bytes(b"")
+    resolved = (
+        ResolvedLoraRef(name="a", weight=0.5),
+        ResolvedLoraRef(name="b", weight=0.5),
+    )
+    await touch_last_used_async(tmp_path, resolved)
+    assert "last_used" in json.loads((tmp_path / "a.json").read_text())
+    assert "last_used" in json.loads((tmp_path / "b.json").read_text())

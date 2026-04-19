@@ -1,14 +1,28 @@
 from __future__ import annotations
 
+import asyncio
+import json
+import os
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Literal
 
+import structlog
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.backends.base import ModelConfig
 from app.registry.models import Registry
 from app.registry.workflows import ResolvedLoraRef
+
+log = structlog.get_logger(__name__)
+
+# Debounce last_used sidecar writes to avoid write amplification: 20 loras ×
+# 10 req/s = 200 writes/sec otherwise. A 5-min window is fine-grained enough
+# for eviction decisions (we only care about day-scale freshness) and
+# eliminates ~99% of the writes on a hot path.
+LORA_LAST_USED_DEBOUNCE_S_ENV = "LORA_LAST_USED_DEBOUNCE_S"
+_DEFAULT_DEBOUNCE_S = 300
 
 # Allowed ComfyUI samplers + schedulers per arch §6.0. Restrict to the well-supported set;
 # additions land as registry changes with corresponding workflow updates.
@@ -253,3 +267,80 @@ def resolve_and_validate(
         mode=req.mode,
         loras=resolved_loras,
     )
+
+
+# ── Sidecar last_used tracking (Cycle 6) ─────────────────────────────────────
+
+
+def _debounce_seconds() -> int:
+    """Re-read env each call so tests can override via monkeypatch.setenv."""
+    raw = os.environ.get(LORA_LAST_USED_DEBOUNCE_S_ENV)
+    try:
+        return int(raw) if raw is not None else _DEFAULT_DEBOUNCE_S
+    except ValueError:
+        return _DEFAULT_DEBOUNCE_S
+
+
+def _touch_last_used_sync(sidecar_path: Path) -> None:
+    """Best-effort: update sidecar.last_used if stale beyond debounce window.
+
+    - Missing sidecar (user hand-drop): skip silently (γ-protection).
+    - Existing last_used within debounce window: skip (write amplification guard).
+    - Read/parse/write failure: log WARN and proceed — never block generation on
+      an observability update.
+    """
+    if not sidecar_path.is_file():
+        return
+    try:
+        text = sidecar_path.read_text(encoding="utf-8")
+        data = json.loads(text)
+    except (OSError, json.JSONDecodeError) as exc:
+        log.warning(
+            "lora.last_used.read_failed",
+            sidecar=str(sidecar_path),
+            error=str(exc),
+        )
+        return
+    if not isinstance(data, dict):
+        return
+
+    now = datetime.now(UTC)
+    prev = data.get("last_used")
+    if isinstance(prev, str):
+        try:
+            prev_dt = datetime.fromisoformat(prev)
+            if prev_dt.tzinfo is None:
+                prev_dt = prev_dt.replace(tzinfo=UTC)
+            if (now - prev_dt).total_seconds() < _debounce_seconds():
+                return  # still fresh; debounce skip
+        except ValueError:
+            # Malformed ISO-8601 — fall through and overwrite with a good value.
+            pass
+
+    data["last_used"] = now.isoformat()
+    tmp = sidecar_path.with_suffix(".json.tmp")
+    try:
+        tmp.write_text(json.dumps(data), encoding="utf-8")
+        os.replace(tmp, sidecar_path)
+    except OSError as exc:
+        log.warning(
+            "lora.last_used.write_failed",
+            sidecar=str(sidecar_path),
+            error=str(exc),
+        )
+        # Best-effort cleanup of partial tmp.
+        try:
+            tmp.unlink()
+        except OSError:
+            pass
+
+
+async def touch_last_used_async(loras_root: Path, resolved: tuple[ResolvedLoraRef, ...]) -> None:
+    """Handler-side helper: fire sidecar touches for each resolved LoRA in a
+    thread pool so they don't block the event loop. Called AFTER
+    resolve_and_validate succeeds."""
+    if not resolved:
+        return
+    for lora in resolved:
+        sidecar = (loras_root / f"{lora.name}.safetensors").with_suffix(".json")
+        await asyncio.to_thread(_touch_last_used_sync, sidecar)

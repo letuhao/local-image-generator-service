@@ -3,18 +3,19 @@
 > This file is **overwritten** every session close. It reflects **current state**, not history.
 > History lives in [SESSION.md](SESSION.md). Architecture lives in [docs/architecture/image-gen-service.md](../architecture/image-gen-service.md). Build plan lives in [docs/plans/2026-04-18-image-gen-service-build.md](../plans/2026-04-18-image-gen-service-build.md).
 
-**Last updated:** 2026-04-19 — Session closed after Sprint 8 / Cycle 5.
+**Last updated:** 2026-04-19 — Session closed after Sprint 9 / Cycle 6.
 
 ---
 
 ## Where we are
 
-- **Branch:** `main`, **1 commit ahead** of `origin/main` (Cycle 5; earlier cycles pushed).
-- **Latest commits:**
-  - `af615a5` feat(cycle-5): LoRA scanner + graph injection + GET /v1/loras + path-traversal defense  ← unpushed
-  - `b9fb515` docs: session close — rewrite HANDOFF.md for Cycle 5 pickup
-  - `6f850c8` feat(cycle-4): queue worker + disconnect handler + orphan reaper + restart recovery
-- **Plan progress:** 6 / 11 cycles complete.
+- **Branch:** `main`, ahead of `origin/main` by whatever Cycle 6 will add. Check `git log origin/main..HEAD`.
+- **Latest commits (most-recent first):**
+  - `<cycle6>` feat(cycle-6): Civitai fetcher — URL parser, async queue, SHA verify, LRU eviction, /review-impl fixes
+  - `bc3edac` fix(compose): make ComfyUI user tree writable + drop workflows ro overlay
+  - `d74222b` docs: fix HANDOFF commit-count to reflect actual origin/main state
+  - `af615a5` feat(cycle-5): LoRA scanner + graph injection + GET /v1/loras + path-traversal defense
+- **Plan progress:** 7 / 11 cycles complete.
 
 ```
 [x] 0  Repo bootstrap
@@ -23,53 +24,52 @@
 [x] 3  MinIO gateway + model registry + first sync endpoint
 [x] 4  Queue + disconnect + reaper + restart
 [x] 5  LoRA local + injection
-[ ] 6  Civitai fetcher hardened                          ← NEXT (L, 1-2 day budget)
-[ ] 7  Chroma model #2
+[x] 6  Civitai fetcher hardened
+[ ] 7  Chroma model #2 + VRAM guard + model unload on swap  ← NEXT (M, 1 day budget)
 [ ] 8  Async + polling
 [ ] 9  Webhook dispatcher
 [ ] 10 Startup validation + smoke test
 [ ] 11 LoreWeave integration-guide PR (parallel, user-owned)
 ```
 
-- **Workflow state:** retro pending close (will close with the Cycle 5 commit).
-- **Test suite:** `uv run pytest -q --ignore=tests/integration` → **213 passed, 2 skipped** (Windows symlink gates). Integration suite (`-m integration`) untouched — requires live compose stack.
-- **Arch version:** v0.6 (unchanged). Cycle 5 needed no arch revision.
+- **Workflow state:** RETRO pending close (will close with the Cycle 6 commit).
+- **Test suite:** `uv run pytest --ignore=tests/integration -q` → **281 passed / 2 skipped** (Windows symlink gates). Integration: `uv run pytest -m integration -q tests/integration/` gated on `CIVITAI_API_TOKEN` + `CIVITAI_TEST_URL`.
+- **Arch version:** v0.6 (unchanged). Cycle 6 needed no arch revision.
 
 ---
 
-## Next action (Sprint 9 = Cycle 6)
+## Next action (Sprint 10 = Cycle 7)
 
-**Goal per plan §Cycle 6:** `POST /v1/loras/fetch {civitai_model_id, version_id?}` downloads the `.safetensors` + writes a full sidecar JSON, with LRU eviction enforcing `LORA_DIR_MAX_SIZE_GB`. Scanner picks it up on the next `GET /v1/loras`.
+**Goal per plan §Cycle 7:** A second model (`chroma-hd-q8`) works through the same dispatcher. VRAM budget guard refuses requests where `n * vram_estimate_gb + overhead > VRAM_BUDGET_GB`. Swapping models between requests calls `/free` on ComfyUI to release VRAM before the new load.
 
-Files to create / modify:
+**Files to create / modify:**
 
-- `app/loras/fetcher.py` — `CivitaiFetcher` class. Single-flight per-version (dedup concurrent fetches by `civitai_version_id`). Streaming download to `<name>.safetensors.tmp` + atomic rename. Sidecar written with `{sha256, source: "civitai", civitai_model_id, civitai_version_id, base_model_hint, trigger_words, fetched_at}`. Verifies SHA-256 if Civitai provides it; log warn + keep if not.
-- `app/loras/eviction.py` — LRU eviction. On write, if `du(loras_root) > LORA_DIR_MAX_SIZE_GB * 1e9`, evict by `atime` ascending, never touching files used in a job in the last 7 days (check `input_json LIKE '%{name}%'`). Arch §17.
-- `app/api/loras_fetch.py` (or fold into `app/api/loras.py`) — `POST /v1/loras/fetch` (admin scope). Body: `{civitai_model_id, version_id?}`. 202 with status poll URL; or synchronous for small (<200 MB) files.
-- `app/validation.py` — `CivitaiFetchRequest` Pydantic model.
-- `docker-compose.yml` — flip `./loras` mount from `:ro` to writable for the service (keep `:ro` on comfyui).
-- Tests: `test_lora_fetcher.py` (download happy path + sha mismatch + 403 NSFW + network error + retries), `test_lora_eviction.py` (LRU order + protect-recent-use + min_free behavior), `test_loras_fetch_endpoint.py` (auth + validation + 202 response shape), integration test gated on `CIVITAI_API_TOKEN`.
-- Env: `CIVITAI_API_TOKEN`, `LORA_DIR_MAX_SIZE_GB`, `LORA_MAX_CONCURRENT_FETCHES=1`, `LORA_MAX_SIZE_BYTES=2147483648` (2 GiB).
+- `workflows/chroma_gguf.json` — anchor-tagged Chroma workflow using `UnetLoaderGGUF` + `DualCLIPLoader` + `VAELoader`. `%MODEL_SOURCE%` and `%CLIP_SOURCE%` land on DIFFERENT nodes (SDXL had them overlap); this exercises `inject_loras`'s separate-node path that Cycle 5 wrote but Cycle 6's tests didn't exercise.
+- `app/registry/workflows.py` (extend) — dual-source LoRA injection correctness test for FLUX-style graphs.
+- `config/models.yaml` (update) — add `chroma-hd-q8` entry with `clip_l`, `t5xxl`, `dual_clip_type: chroma`, `vram_estimate_gb: 9.0`, `prediction: eps` (FLUX isn't vpred).
+- `app/backends/comfyui.py` (extend) — `unload_models()` calls `/free {unload_models: true, free_memory: true}`, probes `/system_stats` until VRAM drops below a threshold.
+- `app/queue/worker.py` (extend) — track `last_model_name`; call `unload_models()` when next job's model differs. Mind the test fixture swap pattern (Cycle 3/4 tests swap `worker._adapter`).
+- `app/validation.py` (extend) — VRAM guard: `validated.n * model_cfg.vram_estimate_gb + lora_overhead <= VRAM_BUDGET_GB`. Error: `error_code="vram_budget_exceeded"`.
+- Tests: `test_vram_guard.py`, `test_dual_source_injection.py`, `tests/integration/test_model_swap.py`.
 
 **Kickoff commands:**
 ```bash
 cd d:/Works/source/local-image-generator-service
 bash scripts/workflow-gate.sh reset
-# Plan says Cycle 6 is L (~8-10 files). Script likely agrees.
-bash scripts/workflow-gate.sh size L 8 6 1
+bash scripts/workflow-gate.sh size M 7 5 1     # M: 5-7 files, 5+ logic, side effects
 bash scripts/workflow-gate.sh phase clarify
 ```
 
 ---
 
-## Open items to resolve during Cycle 6 CLARIFY
+## Open items to resolve during Cycle 7 CLARIFY
 
-- **Civitai API surface + auth.** Token goes in `Authorization: Bearer <CIVITAI_API_TOKEN>` header (Civitai's documented shape). Verify current API version (`/api/v1/models/{id}` or `/api/v1/model-versions/{id}`). Decide: fetch by `model_id` only → pick `modelVersions[0]` (latest), or require explicit `version_id`? Recommendation: support both; default to latest-version when `version_id` omitted.
-- **Sync vs async download.** A 2 GiB safetensors over 100 Mbps = ~3 min. Holding a sync request for 3 min won't fly. Recommendation: always 202 accepted, poll via `GET /v1/loras/fetch/{request_id}`. Small downloads (<200 MB) could sync, but the poll path simplifies client code.
-- **LRU eviction policy.** Pure access-time eviction can delete a LoRA mid-generation. Job-in-flight protection: skip eviction on LoRAs whose `name` appears in `input_json` of any non-terminal job, OR any job in the last 7 days. Recommendation: conservative — protect 7-day window + active jobs.
-- **SHA-256 verification.** Civitai returns `hashes: {SHA256, BLAKE3, ...}`. Our download verifies against `SHA256` if provided. If Civitai doesn't provide one → log warn + accept, record `sha256=null` in the sidecar. Recommendation: strict when present, permissive when absent.
-- **Disk-space pre-check.** Before download, confirm `shutil.disk_usage(loras_root).free >= expected_size * 2` (double to leave headroom for verification temp copies). If not, refuse 507 Insufficient Storage per arch §13.
-- **Retry strategy.** Civitai returns 403 for NSFW without token (behavior flipped once — see memory `civitai` notes). On 403: surface error with auth hint, don't retry. On 5xx: tenacity exponential, 3 attempts. On connection reset: retry via HTTP Range resume if partial download exists. Recommendation: start simple (tenacity 3x, no range resume) and defer resume to a later cycle.
+- **GGUF node set pinned?** Cycle 2 pinned ComfyUI-GGUF to `6ea2651`. Chroma uses `UnetLoaderGGUF` + related custom nodes. Verify the pinned commit still exports the set we need; bump if Chroma1-HD demands newer node versions. If a bump is needed, patch `docker/comfyui/custom-nodes.txt` + `COMFYUI_GGUF_REF`.
+- **VRAM overhead constant.** LoRAs add `~strength × 50-300 MB` to VRAM on FLUX models. Simplest heuristic: reserve `0.5 GB × len(loras)` per request. Confirm this is a reasonable default or if we need a more sophisticated model.
+- **Is the VRAM guard per-request or per-model?** Per-request makes more sense (n=4 batch doubles VRAM); per-model is simpler. Lean: per-request with `n` factored in.
+- **`unload_models` probe — how do we know when VRAM is actually freed?** ComfyUI's `/free` is advisory (memory reference #5 — reference_comfyui_quirks.md). Options: (a) sleep 5 s and trust; (b) probe `/system_stats` until `vram_free > threshold`; (c) don't probe, rely on ComfyUI's automatic eviction on next load. Lean: (b) with a 30 s timeout.
+- **Free VRAM before Chroma loads.** Host currently shows `17.2 / 24 GB` used before any model load (flagged in memory `project_context`). Chroma Q8 needs ~9 GB on top of NoobAI's ~7 GB = 16 GB. 17 GB ambient + 16 GB GPU jobs = 33 GB > 24 GB physical. User needs to stop whatever's holding that 17 GB before running the integration test.
+- **Dual-source injection.** Cycle 5's `inject_loras` finds MODEL_SOURCE + CLIP_SOURCE anchors. SDXL has both on node 1 (`CheckpointLoaderSimple`). Chroma has them on separate nodes (UnetLoaderGGUF + DualCLIPLoader). Cycle 5 anticipated this case but has no test. Cycle 7 needs to either extend the injector OR add a test proving the separate-node path works.
 
 ---
 
@@ -77,16 +77,18 @@ bash scripts/workflow-gate.sh phase clarify
 
 - **Host:** Windows 11, Docker Desktop, NVIDIA Container Toolkit working.
 - **GPU:** RTX 4090 visible in containers, CUDA 13.0, driver 581.80.
-- **VRAM:** ~22 GB free cold; ~15 GB after NoobAI loaded.
+- **VRAM:** ~22 GB free cold; ~15 GB after NoobAI loaded. **Host is currently holding ~17 GB before any model load — will block Chroma Q8 until freed.**
 - **ComfyUI sidecar:** `image-gen-comfyui:0.9.2` pinned (ComfyUI v0.9.2 + GGUF 6ea2651).
 - **Port conflict:** `free-context-hub-minio-1` on 9000/9001; our dev Compose uses 127.0.0.1:9100/9101.
-- **Model files:** `./models/checkpoints/NoobAI-XL-v1.1.safetensors` (6.6 GB) + `./models/vae/sdxl_vae.safetensors` (319 MB).
-- **LoRA library:** `./loras/` — 280 `.safetensors` across ahegao/group_sex/hanfu/mics subdirs, 42 GB total. 235 addressable, 45 have spaces/parens (surface via `/v1/loras` with `addressable=false`). Zero sidecars so far — Cycle 6 fetcher will populate them.
+- **Model files:** `./models/checkpoints/NoobAI-XL-v1.1.safetensors` (6.6 GB) + `./models/vae/sdxl_vae.safetensors` (319 MB). Cycle 7 adds Chroma + t5xxl + clip_l + ae.
+- **LoRA library:** `./loras/` — 280 `.safetensors` across ahegao/group_sex/hanfu/mics. 235 addressable, 45 with spaces/parens. Zero sidecars in the user-drop tree; fetched Cycle 6 LoRAs will land under `./loras/civitai/<slug>_<vid>.safetensors` with full sidecars.
 - **MinIO bucket:** `image-gen` auto-ensured at boot. Objects at `generations/YYYY/MM/DD/<job_id>/<index>.png`.
 - **Gateway URL format:** `http://127.0.0.1:8700/v1/images/<job_id>/<index>.png` (Bearer-auth'd).
-- **Queue:** asyncio.Queue(maxsize=20); SQLite count_active gate in handler; worker + reaper lifespan-managed tasks; hard-cancel shutdown (Cycle 10 adds graceful drain).
-- **LoRA root source of truth:** `app.state.loras_root` (resolved once at boot from `LORAS_ROOT` env). Handler + worker re-validation both consume it — no per-request env re-read.
-- **ComfyUI quirks** (see `memory/reference_comfyui_quirks.md`): ckpt_name no subdir prefix; GGUF folder hyphen; status_str discriminator; client_id per-adapter-instance; /free is advisory. ComfyUI's `LoraLoader` accepts `subdir/name` forms as `lora_name` — verified in Cycle 5.
+- **Civitai fetcher:** `POST /v1/loras/fetch` admin-only. URLs from `civitai.com` + `civitai.red`; downloads go to `civitai.com` (shared backend). `CIVITAI_API_TOKEN` required for NSFW / gated content.
+- **Queue:** asyncio.Queue(maxsize=20); SQLite count_active gate; worker + reaper + fetcher lifespan-managed tasks; hard-cancel shutdown (Cycle 10 adds graceful drain).
+- **LoRA root source of truth:** `app.state.loras_root` resolved once at boot. Handler + worker re-validation both consume it.
+- **Sidecar `last_used` touch:** debounced 5 min; wrapped in `asyncio.to_thread` off the hot path.
+- **ComfyUI quirks** (see `memory/reference_comfyui_quirks.md`): ckpt_name no subdir prefix; GGUF folder hyphen; status_str discriminator; client_id per-adapter-instance; /free is advisory (needs probe loop for Cycle 7).
 - **Runtime deps trap** (see `memory/feedback_runtime_correctness.md`): every runtime `import x` in `app/` must live in `[project.dependencies]`, not dev. Docker `--no-dev` catches it.
 - **Middleware trap** (see `memory/feedback_middleware.md`): no `BaseHTTPMiddleware`; pure ASGI only; test transport uses `raise_app_exceptions=False`.
 
@@ -101,37 +103,37 @@ bash scripts/workflow-gate.sh status              # empty
 # First-boot prereq on a fresh clone: both dirs are gitignored so each dev
 # must create the stubs before compose will start.
 mkdir -p models/loras data/comfyui-user
-docker compose up -d                              # all 3 services; rebuilds image-gen-service for LORAS_ROOT+loras mount
+docker compose up -d --build image-gen-service    # rebuild for Cycle 6 writable ./loras mount + new env
 until docker compose ps --format json comfyui | grep -q '"Health":"healthy"'; do sleep 5; done
 curl -sf -H "Authorization: Bearer $API_KEY" http://127.0.0.1:8700/health | jq .
-curl -sf -H "Authorization: Bearer $API_KEY" http://127.0.0.1:8700/v1/loras | jq '.data | length'  # expect ~280
-uv run pytest -q --ignore=tests/integration      # 213 passed / 2 skipped
+curl -sf -H "Authorization: Bearer $API_KEY" http://127.0.0.1:8700/v1/loras | jq '.data | length'
+uv run pytest --ignore=tests/integration -q      # 281 passed / 2 skipped
 uv run ruff check .                               # All checks passed
-# Live smoke with a LoRA:
-FIRST_LORA=$(curl -sf -H "Authorization: Bearer $API_KEY" http://127.0.0.1:8700/v1/loras | jq -r '.data[] | select(.addressable) | .name' | head -1)
-curl -s -X POST -H "Authorization: Bearer $API_KEY" -H "Content-Type: application/json" \
-  -d "{\"model\":\"noobai-xl-v1.1\",\"prompt\":\"lora test\",\"size\":\"512x512\",\"steps\":4,\"loras\":[{\"name\":\"$FIRST_LORA\",\"weight\":0.8}]}" \
-  http://127.0.0.1:8700/v1/images/generations | jq .
-```
 
-Note: before that smoke works, **rebuild the service image** so the container picks up the Cycle 5 `LORAS_ROOT` env + `./loras` bind mount. `docker compose up -d --build image-gen-service`.
+# Cycle 6 Civitai fetch live smoke (requires CIVITAI_API_TOKEN in service env):
+REQ_ID=$(curl -s -X POST -H "Authorization: Bearer $ADMIN_KEY" -H "Content-Type: application/json" \
+  -d '{"url":"https://civitai.com/models/<id>?modelVersionId=<vid>"}' \
+  http://127.0.0.1:8700/v1/loras/fetch | jq -r .request_id)
+watch -n2 "curl -s -H \"Authorization: Bearer $ADMIN_KEY\" http://127.0.0.1:8700/v1/loras/fetch/$REQ_ID | jq ."
+```
 
 ---
 
 ## External dependencies
 
-- **Civitai API token for Cycle 6** — user needs an account + generated API token. Set `CIVITAI_API_TOKEN=<token>` in `.env`. Needed for NSFW + authenticated downloads.
-- **LoreWeave integration-guide PR (Cycle 11)** — user-owned, parallel. Soft-blocks Cycle 10 prod acceptance.
+- **Chroma1-HD model files (Cycle 7):** user needs to download `chroma1-hd-q8.gguf` (~9 GB), `t5xxl_fp8_e4m3fn.safetensors`, `ae.safetensors`, `clip_l.safetensors` and place them under `./models/` before Cycle 7 integration.
+- **Free VRAM (Cycle 7 blocker):** ~17 GB currently held by some host process before any model load. Must be freed before Chroma integration can run.
+- **LoreWeave integration-guide PR (Cycle 11):** user-owned, parallel. Soft-blocks Cycle 10 prod acceptance.
 
 ---
 
 ## What NOT to do next session
 
-- Do not flip the `./loras:/app/loras` mount to writable before Cycle 6 BUILD lands — Cycle 5 left it `:ro` deliberately.
-- Do not add a second `LORAS_ROOT` lookup path. `app.state.loras_root` is the single source of truth as of Cycle 5 (post-review MED-2 fix).
-- Do not bypass the registry vpred guard. It refuses `prediction="vpred"` at boot by design (arch v0.5 defer). A full `inject_vpred` implementation lands when a vpred model is actually needed.
-- Do not weaken the `count_active` gate — it's the only thing preventing SQLite row flood under request spikes.
-- Do not use `BaseHTTPMiddleware` for any new middleware (recurring warning). See `memory/feedback_middleware.md`.
-- Do not forget: new runtime `import x` in `app/` → update `[project.dependencies]`, rebuild Docker image (see `memory/feedback_runtime_correctness.md`).
-- Do not trust `Literal[...]` annotations for YAML-loaded fields — pair with an explicit `frozenset` membership check. Cycle 3 gotcha, still applies.
-- Do not expand the scanner to follow directory symlinks that escape root — MED-4 in Cycle 5 closed this on purpose.
+- Do not weaken the downloadUrl host allowlist added in Cycle 6 `/review-impl` (MED-1). Real Civitai downloads go to `*.civitai.com` CDN hosts; anything outside the allowlist is an SSRF risk.
+- Do not remove the sidecar `last_used` debounce. Without it, 20 loras × 10 req/s = 200 writes/s — measured disk amplification. See memory `feedback_log_levels.md` pattern.
+- Do not flip `LORA_MAX_CONCURRENT_FETCHES` above 1 without reviewing the eviction TOCTOU recheck — currently serialized under the semaphore, so recheck is sound.
+- Do not trust Civitai's `sizeKB` as authoritative. The mid-stream disk recheck (MED-4 fix) is the guard; keep it.
+- Do not reuse the `jobs` table for new async workflows. Cycle 6 chose a separate `lora_fetches` table deliberately; mixing domains muddies recovery/TTL logic.
+- Do not bypass the registry vpred guard (Cycle 5). A full `inject_vpred` implementation lands when a vpred model is actually needed, not before.
+- Do not use `BaseHTTPMiddleware` for any new middleware. See `memory/feedback_middleware.md`.
+- Do not forget: new runtime `import x` in `app/` → update `[project.dependencies]`, rebuild Docker image (`memory/feedback_runtime_correctness.md`).

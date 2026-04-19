@@ -25,6 +25,16 @@ services:
       VRAM_BUDGET_GB: ${VRAM_BUDGET_GB:-12}
       IMAGE_GEN_PUBLIC_BASE_URL: ${IMAGE_GEN_PUBLIC_BASE_URL:-http://127.0.0.1:8700}
       LORAS_ROOT: ${LORAS_ROOT:-/app/loras}
+      # Cycle 6 — Civitai fetcher
+      CIVITAI_API_TOKEN: ${CIVITAI_API_TOKEN:-}
+      LORA_DIR_MAX_SIZE_GB: ${LORA_DIR_MAX_SIZE_GB:-60}
+      LORA_MAX_SIZE_BYTES: ${LORA_MAX_SIZE_BYTES:-2147483648}
+      LORA_MAX_CONCURRENT_FETCHES: ${LORA_MAX_CONCURRENT_FETCHES:-1}
+      LORA_RECENT_USE_DAYS: ${LORA_RECENT_USE_DAYS:-7}
+      LORA_LAST_USED_DEBOUNCE_S: ${LORA_LAST_USED_DEBOUNCE_S:-300}
+      LORA_FETCH_METADATA_TIMEOUT_S: ${LORA_FETCH_METADATA_TIMEOUT_S:-30}
+      LORA_FETCH_DOWNLOAD_OVERALL_TIMEOUT_S: ${LORA_FETCH_DOWNLOAD_OVERALL_TIMEOUT_S:-1800}
+      LORA_FETCH_CHUNK_READ_TIMEOUT_S: ${LORA_FETCH_CHUNK_READ_TIMEOUT_S:-30}
     volumes:
       # SQLite job store. Bind mount in dev so operators can `sqlite3 data/jobs.db`.
       # Prod deploys should replace this with a named volume.
@@ -33,9 +43,11 @@ services:
       - ./config:/app/config:ro
       - ./workflows:/app/workflows:ro
       - ./models:/app/models:ro
-      # LoRA directory — read-only for Cycle 5 (scanner + validation). Cycle 6
-      # (Civitai fetch) will relax this to writable on the service side.
-      - ./loras:/app/loras:ro
+      # LoRA directory — Cycle 5 shipped this as :ro; Cycle 6 (Civitai fetcher)
+      # needs the service to write `./loras/civitai/<slug>_<vid>.safetensors`
+      # + sidecar JSONs + sidecar last_used updates. ComfyUI side stays :ro
+      # (see comfyui.volumes below).
+      - ./loras:/app/loras
     depends_on:
       minio:
         condition: service_healthy

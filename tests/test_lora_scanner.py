@@ -52,6 +52,7 @@ def test_flat_with_sidecar(tmp_path: Path) -> None:
                 "base_model_hint": "SDXL",
                 "trigger_words": ["triggerA", "triggerB"],
                 "fetched_at": "2026-04-19T12:00:00Z",
+                "last_used": "2026-04-20T08:30:00+00:00",
             }
         ),
         encoding="utf-8",
@@ -66,7 +67,14 @@ def test_flat_with_sidecar(tmp_path: Path) -> None:
     assert m.base_model_hint == "SDXL"
     assert m.trigger_words == ("triggerA", "triggerB")
     assert m.fetched_at == "2026-04-19T12:00:00Z"
+    assert m.last_used == "2026-04-20T08:30:00+00:00"
     assert m.addressable is True
+
+
+def test_missing_last_used_defaults_to_none(tmp_path: Path) -> None:
+    _make_safetensors(tmp_path / "foo.safetensors")
+    metas = scan_loras(tmp_path)
+    assert metas[0].last_used is None
 
 
 def test_subdirectory_uses_posix_path_in_name(tmp_path: Path) -> None:

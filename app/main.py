@@ -6,6 +6,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+import httpx
 import structlog
 from fastapi import FastAPI
 
@@ -18,7 +19,9 @@ from app.auth import load_keyset_from_env
 from app.backends.comfyui import ComfyUIAdapter
 from app.errors import install_error_envelope
 from app.logging_config import configure_logging
+from app.loras.civitai import CivitaiFetcher
 from app.middleware.logging import RequestContextMiddleware
+from app.queue.fetches_recovery import recover_fetches
 from app.queue.reaper import OrphanReaper
 from app.queue.recovery import recover_jobs
 from app.queue.store import JobStore
@@ -116,6 +119,29 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     # Recovery scan. Worker + reaper are already spawned above.
     recovery_stats = await recover_jobs(store, worker)
 
+    # Cycle 6: CivitaiFetcher + lora_fetches recovery. Install BEFORE recovery
+    # scans the table so a handover-flip row is consistent with the fetcher's
+    # in-flight set (always empty at boot).
+    fetcher_http = httpx.AsyncClient()
+    fetcher = CivitaiFetcher(
+        store=store,
+        loras_root=app.state.loras_root,
+        api_token=os.environ.get("CIVITAI_API_TOKEN") or None,
+        http_client=fetcher_http,
+        dir_max_bytes=int(float(os.environ.get("LORA_DIR_MAX_SIZE_GB", "60")) * (1024**3)),
+        file_max_bytes=int(os.environ.get("LORA_MAX_SIZE_BYTES", "2147483648")),
+        recent_use_days=int(os.environ.get("LORA_RECENT_USE_DAYS", "7")),
+        max_concurrent=int(os.environ.get("LORA_MAX_CONCURRENT_FETCHES", "1")),
+        metadata_timeout_s=float(os.environ.get("LORA_FETCH_METADATA_TIMEOUT_S", "30")),
+        download_overall_timeout_s=float(
+            os.environ.get("LORA_FETCH_DOWNLOAD_OVERALL_TIMEOUT_S", "1800")
+        ),
+        chunk_read_timeout_s=float(os.environ.get("LORA_FETCH_CHUNK_READ_TIMEOUT_S", "30")),
+    )
+    app.state.fetcher = fetcher
+    app.state.fetcher_http = fetcher_http
+    fetch_recovery_stats = await recover_fetches(store, app.state.loras_root)
+
     log.info(
         "service.started",
         version=__version__,
@@ -125,6 +151,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         models=registry.names(),
         public_base_url=app.state.public_base_url,
         recovery=recovery_stats,
+        fetch_recovery=fetch_recovery_stats,
     )
 
     try:
@@ -134,6 +161,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         # Hard-cancel only. Arch §12 specifies SHUTDOWN_GRACE_S=90 for a drain
         # period that waits for the active GPU job; that's Cycle 10's work.
         # Cycle 4 clients in flight at shutdown receive 500s (handler cancelled).
+        # Cycle 6: cancel fetcher first so its per-version locks release before
+        # store.close() rips the DB connection.
+        await fetcher.close()
+        try:
+            await fetcher_http.aclose()
+        except Exception as exc:
+            log.warning("fetcher_http.close_failed", error=str(exc))
         for task_attr in ("reaper_task", "worker_task"):
             task = getattr(app.state, task_attr, None)
             if task is not None and not task.done():
