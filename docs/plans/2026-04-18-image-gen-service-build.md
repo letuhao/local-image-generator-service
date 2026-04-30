@@ -42,7 +42,7 @@
 - [x] **Cycle 10** — Startup validation + smoke test + prod-posture assertions + pre-download script — Sprint 13
 
 ### Parallel, user-owned
-- [ ] **Cycle 11** — LoreWeave integration-guide amendment PR
+- [x] **Cycle 11** — LoreWeave integration-guide amendment PR — Sprint 14 (this repo helper docs delivered)
 
 ---
 
@@ -61,7 +61,7 @@
 | 8 | Async mode + polling | M | 3 | 9 | [x] Sprint 11 |
 | 9 | Webhook dispatcher | XL | 9 | — | [x] Sprint 12 |
 | 10 | Startup validation + smoke test | M | 4 | — | [x] Sprint 13 |
-| 11 | LoreWeave integration-guide PR | S | 1 (external repo) | — | [ ] |
+| 11 | LoreWeave integration-guide PR | S | 1 (external repo) | — | [x] Sprint 14 (helper docs) |
 
 ---
 

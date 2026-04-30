@@ -2,7 +2,19 @@
 
 > Append the newest sprint at the top. Keep each entry short: one-line outcome, changed files, notable decisions, what's next.
 
-**Last session ended:** 2026-04-30 after Sprint 13 / Cycle 10 complete. Resume from [HANDOFF.md](HANDOFF.md) — it holds the pick-up-where-you-left-off summary.
+**Last session ended:** 2026-04-30 after Sprint 14 / Cycle 11 docs deliverables complete. Resume from [HANDOFF.md](HANDOFF.md) — it holds the pick-up-where-you-left-off summary.
+
+---
+
+## Sprint 14 — 2026-04-30 — Cycle 11 LoreWeave guide helper deliverables (in-repo)
+
+**Outcome:** Delivered two copy-ready docs to accelerate LoreWeave's external integration guide PR: receiver verification reference and paste-ready PR blocks covering async + webhook contract.
+
+**Files (key):** `docs/integration/lore-weave-receiver-reference.md`, `docs/integration/lore-weave-pr-ready-blocks.md`.
+
+**Verify:** content aligned to architecture webhook contract (§6/§10): signature `t=<ts>,v1=<hex>`, replay-window guidance, constant-time compare requirement, and durable dedupe by `X-ImageGen-Job-Id`.
+
+**Next:** user-owned LoreWeave external repo PR using these blocks/snippets.
 
 ---
 

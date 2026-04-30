@@ -3,14 +3,14 @@
 > This file is **overwritten** every session close. It reflects **current state**, not history.
 > History lives in [SESSION.md](SESSION.md). Architecture lives in [docs/architecture/image-gen-service.md](../architecture/image-gen-service.md). Build plan lives in [docs/plans/2026-04-18-image-gen-service-build.md](../plans/2026-04-18-image-gen-service-build.md).
 
-**Last updated:** 2026-04-30 — Session closed after Sprint 13 / Cycle 10 startup validation + smoke boot.
+**Last updated:** 2026-04-30 — Session closed after Sprint 14 / Cycle 11 docs deliverables.
 
 ---
 
 ## Where we are
 
 - **Branch:** `main`. After commit: `git log origin/main..HEAD` for drift vs remote.
-- **Plan progress:** **10 / 11** cycles complete.
+- **Plan progress:** **11 / 11** cycles complete (repo-side scope).
 
 ```
 [x] 0  Repo bootstrap
@@ -24,7 +24,7 @@
 [x] 8  Async + polling
 [x] 9  Webhook dispatcher
 [x] 10 Startup validation + smoke test
-[ ] 11 LoreWeave integration-guide PR (parallel, user-owned)
+[x] 11 LoreWeave integration-guide PR helper docs (this repo)
 ```
 
 - **Workflow state:** run `bash scripts/workflow-gate.sh status` after pulling; reset if starting a fresh cycle.
@@ -34,25 +34,27 @@
 
 ---
 
-## Next action (Sprint 14 = Cycle 11)
+## Next action
 
-**Goal per plan §Cycle 11:** land LoreWeave integration-guide amendment PR and align receiver contract for async + webhook end-to-end. See `docs/plans/2026-04-18-image-gen-service-build.md` §Cycle 11.
+**Goal:** open/update the external LoreWeave repo PR using the prepared helper docs:
+
+- `docs/integration/lore-weave-receiver-reference.md`
+- `docs/integration/lore-weave-pr-ready-blocks.md`
 
 **Kickoff:**
 
 ```bash
 cd d:/Works/source/local-image-generator-service
 bash scripts/workflow-gate.sh reset
-bash scripts/workflow-gate.sh size S 1 2 0
+bash scripts/workflow-gate.sh size XS 1 1 0
 bash scripts/workflow-gate.sh phase clarify
 ```
 
-**Cycle 10 completion notes:**
+**Cycle 11 completion notes (this repo):**
 
-- Startup checks now fail-close in prod posture on webhook/config misconfiguration.
-- Startup smoke runs all registered models without persisting DB/S3 artifacts.
-- `scripts/pull-models.sh` now parses strict `hf://owner/repo/path` and retries downloads.
-- `/review-impl` findings addressed for parser correctness, smoke persistence, and stale-log integration assertion.
+- Added receiver verification reference with Go snippet and explicit signature contract.
+- Added PR-ready markdown blocks for LoreWeave external integration guide.
+- Both docs align with architecture webhook contract and at-least-once dedupe requirements.
 
 ---
 
@@ -79,7 +81,7 @@ curl -sf -H "Authorization: Bearer $API_KEY" http://127.0.0.1:8700/v1/models | j
 
 ## External dependencies
 
-- **LoreWeave integration-guide PR (Cycle 11):** user-owned; now the primary remaining cycle.
+- **LoreWeave integration-guide PR (external repo):** user-owned; this repo now has ready-to-paste content.
 
 ---
 
