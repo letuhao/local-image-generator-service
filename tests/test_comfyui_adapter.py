@@ -411,6 +411,28 @@ async def test_free_posts_unload_flags_then_polls_system_stats(adapter: ComfyUIA
 
 
 @respx.mock
+async def test_unload_models_returns_false_when_vram_does_not_rise(adapter: ComfyUIAdapter) -> None:
+    respx.post(f"{HTTP}/free").mock(return_value=httpx.Response(200))
+    respx.get(f"{HTTP}/system_stats").mock(
+        return_value=httpx.Response(200, json={"devices": [{"vram_free": 5 * 1024**3}]})
+    )
+    ok = await adapter.unload_models(verify_timeout_s=0.5)
+    assert ok is False
+
+
+@respx.mock
+async def test_unload_models_posts_free_even_when_baseline_unreadable(
+    adapter: ComfyUIAdapter,
+) -> None:
+    """MED fix: never treat baseline=None + first poll as success; still POST /free."""
+    post_free = respx.post(f"{HTTP}/free").mock(return_value=httpx.Response(200))
+    respx.get(f"{HTTP}/system_stats").mock(return_value=httpx.Response(200, json={"devices": [{}]}))
+    ok = await adapter.unload_models(verify_timeout_s=1.0)
+    assert ok is False
+    assert post_free.called
+
+
+@respx.mock
 async def test_free_logs_warning_when_vram_does_not_rise(adapter: ComfyUIAdapter) -> None:
     """If /system_stats reports the same vram_free before and after /free for the
     whole timeout window, free() logs a warning but returns normally."""

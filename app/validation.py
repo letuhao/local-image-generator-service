@@ -23,6 +23,9 @@ log = structlog.get_logger(__name__)
 # eliminates ~99% of the writes on a hot path.
 LORA_LAST_USED_DEBOUNCE_S_ENV = "LORA_LAST_USED_DEBOUNCE_S"
 _DEFAULT_DEBOUNCE_S = 300
+VRAM_BUDGET_GB_ENV = "VRAM_BUDGET_GB"
+_DEFAULT_VRAM_BUDGET_GB = 12.0
+_LORA_VRAM_OVERHEAD_GB = 0.064
 
 # Allowed ComfyUI samplers + schedulers per arch §6.0. Restrict to the well-supported set;
 # additions land as registry changes with corresponding workflow updates.
@@ -132,6 +135,14 @@ class ValidatedJob:
 def _parse_size(size: str) -> tuple[int, int]:
     w_str, h_str = size.lower().split("x", 1)
     return int(w_str), int(h_str)
+
+
+def _vram_budget_gb() -> float:
+    raw = os.environ.get(VRAM_BUDGET_GB_ENV)
+    try:
+        return float(raw) if raw is not None else _DEFAULT_VRAM_BUDGET_GB
+    except ValueError:
+        return _DEFAULT_VRAM_BUDGET_GB
 
 
 def resolve_and_validate(
@@ -249,6 +260,21 @@ def resolve_and_validate(
                 )
             resolved_list.append(ResolvedLoraRef(name=spec.name, weight=spec.weight))
         resolved_loras = tuple(resolved_list)
+
+    # 8. Request-time VRAM guard (arch §11): model estimate + coarse LoRA overhead.
+    vram_needed = float(model.vram_estimate_gb) + (_LORA_VRAM_OVERHEAD_GB * len(resolved_loras))
+    budget = _vram_budget_gb()
+    if vram_needed > budget:
+        details = (
+            f"model={model.vram_estimate_gb:.3f} + "
+            f"loras={len(resolved_loras)}*{_LORA_VRAM_OVERHEAD_GB:.3f}"
+        )
+        raise ValidationFailureError(
+            error_code="vram_budget_exceeded",
+            message=(
+                f"estimated vram {vram_needed:.3f} GB exceeds budget {budget:.3f} GB ({details})"
+            ),
+        )
 
     return ValidatedJob(
         model=model,

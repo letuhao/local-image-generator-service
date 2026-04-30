@@ -17,6 +17,7 @@ from app.queue.jobs import create_queued, get_by_id
 from app.queue.store import JobStore
 from app.queue.worker import JobResult, QueueWorker
 from app.registry.models import Registry
+from app.validation import ValidationFailureError
 
 
 class _FakeAdapter:
@@ -27,6 +28,8 @@ class _FakeAdapter:
         self.wait_exc: Exception | None = None
         self.fetch_exc: Exception | None = None
         self.submits: list[dict] = []
+        self.unload_ok = True
+        self.unload_calls = 0
 
     async def submit(self, graph: dict) -> str:
         if self.submit_exc:
@@ -42,6 +45,10 @@ class _FakeAdapter:
         if self.fetch_exc:
             raise self.fetch_exc
         return list(self.images)
+
+    async def unload_models(self, verify_timeout_s: float = 30.0) -> bool:
+        self.unload_calls += 1
+        return self.unload_ok
 
     async def close(self) -> None:  # pragma: no cover
         pass
@@ -95,7 +102,28 @@ def registry() -> Registry:
         },
         limits={"steps_max": 60, "n_max": 4, "size_max_pixels": 1572864},
     )
-    return Registry({cfg.name: cfg})
+    chroma = ModelConfig(
+        name="chroma-hd-q8",
+        backend="comfyui",
+        workflow_path="workflows/chroma_gguf.json",
+        checkpoint="unet/chroma1-hd-q8.gguf",
+        vae="vae/ae.safetensors",
+        clip_l="text_encoders/clip_l.safetensors",
+        t5xxl="text_encoders/t5xxl_fp8_e4m3fn.safetensors",
+        dual_clip_type="chroma",
+        vram_estimate_gb=9.0,
+        prediction="eps",
+        capabilities={"image_gen": True},
+        defaults={
+            "size": "1024x1024",
+            "steps": 30,
+            "cfg": 4.5,
+            "sampler": "euler",
+            "scheduler": "simple",
+        },
+        limits={"steps_max": 50, "n_max": 2, "size_max_pixels": 1572864},
+    )
+    return Registry({cfg.name: cfg, chroma.name: chroma})
 
 
 @pytest.fixture
@@ -225,3 +253,58 @@ async def test_worker_handles_comfy_unreachable(
     row = await get_by_id(store, job.id)
     assert row is not None
     assert row.error_code == "comfy_unreachable"
+
+
+async def test_worker_revalidation_preserves_validation_failure_error_code(
+    worker: tuple[QueueWorker, _FakeAdapter, _FakeS3, asyncio.Task],
+    store: JobStore,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """review-impl: ValidationFailureError must not collapse into validation_error."""
+
+    def boom(*args, **kwargs):
+        raise ValidationFailureError(
+            error_code="vram_budget_exceeded",
+            message="simulated overflow",
+        )
+
+    monkeypatch.setattr("app.queue.worker.resolve_and_validate", boom)
+    w, _adapter, _s3, _task = worker
+    job = await create_queued(store, model_name="noobai-xl-v1.1", input_json=_input_json())
+    fut = await w.enqueue(job)
+    assert fut is not None
+    with pytest.raises(ComfyNodeError, match="re-validation failed"):
+        await asyncio.wait_for(fut, timeout=5.0)
+    row = await get_by_id(store, job.id)
+    assert row is not None
+    assert row.error_code == "vram_budget_exceeded"
+    assert row.error_message == "simulated overflow"
+
+
+async def test_worker_model_swap_requires_successful_unload(
+    worker: tuple[QueueWorker, _FakeAdapter, _FakeS3, asyncio.Task],
+    store: JobStore,
+) -> None:
+    w, adapter, _s3, _task = worker
+
+    first = await create_queued(store, model_name="noobai-xl-v1.1", input_json=_input_json())
+    fut1 = await w.enqueue(first)
+    assert fut1 is not None
+    await asyncio.wait_for(fut1, timeout=5.0)
+    assert adapter.unload_calls == 0
+
+    adapter.unload_ok = False
+    second = await create_queued(
+        store,
+        model_name="chroma-hd-q8",
+        input_json=_input_json(model="chroma-hd-q8"),
+    )
+    fut2 = await w.enqueue(second)
+    assert fut2 is not None
+    with pytest.raises(ComfyNodeError, match="model swap refused"):
+        await asyncio.wait_for(fut2, timeout=5.0)
+
+    row = await get_by_id(store, second.id)
+    assert row is not None
+    assert row.error_code == "vram_budget_exceeded"
+    assert adapter.unload_calls == 1

@@ -53,6 +53,9 @@ def _parse_entry(raw: dict) -> ModelConfig:
         workflow_path=raw["workflow"],
         checkpoint=raw["checkpoint"],
         vae=raw.get("vae"),
+        clip_l=raw.get("clip_l"),
+        t5xxl=raw.get("t5xxl"),
+        dual_clip_type=raw.get("dual_clip_type"),
         vram_estimate_gb=float(raw["vram_estimate_gb"]),
         prediction=raw.get("prediction", "eps"),
         capabilities=raw.get("capabilities") or {},
@@ -140,6 +143,18 @@ def load_registry(
             vae_path = models_root / cfg.vae
             if not vae_path.exists():
                 raise RegistryValidationError("vae_missing", f"{cfg.name}: {vae_path} not found")
+        if cfg.clip_l is not None:
+            clip_l_path = models_root / cfg.clip_l
+            if not clip_l_path.exists():
+                raise RegistryValidationError(
+                    "clip_l_missing", f"{cfg.name}: {clip_l_path} not found"
+                )
+        if cfg.t5xxl is not None:
+            t5xxl_path = models_root / cfg.t5xxl
+            if not t5xxl_path.exists():
+                raise RegistryValidationError(
+                    "t5xxl_missing", f"{cfg.name}: {t5xxl_path} not found"
+                )
 
         # Workflow file must exist and have required SDXL anchors.
         wf_path = workflows_root / cfg.workflow_path

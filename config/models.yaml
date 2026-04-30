@@ -32,3 +32,27 @@ models:
       n_max: 4
       size_max_pixels: 1572864   # 1024×1536 ceiling per arch §4.4
     vram_estimate_gb: 7
+
+  - name: chroma-hd-q8
+    backend: comfyui
+    workflow: workflows/chroma_gguf.json
+    checkpoint: unet/chroma1-hd-q8.gguf
+    prediction: eps
+    vae: vae/ae.safetensors
+    clip_l: text_encoders/clip_l.safetensors
+    t5xxl: text_encoders/t5xxl_fp8_e4m3fn.safetensors
+    dual_clip_type: chroma
+    capabilities:
+      image_gen: true
+    defaults:
+      size: "1024x1024"
+      steps: 30
+      cfg: 4.5
+      sampler: euler
+      scheduler: simple
+      negative_prompt: ""
+    limits:
+      steps_max: 50
+      n_max: 2
+      size_max_pixels: 1572864
+    vram_estimate_gb: 9

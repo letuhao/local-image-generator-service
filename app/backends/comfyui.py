@@ -344,32 +344,61 @@ class ComfyUIAdapter:
         reporting via /system_stats is advisory (torch's caching allocator defers
         actual releases); Cycle 7's VRAM guard inspects health separately.
         """
-        baseline = await self._read_vram_free()
+        _ = await self.unload_models(verify_timeout_s=verify_timeout_s)
+
+    async def unload_models(self, verify_timeout_s: float = 30.0) -> bool:
+        """Strict model-unload path used for model swaps.
+
+        Always ``POST /free`` (same as historical ``free()`` behavior) so timeout /
+        cleanup paths still trigger ComfyUI even when ``/system_stats`` is flaky.
+
+        Returns True only when a non-None pre-free baseline exists **and**
+        ``vram_free`` strictly increases afterward within ``verify_timeout_s``.
+        If baseline cannot be read before ``/free``, we still POST then return False —
+        avoids falsely succeeding on "first non-None reading had no baseline to compare".
+
+        Transport failures still raise ComfyUnreachableError.
+        """
+        deadline = time.monotonic() + verify_timeout_s
+        baseline_spin_deadline = time.monotonic() + min(5.0, verify_timeout_s * 0.25)
+
+        baseline: int | None = None
+        while time.monotonic() < baseline_spin_deadline and baseline is None:
+            baseline = await self._read_vram_free()
+            if baseline is None:
+                await asyncio.sleep(0.2)
 
         try:
             await self._http.post("/free", json={"unload_models": True, "free_memory": True})
         except httpx.HTTPError as exc:
             raise ComfyUnreachableError(f"POST /free: {exc}") from exc
 
-        deadline = time.monotonic() + verify_timeout_s
-        last_seen = baseline
+        if baseline is None:
+            log.warning(
+                "comfy.unload_models.baseline_unavailable_after_post",
+                timeout_s=verify_timeout_s,
+            )
+            return False
+
+        last_seen: int | None = baseline
         while time.monotonic() < deadline:
             current = await self._read_vram_free()
-            if current is not None and (baseline is None or current > baseline):
+            if current is not None and current > baseline:
                 log.info(
                     "comfy.free.verified",
-                    baseline_gb=(baseline / (1024**3)) if baseline else None,
+                    baseline_gb=baseline / (1024**3),
                     current_gb=current / (1024**3),
                 )
-                return
+                return True
             last_seen = current
             await asyncio.sleep(0.5)
         log.warning(
             "comfy.free.no_vram_change",
-            baseline_gb=(baseline / (1024**3)) if baseline else None,
-            last_gb=(last_seen / (1024**3)) if last_seen else None,
+            baseline_gb=baseline / (1024**3),
+            last_gb=(last_seen / (1024**3)) if last_seen is not None else None,
             timeout_s=verify_timeout_s,
         )
+        return False
 
     async def _read_vram_free(self) -> int | None:
         """Read current VRAM free (bytes) from /system_stats. None on error."""

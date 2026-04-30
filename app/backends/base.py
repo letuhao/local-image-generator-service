@@ -38,6 +38,9 @@ class ModelConfig:
     checkpoint: str  # relative to models/ (e.g. "checkpoints/NoobAI-XL-v1.1.safetensors")
     vae: str | None  # None = use checkpoint's baked-in VAE
     vram_estimate_gb: float
+    clip_l: str | None = None  # optional secondary text encoder (e.g. FLUX/Chroma)
+    t5xxl: str | None = None  # optional T5 text encoder (e.g. FLUX/Chroma)
+    dual_clip_type: str | None = None  # DualCLIPLoader clip_type, e.g. "chroma"
     # "eps" | "vpred" — informational in Cycle 3; Cycle 5+ uses it for graph injection.
     prediction: Literal["eps", "vpred"] = "eps"
     capabilities: dict[str, Any] = field(default_factory=dict)  # e.g. {"image_gen": True}
@@ -75,6 +78,10 @@ class BackendAdapter(Protocol):
 
     async def free(self) -> None:
         """Ask the backend to free VRAM (unload models + free_memory)."""
+        ...
+
+    async def unload_models(self, verify_timeout_s: float = 30.0) -> bool:
+        """Strict unload for model swap. Returns True when VRAM increase is observed."""
         ...
 
     async def health(self) -> dict:

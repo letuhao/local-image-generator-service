@@ -138,6 +138,36 @@ def _rewrite_inputs(
                 inputs[key] = [new_id, new_slot]
 
 
+def _infer_output_slot(
+    graph: dict[str, dict],
+    *,
+    source_id: str,
+    fallback_slot: int,
+) -> int:
+    """Infer which output slot downstream nodes consume from `source_id`.
+
+    SDXL model/clip usually maps to slot 0/1 on CheckpointLoaderSimple, while
+    DualCLIP-based graphs may consume clip from slot 0. If no consumers are
+    present yet, return the fallback.
+    """
+    seen: set[int] = set()
+    for _node_id, node in graph.items():
+        inputs = node.get("inputs")
+        if not isinstance(inputs, dict):
+            continue
+        for value in inputs.values():
+            if (
+                isinstance(value, list)
+                and len(value) == 2
+                and value[0] == source_id
+                and isinstance(value[1], int)
+            ):
+                seen.add(value[1])
+    if len(seen) == 1:
+        return next(iter(seen))
+    return fallback_slot
+
+
 def inject_loras(
     graph: dict[str, dict],
     loras: Sequence[ResolvedLoraRef],
@@ -168,9 +198,12 @@ def inject_loras(
     int_keys = [int(k) for k in graph.keys() if k.isdigit()]
     next_id = max(int_keys) + 1 if int_keys else 1
 
+    model_source_slot = _infer_output_slot(graph, source_id=model_source_id, fallback_slot=0)
+    clip_source_slot = _infer_output_slot(graph, source_id=clip_source_id, fallback_slot=1)
+
     chain_ids: list[str] = []
-    prev_model_ref: list = [model_source_id, 0]
-    prev_clip_ref: list = [clip_source_id, 1]
+    prev_model_ref: list = [model_source_id, model_source_slot]
+    prev_clip_ref: list = [clip_source_id, clip_source_slot]
     for lora in loras:
         node_id = str(next_id)
         next_id += 1
@@ -194,7 +227,7 @@ def inject_loras(
     _rewrite_inputs(
         graph,
         source_id=model_source_id,
-        source_slot=0,
+        source_slot=model_source_slot,
         new_id=last_id,
         new_slot=0,
         skip_ids=skip,
@@ -202,7 +235,7 @@ def inject_loras(
     _rewrite_inputs(
         graph,
         source_id=clip_source_id,
-        source_slot=1,
+        source_slot=clip_source_slot,
         new_id=last_id,
         new_slot=1,
         skip_ids=skip,

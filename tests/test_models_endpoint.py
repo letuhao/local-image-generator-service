@@ -14,17 +14,18 @@ async def test_list_models_happy_path(client: AsyncClient) -> None:
     assert resp.status_code == 200
     body = resp.json()
     assert body["object"] == "list"
-    assert len(body["data"]) == 1
-    entry = body["data"][0]
-    assert entry["id"] == "noobai-xl-v1.1"
-    assert entry["object"] == "model"
-    assert "created" in entry
-    assert entry["owned_by"] == "local"
-    assert entry["capabilities"] == {"image_gen": True}
-    assert entry["backend"] == "comfyui"
+    ids = {e["id"] for e in body["data"]}
+    assert ids == {"noobai-xl-v1.1", "chroma-hd-q8"}
+    for entry in body["data"]:
+        assert entry["object"] == "model"
+        assert "created" in entry
+        assert entry["owned_by"] == "local"
+        assert entry["capabilities"] == {"image_gen": True}
+        assert entry["backend"] == "comfyui"
 
 
 async def test_list_models_admin_key_also_works(client: AsyncClient) -> None:
     resp = await client.get("/v1/models", headers={"Authorization": "Bearer test-admin-key"})
     assert resp.status_code == 200
-    assert resp.json()["data"][0]["id"] == "noobai-xl-v1.1"
+    ids = {e["id"] for e in resp.json()["data"]}
+    assert ids == {"noobai-xl-v1.1", "chroma-hd-q8"}

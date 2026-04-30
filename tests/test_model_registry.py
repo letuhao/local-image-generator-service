@@ -317,3 +317,35 @@ def test_unknown_default_scheduler_raises(tmp_path: Path) -> None:
             vram_budget_gb=12,
         )
     assert exc.value.stage == "unknown_scheduler"
+
+
+def test_missing_clip_l_raises(tmp_path: Path) -> None:
+    import copy as _copy
+
+    body = _copy.deepcopy(_BASE_YAML)
+    body["models"][0]["clip_l"] = "text_encoders/clip_l.safetensors"
+    yaml_path, models_root, workflows_root = _scaffold_with_yaml_override(tmp_path, body)
+    with pytest.raises(RegistryValidationError) as exc:
+        load_registry(
+            yaml_path,
+            models_root=models_root,
+            workflows_root=workflows_root.parent,
+            vram_budget_gb=12,
+        )
+    assert exc.value.stage == "clip_l_missing"
+
+
+def test_missing_t5xxl_raises(tmp_path: Path) -> None:
+    import copy as _copy
+
+    body = _copy.deepcopy(_BASE_YAML)
+    body["models"][0]["t5xxl"] = "text_encoders/t5xxl_fp8_e4m3fn.safetensors"
+    yaml_path, models_root, workflows_root = _scaffold_with_yaml_override(tmp_path, body)
+    with pytest.raises(RegistryValidationError) as exc:
+        load_registry(
+            yaml_path,
+            models_root=models_root,
+            workflows_root=workflows_root.parent,
+            vram_budget_gb=12,
+        )
+    assert exc.value.stage == "t5xxl_missing"

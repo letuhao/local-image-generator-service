@@ -267,6 +267,32 @@ def test_loras_empty_list_ok(registry: Registry, tmp_path: Any) -> None:
     assert job.loras == ()
 
 
+def test_vram_guard_exceeded_by_lora_count(
+    registry: Registry, tmp_path: Any, monkeypatch: Any
+) -> None:
+    """7.0 + (20 * 0.064) > 8.0, so guard should reject."""
+    monkeypatch.setenv("VRAM_BUDGET_GB", "8")
+    for i in range(20):
+        (tmp_path / f"l{i}.safetensors").write_bytes(b"\x00")
+    req = GenerateRequest.model_validate(
+        _body(loras=[{"name": f"l{i}", "weight": 0.1} for i in range(20)])
+    )
+    with pytest.raises(ValidationFailureError) as exc:
+        resolve_and_validate(req, registry=registry, async_mode_enabled=False, loras_root=tmp_path)
+    assert exc.value.error_code == "vram_budget_exceeded"
+
+
+def test_vram_guard_respects_custom_budget(
+    registry: Registry, tmp_path: Any, monkeypatch: Any
+) -> None:
+    monkeypatch.setenv("VRAM_BUDGET_GB", "7.01")
+    req = GenerateRequest.model_validate(_body())
+    job = resolve_and_validate(
+        req, registry=registry, async_mode_enabled=False, loras_root=tmp_path
+    )
+    assert job.model.name == "noobai-xl-v1.1"
+
+
 # ─── Sidecar last_used debounce (Cycle 6) ─────────────────────────
 
 

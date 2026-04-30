@@ -2,7 +2,19 @@
 
 > Append the newest sprint at the top. Keep each entry short: one-line outcome, changed files, notable decisions, what's next.
 
-**Last session ended:** 2026-04-19 after Sprint 9 / Cycle 6 complete. Resume from [HANDOFF.md](HANDOFF.md) — it holds the pick-up-where-you-left-off summary.
+**Last session ended:** 2026-04-30 after Sprint 10 / Cycle 7 complete. Resume from [HANDOFF.md](HANDOFF.md) — it holds the pick-up-where-you-left-off summary.
+
+---
+
+## Sprint 10 — 2026-04-30 — Cycle 7 Chroma GGUF + VRAM guard + strict swap unload (+ review-impl)
+
+**Outcome:** Registry gains `chroma-hd-q8` + `workflows/chroma_gguf.json` (`UnetLoaderGGUF`, `DualCLIPLoader`, `VAELoader`; `%MODEL_SOURCE%` and `%CLIP_SOURCE%` on separate nodes). `resolve_and_validate` enforces arch VRAM guard: `vram_estimate_gb + 0.064 * len(loras) ≤ VRAM_BUDGET_GB` → `vram_budget_exceeded`. `QueueWorker` tracks last model; on swap calls `ComfyUIAdapter.unload_models` up to 30s — strict success only when pre-`/free` baseline is readable and `vram_free` strictly rises afterward (still always `POST /free`). `inject_loras` infers downstream MODEL/CLIP output slots via `_infer_output_slot`. Registry validates optional `clip_l` / `t5xxl` files. POST-review `/review-impl`: worker no longer collapses `ValidationFailureError` into `validation_error`; unload path avoids false success when baseline was None.
+
+**Files (key):** `workflows/chroma_gguf.json`, `config/models.yaml`, `app/backends/base.py`, `app/backends/comfyui.py`, `app/queue/worker.py`, `app/registry/models.py`, `app/registry/workflows.py`, `app/validation.py`, `tests/test_*.py` (incl. `test_models_endpoint` for two models).
+
+**Verify:** `uv run pytest --ignore=tests/integration -q` → **290 passed / 2 skipped** (Windows symlink gates). `uv run ruff check .` + `ruff format --check .` clean.
+
+**Next:** Cycle 8 — async mode + polling per `docs/plans/2026-04-18-image-gen-service-build.md`.
 
 ---
 

@@ -100,6 +100,7 @@ class QueueWorker:
         self._async_mode_enabled = async_mode_enabled
         self._loras_root = loras_root
         self._queue: asyncio.Queue[_WorkerItem] = asyncio.Queue(maxsize=max_queue)
+        self._last_model_name: str | None = None
 
     # ───────────────────────── enqueue ─────────────────────────
 
@@ -198,7 +199,12 @@ class QueueWorker:
                 loras_root=self._loras_root,
             )
             await touch_last_used_async(self._loras_root, validated.loras)
-        except (ValidationError, ValidationFailureError, json.JSONDecodeError) as exc:
+        except ValidationFailureError as exc:
+            await set_failed(
+                self._store, job.id, error_code=exc.error_code, error_message=exc.message
+            )
+            raise ComfyNodeError(f"re-validation failed: {exc}") from exc
+        except (ValidationError, json.JSONDecodeError) as exc:
             await set_failed(
                 self._store,
                 job.id,
@@ -241,7 +247,24 @@ class QueueWorker:
         inject_vpred(graph, model_cfg=validated.model)
         inject_loras(graph, validated.loras, model_cfg=validated.model)
 
-        # 3. Submit to ComfyUI + update DB.
+        # 3. Enforce model-swap unload before submit.
+        current_model = validated.model.name
+        if self._last_model_name is not None and self._last_model_name != current_model:
+            unloaded = await self._adapter.unload_models(verify_timeout_s=30.0)
+            if not unloaded:
+                msg = (
+                    "model swap refused: /free did not increase vram_free within 30s "
+                    f"({self._last_model_name} -> {current_model})"
+                )
+                await set_failed(
+                    self._store,
+                    job.id,
+                    error_code="vram_budget_exceeded",
+                    error_message=msg,
+                )
+                raise ComfyNodeError(msg)
+
+        # 4. Submit to ComfyUI + update DB.
         try:
             prompt_id = await self._adapter.submit(graph)
         except ComfyUnreachableError as exc:
@@ -268,7 +291,7 @@ class QueueWorker:
             await self._safe_cancel(prompt_id)
             raise ComfyNodeError(f"set_running failed: {exc}") from exc
 
-        # 4. Wait + fetch.
+        # 5. Wait + fetch.
         start_gen = time.perf_counter()
         try:
             await self._adapter.wait_for_completion(prompt_id, timeout_s=self._job_timeout_s)
@@ -294,7 +317,7 @@ class QueueWorker:
             )
             raise
 
-        # 5. Validate bytes + upload. Zero-output or malformed PNG means ComfyUI
+        # 6. Validate bytes + upload. Zero-output or malformed PNG means ComfyUI
         # produced something we can't use — classify as `comfy_error` per arch §13.
         if not images:
             msg = "ComfyUI returned zero outputs"
@@ -321,7 +344,7 @@ class QueueWorker:
             )
             raise  # handler maps StorageError → 502 storage_error per Cycle 3
 
-        # 6. Build response data.
+        # 7. Build response data.
         data: list[dict[str, Any]] = []
         if validated.response_format == "b64_json":
             for png in images:
@@ -343,5 +366,6 @@ class QueueWorker:
                 }
             ),
         )
+        self._last_model_name = current_model
 
         return JobResult(data=data, duration_ms=duration_ms, resolved_seed=actual_seed)

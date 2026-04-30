@@ -59,6 +59,51 @@ def _sdxl_graph() -> dict:
     }
 
 
+def _dual_source_graph() -> dict:
+    """Graph where MODEL_SOURCE and CLIP_SOURCE are separate nodes."""
+    return {
+        "1": {
+            "class_type": "UnetLoaderGGUF",
+            "inputs": {"unet_name": "chroma1-hd-q8.gguf"},
+            "_meta": {"title": "%MODEL_SOURCE%,%LORA_INSERT%"},
+        },
+        "2": {
+            "class_type": "DualCLIPLoader",
+            "inputs": {
+                "clip_name1": "clip_l.safetensors",
+                "clip_name2": "t5xxl_fp8_e4m3fn.safetensors",
+            },
+            "_meta": {"title": "%CLIP_SOURCE%"},
+        },
+        "3": {
+            "class_type": "CLIPTextEncode",
+            "inputs": {"text": "pos", "clip": ["2", 0]},
+            "_meta": {"title": "%POSITIVE_PROMPT%"},
+        },
+        "4": {
+            "class_type": "CLIPTextEncode",
+            "inputs": {"text": "neg", "clip": ["2", 0]},
+            "_meta": {"title": "%NEGATIVE_PROMPT%"},
+        },
+        "6": {
+            "class_type": "KSampler",
+            "inputs": {
+                "model": ["1", 0],
+                "positive": ["3", 0],
+                "negative": ["4", 0],
+                "latent_image": ["5", 0],
+                "seed": 0,
+                "steps": 28,
+                "cfg": 5.0,
+                "sampler_name": "euler",
+                "scheduler": "simple",
+                "denoise": 1.0,
+            },
+            "_meta": {"title": "%KSAMPLER%"},
+        },
+    }
+
+
 def test_inject_loras_empty_list_no_op() -> None:
     g = _sdxl_graph()
     before = copy.deepcopy(g)
@@ -154,6 +199,22 @@ def test_inject_loras_missing_anchor_raises() -> None:
             [ResolvedLoraRef("a", 0.5)],
             model_cfg=_fake_model_cfg(),
         )
+
+
+def test_inject_loras_with_dual_source_anchors_rewrites_both_paths() -> None:
+    g = _dual_source_graph()
+    inject_loras(
+        g,
+        [ResolvedLoraRef(name="flux/style", weight=0.9)],
+        model_cfg=_fake_model_cfg(),
+    )
+    assert "7" in g
+    node = g["7"]["inputs"]
+    assert node["model"] == ["1", 0]
+    assert node["clip"] == ["2", 0]
+    assert g["6"]["inputs"]["model"] == ["7", 0]
+    assert g["3"]["inputs"]["clip"] == ["7", 1]
+    assert g["4"]["inputs"]["clip"] == ["7", 1]
 
 
 def test_inject_vpred_eps_is_no_op() -> None:
