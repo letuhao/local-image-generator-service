@@ -108,6 +108,69 @@ def find_anchor(graph: dict[str, dict], anchor: str) -> str:
     raise KeyError(f"anchor {anchor!r} not found in graph")
 
 
+def _basename(models_ref: str) -> str:
+    """Return ComfyUI-facing filename from a `models/...` relative config ref."""
+    return Path(models_ref).name
+
+
+def inject_model_source(graph: dict[str, dict], *, model_cfg) -> None:
+    """Inject checkpoint/vae/encoder filenames from model config into graph.
+
+    This ensures runtime-selected model config drives execution even when the
+    workflow template carries placeholder or stale source filenames.
+    """
+    try:
+        model_source_id = find_anchor(graph, "%MODEL_SOURCE%")
+        clip_source_id = find_anchor(graph, "%CLIP_SOURCE%")
+    except KeyError as exc:
+        raise WorkflowValidationError(f"inject_model_source: {exc}") from exc
+
+    model_node = graph.get(model_source_id) or {}
+    model_inputs = model_node.get("inputs")
+    if not isinstance(model_inputs, dict):
+        raise WorkflowValidationError(
+            f"inject_model_source: node {model_source_id} has invalid inputs"
+        )
+
+    model_class = model_node.get("class_type")
+    ckpt_name = _basename(model_cfg.checkpoint)
+    if model_class == "CheckpointLoaderSimple":
+        model_inputs["ckpt_name"] = ckpt_name
+    elif model_class == "UnetLoaderGGUF":
+        model_inputs["unet_name"] = ckpt_name
+    else:
+        raise WorkflowValidationError(
+            f"inject_model_source: unsupported model source class {model_class!r}"
+        )
+
+    clip_node = graph.get(clip_source_id) or {}
+    clip_inputs = clip_node.get("inputs")
+    if not isinstance(clip_inputs, dict):
+        raise WorkflowValidationError(
+            f"inject_model_source: node {clip_source_id} has invalid inputs"
+        )
+    clip_class = clip_node.get("class_type")
+    if clip_class == "DualCLIPLoader":
+        if not model_cfg.clip_l or not model_cfg.t5xxl:
+            raise WorkflowValidationError(
+                "inject_model_source: DualCLIPLoader requires clip_l and t5xxl"
+            )
+        clip_inputs["clip_name1"] = _basename(model_cfg.clip_l)
+        clip_inputs["clip_name2"] = _basename(model_cfg.t5xxl)
+        if model_cfg.dual_clip_type:
+            clip_inputs["type"] = model_cfg.dual_clip_type
+
+    # Optional external VAE loader(s).
+    if model_cfg.vae:
+        vae_name = _basename(model_cfg.vae)
+        for node in graph.values():
+            if node.get("class_type") != "VAELoader":
+                continue
+            inputs = node.get("inputs")
+            if isinstance(inputs, dict) and "vae_name" in inputs:
+                inputs["vae_name"] = vae_name
+
+
 def _rewrite_inputs(
     graph: dict[str, dict],
     *,

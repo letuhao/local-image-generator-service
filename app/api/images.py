@@ -71,6 +71,10 @@ async def create_image(
     background_tasks: BackgroundTasks,
     kid: str = Depends(require_auth),
 ) -> JSONResponse:
+    runtime_lock = getattr(request.app.state, "runtime_reconfig_lock", None)
+    if runtime_lock is not None and runtime_lock.locked():
+        return _error(503, "runtime_reconfiguring", "runtime bundle is being reconfigured")
+
     # 1. Parse + Pydantic validate.
     try:
         raw = await request.json()

@@ -36,12 +36,18 @@ async def _noop_ensure_bucket(self) -> None:
     return None
 
 
+async def _noop_smoke(*args, **kwargs) -> None:
+    return None
+
+
 @pytest.fixture
 async def client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> AsyncIterator[AsyncClient]:
     """App instance with a fresh SQLite file + S3.ensure_bucket patched to no-op."""
     monkeypatch.setenv("DATABASE_PATH", str(tmp_path / "jobs.db"))
+    monkeypatch.setenv("COMFYUI_URL", "http://127.0.0.1:8188")
     # Patch ensure_bucket BEFORE app.main is imported so the lifespan sees the no-op.
     monkeypatch.setattr("app.storage.s3.S3Storage.ensure_bucket", _noop_ensure_bucket)
+    monkeypatch.setattr("app.main.run_registry_smoke_tests", _noop_smoke)
 
     from app.main import app
 
@@ -74,7 +80,9 @@ async def client_with_loras(
     (loras_root / "bad name (1).safetensors").write_bytes(b"\x00" * 8)
     monkeypatch.setenv("LORAS_ROOT", str(loras_root))
     monkeypatch.setenv("DATABASE_PATH", str(tmp_path / "jobs.db"))
+    monkeypatch.setenv("COMFYUI_URL", "http://127.0.0.1:8188")
     monkeypatch.setattr("app.storage.s3.S3Storage.ensure_bucket", _noop_ensure_bucket)
+    monkeypatch.setattr("app.main.run_registry_smoke_tests", _noop_smoke)
 
     from app.main import app
 
@@ -91,7 +99,9 @@ async def broken_db_client(
     """App wired to a DB that gets closed mid-test so healthcheck fails."""
     db_path = tmp_path / "jobs.db"
     monkeypatch.setenv("DATABASE_PATH", str(db_path))
+    monkeypatch.setenv("COMFYUI_URL", "http://127.0.0.1:8188")
     monkeypatch.setattr("app.storage.s3.S3Storage.ensure_bucket", _noop_ensure_bucket)
+    monkeypatch.setattr("app.main.run_registry_smoke_tests", _noop_smoke)
 
     from app.main import app
 

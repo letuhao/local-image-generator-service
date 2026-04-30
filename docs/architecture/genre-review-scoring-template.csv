@@ -1,0 +1,11 @@
+review_date,reviewer,genre,candidate_file,model_type,source_status,seed_set,prompt_pack,total_outputs,genre_fit_0_2,readability_0_2,consistency_0_2,artifact_severity_0_2,prompt_responsiveness_0_2,total_score_0_10,decision,status_update,notes
+YYYY-MM-DD,NAME,scifi,LeThAiVN_ScienceFiction_SDXL_v1.safetensors,checkpoint,downloaded,"101|202|303|404|505|606",scifi,36,,,,,,,,"approved_candidate|reviewed|rejected",downloaded->reviewed->approved_candidate,
+YYYY-MM-DD,NAME,scifi,SDXL_ScienceFictionStyle_v1.safetensors,lora,downloaded,"101|202|303|404|505|606",scifi,36,,,,,,,,"approved_candidate|reviewed|rejected",downloaded->reviewed->approved_candidate,
+YYYY-MM-DD,NAME,scifi,sdxl-70s-scifi.safetensors,lora,downloaded,"101|202|303|404|505|606",scifi,36,,,,,,,,"approved_candidate|reviewed|rejected",downloaded->reviewed->approved_candidate,
+YYYY-MM-DD,NAME,fantasy,FantasyMap-Heavy.safetensors,lora,downloaded,"101|202|303|404|505|606",fantasy,36,,,,,,,,"approved_candidate|reviewed|rejected",downloaded->reviewed->approved_candidate,
+YYYY-MM-DD,NAME,fantasy,Battlemap-v1.safetensors,lora,downloaded,"101|202|303|404|505|606",fantasy,36,,,,,,,,"approved_candidate|reviewed|rejected",downloaded->reviewed->approved_candidate,
+YYYY-MM-DD,NAME,fantasy,FantasyStyleWAI_Maly007.safetensors,lora,downloaded,"101|202|303|404|505|606",fantasy,36,,,,,,,,"approved_candidate|reviewed|rejected",downloaded->reviewed->approved_candidate,
+YYYY-MM-DD,NAME,wuxia,chineseMartialArts_v10.safetensors,checkpoint,downloaded,"101|202|303|404|505|606",wuxia,36,,,,,,,,"approved_candidate|reviewed|rejected",downloaded->reviewed->approved_candidate,
+YYYY-MM-DD,NAME,wuxia,wuxia-people-test-v1.safetensors,lora,downloaded,"101|202|303|404|505|606",wuxia,36,,,,,,,,"approved_candidate|reviewed|rejected",downloaded->reviewed->approved_candidate,
+YYYY-MM-DD,NAME,wuxia,wuxia2.safetensors,lora,candidate_pending_review,"101|202|303|404|505|606",wuxia,36,,,,,,,,"approved_candidate|reviewed|rejected",candidate_pending_review->reviewed->approved_candidate,
+YYYY-MM-DD,NAME,wuxia,Wuxie7.safetensors,lora,candidate_pending_review,"101|202|303|404|505|606",wuxia,36,,,,,,,,"approved_candidate|reviewed|rejected",candidate_pending_review->reviewed->approved_candidate,

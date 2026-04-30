@@ -219,3 +219,5 @@ __marimo__/
 /docker-compose.override.yml
 
 LoRA/
+
+outputs/

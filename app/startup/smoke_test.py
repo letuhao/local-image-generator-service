@@ -10,7 +10,13 @@ from app.backends.base import (
     ComfyUnreachableError,
 )
 from app.registry.models import Registry
-from app.registry.workflows import find_anchor, inject_loras, inject_vpred, load_workflow
+from app.registry.workflows import (
+    find_anchor,
+    inject_loras,
+    inject_model_source,
+    inject_vpred,
+    load_workflow,
+)
 from app.validation import GenerateRequest, resolve_and_validate
 
 
@@ -74,6 +80,7 @@ async def _run_one_model_smoke(
     ks_inputs["cfg"] = validated.cfg
     ks_inputs["sampler_name"] = validated.sampler
     ks_inputs["scheduler"] = validated.scheduler
+    inject_model_source(graph, model_cfg=validated.model)
     inject_vpred(graph, model_cfg=validated.model)
     inject_loras(graph, validated.loras, model_cfg=validated.model)
 

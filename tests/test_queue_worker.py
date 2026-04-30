@@ -30,6 +30,7 @@ class _FakeAdapter:
         self.submits: list[dict] = []
         self.unload_ok = True
         self.unload_calls = 0
+        self.vram_free_gb = 0.0
 
     async def submit(self, graph: dict) -> str:
         if self.submit_exc:
@@ -49,6 +50,9 @@ class _FakeAdapter:
     async def unload_models(self, verify_timeout_s: float = 30.0) -> bool:
         self.unload_calls += 1
         return self.unload_ok
+
+    async def health(self) -> dict:
+        return {"status": "ok", "vram_free_gb": self.vram_free_gb}
 
     async def close(self) -> None:  # pragma: no cover
         pass
@@ -123,7 +127,25 @@ def registry() -> Registry:
         },
         limits={"steps_max": 50, "n_max": 2, "size_max_pixels": 1572864},
     )
-    return Registry({cfg.name: cfg, chroma.name: chroma})
+    terrain = ModelConfig(
+        name="terrain-sdxl-base",
+        backend="comfyui",
+        workflow_path="workflows/sdxl_eps.json",
+        checkpoint="checkpoints/sd_xl_base_1.0.safetensors",
+        vae="vae/clearvaeSD15_v23.safetensors",
+        vram_estimate_gb=7.0,
+        prediction="eps",
+        capabilities={"image_gen": True},
+        defaults={
+            "size": "512x512",
+            "steps": 20,
+            "cfg": 5.5,
+            "sampler": "euler_ancestral",
+            "scheduler": "karras",
+        },
+        limits={"steps_max": 40, "n_max": 2, "size_max_pixels": 1048576},
+    )
+    return Registry({cfg.name: cfg, chroma.name: chroma, terrain.name: terrain})
 
 
 @pytest.fixture
@@ -308,3 +330,55 @@ async def test_worker_model_swap_requires_successful_unload(
     assert row is not None
     assert row.error_code == "vram_budget_exceeded"
     assert adapter.unload_calls == 1
+
+
+async def test_worker_model_swap_allows_headroom_when_unload_unverified(
+    worker: tuple[QueueWorker, _FakeAdapter, _FakeS3, asyncio.Task],
+    store: JobStore,
+) -> None:
+    w, adapter, _s3, _task = worker
+
+    first = await create_queued(store, model_name="noobai-xl-v1.1", input_json=_input_json())
+    fut1 = await w.enqueue(first)
+    assert fut1 is not None
+    await asyncio.wait_for(fut1, timeout=5.0)
+
+    adapter.unload_ok = False
+    adapter.vram_free_gb = 12.0  # > chroma-hd-q8 (9.0) + 0.5 safety margin
+    second = await create_queued(
+        store,
+        model_name="chroma-hd-q8",
+        input_json=_input_json(model="chroma-hd-q8"),
+    )
+    fut2 = await w.enqueue(second)
+    assert fut2 is not None
+    result = await asyncio.wait_for(fut2, timeout=5.0)
+    assert isinstance(result, JobResult)
+
+    row = await get_by_id(store, second.id)
+    assert row is not None
+    assert row.status == "completed"
+
+
+async def test_worker_injects_checkpoint_and_vae_from_selected_model(
+    worker: tuple[QueueWorker, _FakeAdapter, _FakeS3, asyncio.Task],
+    store: JobStore,
+) -> None:
+    w, adapter, _s3, _task = worker
+    job = await create_queued(
+        store,
+        model_name="terrain-sdxl-base",
+        input_json=_input_json(model="terrain-sdxl-base"),
+    )
+    fut = await w.enqueue(job)
+    assert fut is not None
+    await asyncio.wait_for(fut, timeout=5.0)
+
+    graph = adapter.submits[-1]
+    ckpt_node = graph["1"]
+    assert ckpt_node["class_type"] == "CheckpointLoaderSimple"
+    assert ckpt_node["inputs"]["ckpt_name"] == "sd_xl_base_1.0.safetensors"
+
+    vae_node = graph["2"]
+    assert vae_node["class_type"] == "VAELoader"
+    assert vae_node["inputs"]["vae_name"] == "clearvaeSD15_v23.safetensors"

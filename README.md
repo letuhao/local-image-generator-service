@@ -44,6 +44,53 @@ curl -sS -X POST http://127.0.0.1:8700/v1/images/generations \
   -d '{"model":"noobai-xl-v1.1","prompt":"cinematic landscape at golden hour, volumetric light, detailed","size":"1024x1024","steps":28,"cfg":5.0,"seed":42}' | jq .
 ```
 
+### Runtime bundle operations (no compose restart)
+
+Admin endpoints allow model-registry reload and trial bundle lifecycle changes without
+restarting containers.
+
+```bash
+# Reload config/models.yaml into the live registry.
+curl -sS -X POST http://127.0.0.1:8700/v1/admin/runtime/reload-registry \
+  -H "Authorization: Bearer REPLACE_WITH_ADMIN_API_KEY" | jq .
+
+# Activate a trial bundle (optional warmup smoke per model).
+curl -sS -X POST http://127.0.0.1:8700/v1/admin/runtime/setup-bundle \
+  -H "Authorization: Bearer REPLACE_WITH_ADMIN_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"model_names":["noobai-xl-v1.1","terrain-sdxl-base"],"warmup":false}' | jq .
+
+# Close bundle and request backend unload/free.
+curl -sS -X POST http://127.0.0.1:8700/v1/admin/runtime/close-bundle \
+  -H "Authorization: Bearer REPLACE_WITH_ADMIN_API_KEY" | jq .
+```
+
+While runtime reconfiguration is in progress, generation requests may return:
+
+- `503` / `runtime_reconfiguring`
+
+### Model + preset discovery endpoints
+
+For user/LLM clients that need confirmed combo metadata and richer model details:
+
+```bash
+# OpenAI-compatible model list (now includes extra metadata fields).
+curl -sS http://127.0.0.1:8700/v1/models \
+  -H "Authorization: Bearer REPLACE_WITH_FIRST_API_KEY" | jq .
+
+# Rich catalog: per-model defaults/limits + confirmed presets.
+curl -sS http://127.0.0.1:8700/v1/catalog/models \
+  -H "Authorization: Bearer REPLACE_WITH_FIRST_API_KEY" | jq .
+
+# Preset catalog (includes confirmed flag).
+curl -sS http://127.0.0.1:8700/v1/catalog/presets \
+  -H "Authorization: Bearer REPLACE_WITH_FIRST_API_KEY" | jq .
+
+# Preset detail by id.
+curl -sS http://127.0.0.1:8700/v1/catalog/presets/terrain-53858-v1 \
+  -H "Authorization: Bearer REPLACE_WITH_FIRST_API_KEY" | jq .
+```
+
 ## Run tests locally
 
 ```bash

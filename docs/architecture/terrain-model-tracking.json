@@ -1,0 +1,688 @@
+{
+  "meta": {
+    "schema_version": "1.0.0",
+    "review_type": "terrain_first",
+    "last_updated": "2026-04-30T10:38:28.329730+00:00",
+    "reviewer": "pending",
+    "notes": "Source of truth for terrain model review runs and decisions."
+  },
+  "terrainFamilies": [
+    "grass_dirt",
+    "snow_ice",
+    "desert_sand",
+    "swamp_mud",
+    "lava_volcanic",
+    "water_coast"
+  ],
+  "runConfig": {
+    "size": "1024x1024",
+    "steps": 24,
+    "cfg": 6.5,
+    "sampler": "dpmpp_2m",
+    "scheduler": "karras",
+    "seeds": [
+      101,
+      202,
+      303,
+      404,
+      505,
+      606
+    ],
+    "negative_prompt": "worst quality, low quality, blurry, deformed, extra limbs, text watermark, logo, jpeg artifacts, person, human, character, face, portrait, anatomy, creature, monster, hands, body, warrior, npc, crowd, humanoid, cinematic scene, full scene composition"
+  },
+  "modelBundle": {
+    "checkpoints": [
+      {
+        "id": "noobai-xl-v1.1",
+        "path": "models/checkpoints/NoobAI-XL-v1.1.safetensors",
+        "sha256": "6681E8E4B134C81F16533ACEDB0D406D7E5E366E1624B4105178C64D00B05D51",
+        "state": "registered"
+      },
+      {
+        "id": "chineseMartialArts_v10",
+        "path": "models/checkpoints/chineseMartialArts_v10.safetensors",
+        "sha256": "CAB638282FB300994FAA16AB47B3F43F6F1662DB089037027F5B8600A0ACBE77",
+        "state": "downloaded"
+      }
+    ],
+    "loras": [
+      {
+        "id": "FantasyMap-Heavy",
+        "name_ref": "fantasy/FantasyMap-Heavy",
+        "path": "models/loras/fantasy/FantasyMap-Heavy.safetensors",
+        "sha256": "BCF20A7472359507227D5393800C67CB4E9AF220A6E244DF7E715F4C4AB655F9",
+        "state": "downloaded"
+      },
+      {
+        "id": "Battlemap-v1",
+        "name_ref": "fantasy/Battlemap-v1",
+        "path": "models/loras/fantasy/Battlemap-v1.safetensors",
+        "sha256": "81F683E1CDD2E328A042EA359EA7AA8EB052665CEB0D021F47DD0108E64D000A",
+        "state": "downloaded"
+      },
+      {
+        "id": "SDXL_ScienceFictionStyle_v1",
+        "name_ref": "scifi/SDXL_ScienceFictionStyle_v1",
+        "path": "models/loras/scifi/SDXL_ScienceFictionStyle_v1.safetensors",
+        "sha256": "F88C56CC80DB41389A84E1A91A18F813DA0B1348D36AD4E53DB0B8F9E3B96CC2",
+        "state": "downloaded"
+      },
+      {
+        "id": "wuxia-people-test-v1",
+        "name_ref": "wuxia/wuxia-people-test-v1",
+        "path": "models/loras/wuxia/wuxia-people-test-v1.safetensors",
+        "sha256": "86EF5CE06FC5BC6002F4AF33112C37EE9443F611F456CB241C82631312D87332",
+        "state": "downloaded"
+      },
+      {
+        "id": "Wuxie7",
+        "name_ref": "wuxia/Wuxie7",
+        "path": "models/loras/wuxia/Wuxie7.safetensors",
+        "sha256": "3B4EB0D6CCDC903E53445D3A4A99844F5C4AC822E7794DC5F4E5C0ABCE97A81F",
+        "state": "candidate_pending_review"
+      },
+      {
+        "id": "StylizedTexture_ZIT",
+        "name_ref": "terrain/StylizedTexture_ZIT",
+        "path": "models/loras/terrain/StylizedTexture_ZIT.safetensors",
+        "sha256": "600CF7989D6C0755FC686918669C95284652F2763C8CE0C45C2524F2FA01F560",
+        "state": "downloaded"
+      }
+    ]
+  },
+  "promptPack": {
+    "grass_dirt": "seamless top-down terrain texture tile, flat orthographic game tile, grass and dirt blend with subtle path noise, no focal subject, no characters, no creatures, no buildings, texture-only output",
+    "snow_ice": "seamless top-down terrain texture tile, flat orthographic game tile, snow and ice blend with frost cracks, no focal subject, no characters, no creatures, no buildings, texture-only output",
+    "desert_sand": "seamless top-down terrain texture tile, flat orthographic game tile, desert sand with wind streak micro-patterns, no focal subject, no characters, no creatures, no buildings, texture-only output",
+    "swamp_mud": "seamless top-down terrain texture tile, flat orthographic game tile, swamp mud with wet patch variation, no focal subject, no characters, no creatures, no buildings, texture-only output",
+    "lava_volcanic": "seamless top-down terrain texture tile, flat orthographic game tile, volcanic basalt with faint lava vein accents, no focal subject, no characters, no creatures, no buildings, texture-only output",
+    "water_coast": "seamless top-down terrain texture tile, flat orthographic game tile, shallow coast water to shore blend pattern, no focal subject, no characters, no creatures, no buildings, texture-only output"
+  },
+  "candidates": [
+    {
+      "candidate_id": "noobai-xl-v1.1+FantasyMap-Heavy",
+      "checkpoint_id": "noobai-xl-v1.1",
+      "loras": [
+        {
+          "name_ref": "fantasy/FantasyMap-Heavy",
+          "weight": 0.8
+        }
+      ],
+      "status": "downloaded",
+      "notes": "Terrain fantasy baseline candidate"
+    },
+    {
+      "candidate_id": "noobai-xl-v1.1+Battlemap-v1",
+      "checkpoint_id": "noobai-xl-v1.1",
+      "loras": [
+        {
+          "name_ref": "fantasy/Battlemap-v1",
+          "weight": 0.75
+        }
+      ],
+      "status": "downloaded",
+      "notes": "Map readability-focused candidate"
+    },
+    {
+      "candidate_id": "noobai-xl-v1.1+SDXL_ScienceFictionStyle_v1",
+      "checkpoint_id": "noobai-xl-v1.1",
+      "loras": [
+        {
+          "name_ref": "scifi/SDXL_ScienceFictionStyle_v1",
+          "weight": 0.75
+        }
+      ],
+      "status": "downloaded",
+      "notes": "Sci-fi terrain style candidate"
+    },
+    {
+      "candidate_id": "chineseMartialArts_v10+wuxia-people-test-v1",
+      "checkpoint_id": "chineseMartialArts_v10",
+      "loras": [
+        {
+          "name_ref": "wuxia/wuxia-people-test-v1",
+          "weight": 0.7
+        }
+      ],
+      "status": "downloaded",
+      "notes": "Wuxia terrain atmosphere candidate"
+    },
+    {
+      "candidate_id": "noobai-xl-v1.1+baseline-no-lora",
+      "checkpoint_id": "noobai-xl-v1.1",
+      "loras": [],
+      "status": "reviewed",
+      "notes": "Control baseline used for first six-terrain smoke pass."
+    },
+    {
+      "candidate_id": "noobai-xl-v1.1+baseline-no-lora-v2-texture",
+      "checkpoint_id": "noobai-xl-v1.1",
+      "loras": [],
+      "status": "reviewed",
+      "notes": "Second pass with strict texture-only anti-character prompts."
+    },
+    {
+      "candidate_id": "terrain-sdxl-base+baseline-no-lora-v3-texture",
+      "checkpoint_id": "terrain-sdxl-base",
+      "loras": [],
+      "status": "reviewed",
+      "notes": "Pass-003 strict texture rerun on neutral SDXL base."
+    },
+    {
+      "candidate_id": "terrain-sdxl-base+StylizedTexture_ZIT-v1",
+      "checkpoint_id": "terrain-sdxl-base",
+      "loras": [
+        {
+          "name_ref": "terrain/StylizedTexture_ZIT",
+          "weight": 0.65
+        }
+      ],
+      "status": "downloaded",
+      "notes": "Pass-004 single-bundle test: neutral SDXL base + texture LoRA."
+    },
+    {
+      "candidate_id": "terrain-sdxl-base+checkpoint-only-verify",
+      "checkpoint_id": "terrain-sdxl-base",
+      "loras": [],
+      "status": "reviewed",
+      "notes": "Manual user verification pass (checkpoint only)."
+    },
+    {
+      "candidate_id": "terrain-dreamshaper+checkpoint-only-verify",
+      "checkpoint_id": "terrain-dreamshaper",
+      "loras": [],
+      "status": "reviewed",
+      "notes": "Dreamshaper checkpoint-only verify."
+    }
+  ],
+  "runs": [
+    {
+      "timestamp": "2026-04-30T09:51:07.266064+00:00",
+      "candidate_id": "noobai-xl-v1.1+baseline-no-lora",
+      "checkpoint_id": "noobai-xl-v1.1",
+      "loras": [],
+      "terrain_family": "grass_dirt",
+      "prompt": "top-down terrain tile, grass and dirt blend, subtle footpath, readable strategy-map texture, seamless style",
+      "seed": 101,
+      "output_path": "http://127.0.0.1:8700/v1/images/gen_3D4YA5xXQSDy5rrj2C99ir9R7lZ/0.png",
+      "job_id": null,
+      "status": "generated",
+      "local_output_path": "outputs/terrain-review/pass-003/noobai-xl-v1.1_baseline-no-lora/grass_dirt/s101__no_job.png"
+    },
+    {
+      "timestamp": "2026-04-30T09:51:11.854650+00:00",
+      "candidate_id": "noobai-xl-v1.1+baseline-no-lora",
+      "checkpoint_id": "noobai-xl-v1.1",
+      "loras": [],
+      "terrain_family": "snow_ice",
+      "prompt": "top-down terrain tile, snow and ice mix, cracked frost details, readable strategy-map texture, seamless style",
+      "seed": 101,
+      "output_path": "http://127.0.0.1:8700/v1/images/gen_3D4YAlNlXfRTxqrP3XJCqqr2bz6/0.png",
+      "job_id": null,
+      "status": "generated",
+      "local_output_path": "outputs/terrain-review/pass-003/noobai-xl-v1.1_baseline-no-lora/snow_ice/s101__no_job.png"
+    },
+    {
+      "timestamp": "2026-04-30T09:51:16.572567+00:00",
+      "candidate_id": "noobai-xl-v1.1+baseline-no-lora",
+      "checkpoint_id": "noobai-xl-v1.1",
+      "loras": [],
+      "terrain_family": "desert_sand",
+      "prompt": "top-down terrain tile, desert sand with wind streaks and rock grains, readable strategy-map texture, seamless style",
+      "seed": 101,
+      "output_path": "http://127.0.0.1:8700/v1/images/gen_3D4YBJY3cJ1GZNkXiYSQ484RnOd/0.png",
+      "job_id": null,
+      "status": "generated",
+      "local_output_path": "outputs/terrain-review/pass-003/noobai-xl-v1.1_baseline-no-lora/desert_sand/s101__no_job.png"
+    },
+    {
+      "timestamp": "2026-04-30T09:51:21.297105+00:00",
+      "candidate_id": "noobai-xl-v1.1+baseline-no-lora",
+      "checkpoint_id": "noobai-xl-v1.1",
+      "loras": [],
+      "terrain_family": "swamp_mud",
+      "prompt": "top-down terrain tile, swamp mud with wet patches and reeds, readable strategy-map texture, seamless style",
+      "seed": 101,
+      "output_path": "http://127.0.0.1:8700/v1/images/gen_3D4YBvccyRLDZAusVOgU9CwXgSs/0.png",
+      "job_id": null,
+      "status": "generated",
+      "local_output_path": "outputs/terrain-review/pass-003/noobai-xl-v1.1_baseline-no-lora/swamp_mud/s101__no_job.png"
+    },
+    {
+      "timestamp": "2026-04-30T09:51:25.975695+00:00",
+      "candidate_id": "noobai-xl-v1.1+baseline-no-lora",
+      "checkpoint_id": "noobai-xl-v1.1",
+      "loras": [],
+      "terrain_family": "lava_volcanic",
+      "prompt": "top-down terrain tile, volcanic ground with cooled basalt and lava glow veins, readable strategy-map texture, seamless style",
+      "seed": 101,
+      "output_path": "http://127.0.0.1:8700/v1/images/gen_3D4YCSG7y4g6pKzCTtWiccP4UWn/0.png",
+      "job_id": null,
+      "status": "generated",
+      "local_output_path": "outputs/terrain-review/pass-003/noobai-xl-v1.1_baseline-no-lora/lava_volcanic/s101__no_job.png"
+    },
+    {
+      "timestamp": "2026-04-30T09:51:30.683535+00:00",
+      "candidate_id": "noobai-xl-v1.1+baseline-no-lora",
+      "checkpoint_id": "noobai-xl-v1.1",
+      "loras": [],
+      "terrain_family": "water_coast",
+      "prompt": "top-down terrain tile, shallow coast water meeting shoreline sand, readable strategy-map texture, seamless style",
+      "seed": 101,
+      "output_path": "http://127.0.0.1:8700/v1/images/gen_3D4YD4V4NNy8nKQ4zC4d1LjVqY7/0.png",
+      "job_id": null,
+      "status": "generated",
+      "local_output_path": "outputs/terrain-review/pass-003/noobai-xl-v1.1_baseline-no-lora/water_coast/s101__no_job.png"
+    },
+    {
+      "timestamp": "2026-04-30T10:09:38.512744+00:00",
+      "candidate_id": "noobai-xl-v1.1+baseline-no-lora-v2-texture",
+      "checkpoint_id": "noobai-xl-v1.1",
+      "loras": [],
+      "terrain_family": "grass_dirt",
+      "prompt": "seamless top-down terrain texture tile, flat orthographic game tile, grass and dirt blend with subtle path noise, no focal subject, no characters, no creatures, no buildings, texture-only output",
+      "seed": 101,
+      "output_path": "http://127.0.0.1:8700/v1/images/gen_3D4aPtww1tmGeTvMWoxI3G0K77U/0.png",
+      "job_id": null,
+      "status": "generated",
+      "local_output_path": "outputs/terrain-review/pass-003/noobai-xl-v1.1_baseline-no-lora-v2-texture/grass_dirt/s101__no_job.png"
+    },
+    {
+      "timestamp": "2026-04-30T10:09:42.058169+00:00",
+      "candidate_id": "noobai-xl-v1.1+baseline-no-lora-v2-texture",
+      "checkpoint_id": "noobai-xl-v1.1",
+      "loras": [],
+      "terrain_family": "snow_ice",
+      "prompt": "seamless top-down terrain texture tile, flat orthographic game tile, snow and ice blend with frost cracks, no focal subject, no characters, no creatures, no buildings, texture-only output",
+      "seed": 101,
+      "output_path": "http://127.0.0.1:8700/v1/images/gen_3D4aQNRGguBZPXtMZpxFWkqAeT1/0.png",
+      "job_id": null,
+      "status": "generated",
+      "local_output_path": "outputs/terrain-review/pass-003/noobai-xl-v1.1_baseline-no-lora-v2-texture/snow_ice/s101__no_job.png"
+    },
+    {
+      "timestamp": "2026-04-30T10:09:45.605732+00:00",
+      "candidate_id": "noobai-xl-v1.1+baseline-no-lora-v2-texture",
+      "checkpoint_id": "noobai-xl-v1.1",
+      "loras": [],
+      "terrain_family": "desert_sand",
+      "prompt": "seamless top-down terrain texture tile, flat orthographic game tile, desert sand with wind streak micro-patterns, no focal subject, no characters, no creatures, no buildings, texture-only output",
+      "seed": 101,
+      "output_path": "http://127.0.0.1:8700/v1/images/gen_3D4aQlk52x5hkgDBmdxHCEgdSXM/0.png",
+      "job_id": null,
+      "status": "generated",
+      "local_output_path": "outputs/terrain-review/pass-003/noobai-xl-v1.1_baseline-no-lora-v2-texture/desert_sand/s101__no_job.png"
+    },
+    {
+      "timestamp": "2026-04-30T10:09:49.265842+00:00",
+      "candidate_id": "noobai-xl-v1.1+baseline-no-lora-v2-texture",
+      "checkpoint_id": "noobai-xl-v1.1",
+      "loras": [],
+      "terrain_family": "swamp_mud",
+      "prompt": "seamless top-down terrain texture tile, flat orthographic game tile, swamp mud with wet patch variation, no focal subject, no characters, no creatures, no buildings, texture-only output",
+      "seed": 101,
+      "output_path": "http://127.0.0.1:8700/v1/images/gen_3D4aRMOhLMeKzcyvU1urgUEzxud/0.png",
+      "job_id": null,
+      "status": "generated",
+      "local_output_path": "outputs/terrain-review/pass-003/noobai-xl-v1.1_baseline-no-lora-v2-texture/swamp_mud/s101__no_job.png"
+    },
+    {
+      "timestamp": "2026-04-30T10:09:52.878393+00:00",
+      "candidate_id": "noobai-xl-v1.1+baseline-no-lora-v2-texture",
+      "checkpoint_id": "noobai-xl-v1.1",
+      "loras": [],
+      "terrain_family": "lava_volcanic",
+      "prompt": "seamless top-down terrain texture tile, flat orthographic game tile, volcanic basalt with faint lava vein accents, no focal subject, no characters, no creatures, no buildings, texture-only output",
+      "seed": 101,
+      "output_path": "http://127.0.0.1:8700/v1/images/gen_3D4aRmg1ZBzDzOg09rhfmbHBN4o/0.png",
+      "job_id": null,
+      "status": "generated",
+      "local_output_path": "outputs/terrain-review/pass-003/noobai-xl-v1.1_baseline-no-lora-v2-texture/lava_volcanic/s101__no_job.png"
+    },
+    {
+      "timestamp": "2026-04-30T10:09:56.437990+00:00",
+      "candidate_id": "noobai-xl-v1.1+baseline-no-lora-v2-texture",
+      "checkpoint_id": "noobai-xl-v1.1",
+      "loras": [],
+      "terrain_family": "water_coast",
+      "prompt": "seamless top-down terrain texture tile, flat orthographic game tile, shallow coast water to shore blend pattern, no focal subject, no characters, no creatures, no buildings, texture-only output",
+      "seed": 101,
+      "output_path": "http://127.0.0.1:8700/v1/images/gen_3D4aSGYNLhBMZFIGIFOTQbKN5uc/0.png",
+      "job_id": null,
+      "status": "generated",
+      "local_output_path": "outputs/terrain-review/pass-003/noobai-xl-v1.1_baseline-no-lora-v2-texture/water_coast/s101__no_job.png"
+    },
+    {
+      "timestamp": "2026-04-30T10:14:59.776081+00:00",
+      "candidate_id": "terrain-sdxl-base+baseline-no-lora-v3-texture",
+      "checkpoint_id": "terrain-sdxl-base",
+      "loras": [],
+      "terrain_family": "grass_dirt",
+      "prompt": "seamless top-down orthographic terrain texture tile, grass and dirt micro-pattern only, no focal subject",
+      "seed": 101,
+      "output_path": "http://127.0.0.1:8700/v1/images/gen_3D4b4a9WDO4umxnmx6rIogEyuYz/0.png",
+      "job_id": null,
+      "status": "generated",
+      "local_output_path": "outputs/terrain-review/pass-003-v3-only/terrain-sdxl-base_baseline-no-lora-v3-texture/grass_dirt/s101__no_job.png"
+    },
+    {
+      "timestamp": "2026-04-30T10:15:01.126882+00:00",
+      "candidate_id": "terrain-sdxl-base+baseline-no-lora-v3-texture",
+      "checkpoint_id": "terrain-sdxl-base",
+      "loras": [],
+      "terrain_family": "snow_ice",
+      "prompt": "seamless top-down orthographic terrain texture tile, snow and ice micro-pattern only, no focal subject",
+      "seed": 101,
+      "output_path": "http://127.0.0.1:8700/v1/images/gen_3D4b4rLmUpTt8bDQCSsDDwK5WHH/0.png",
+      "job_id": null,
+      "status": "generated",
+      "local_output_path": "outputs/terrain-review/pass-003-v3-only/terrain-sdxl-base_baseline-no-lora-v3-texture/snow_ice/s101__no_job.png"
+    },
+    {
+      "timestamp": "2026-04-30T10:15:02.330491+00:00",
+      "candidate_id": "terrain-sdxl-base+baseline-no-lora-v3-texture",
+      "checkpoint_id": "terrain-sdxl-base",
+      "loras": [],
+      "terrain_family": "desert_sand",
+      "prompt": "seamless top-down orthographic terrain texture tile, desert sand micro-grain pattern only, no focal subject",
+      "seed": 101,
+      "output_path": "http://127.0.0.1:8700/v1/images/gen_3D4b4veFRkiUmgKJs1mNnpYAd3j/0.png",
+      "job_id": null,
+      "status": "generated",
+      "local_output_path": "outputs/terrain-review/pass-003-v3-only/terrain-sdxl-base_baseline-no-lora-v3-texture/desert_sand/s101__no_job.png"
+    },
+    {
+      "timestamp": "2026-04-30T10:15:03.587613+00:00",
+      "candidate_id": "terrain-sdxl-base+baseline-no-lora-v3-texture",
+      "checkpoint_id": "terrain-sdxl-base",
+      "loras": [],
+      "terrain_family": "swamp_mud",
+      "prompt": "seamless top-down orthographic terrain texture tile, swamp mud wet-noise pattern only, no focal subject",
+      "seed": 101,
+      "output_path": "http://127.0.0.1:8700/v1/images/gen_3D4b571HKwQKOgCE4r8UaBakxUY/0.png",
+      "job_id": null,
+      "status": "generated",
+      "local_output_path": "outputs/terrain-review/pass-003-v3-only/terrain-sdxl-base_baseline-no-lora-v3-texture/swamp_mud/s101__no_job.png"
+    },
+    {
+      "timestamp": "2026-04-30T10:15:04.804903+00:00",
+      "candidate_id": "terrain-sdxl-base+baseline-no-lora-v3-texture",
+      "checkpoint_id": "terrain-sdxl-base",
+      "loras": [],
+      "terrain_family": "lava_volcanic",
+      "prompt": "seamless top-down orthographic terrain texture tile, cooled basalt and faint lava vein pattern only, no focal subject",
+      "seed": 101,
+      "output_path": "http://127.0.0.1:8700/v1/images/gen_3D4b5KfVOIpg1qR0TRj0czc1rwB/0.png",
+      "job_id": null,
+      "status": "generated",
+      "local_output_path": "outputs/terrain-review/pass-003-v3-only/terrain-sdxl-base_baseline-no-lora-v3-texture/lava_volcanic/s101__no_job.png"
+    },
+    {
+      "timestamp": "2026-04-30T10:15:06.015335+00:00",
+      "candidate_id": "terrain-sdxl-base+baseline-no-lora-v3-texture",
+      "checkpoint_id": "terrain-sdxl-base",
+      "loras": [],
+      "terrain_family": "water_coast",
+      "prompt": "seamless top-down orthographic terrain texture tile, shallow water and coast blend pattern only, no focal subject",
+      "seed": 101,
+      "output_path": "http://127.0.0.1:8700/v1/images/gen_3D4b5UxbHFvFeMq7BfoYk8hFEY1/0.png",
+      "job_id": null,
+      "status": "generated",
+      "local_output_path": "outputs/terrain-review/pass-003-v3-only/terrain-sdxl-base_baseline-no-lora-v3-texture/water_coast/s101__no_job.png"
+    },
+    {
+      "timestamp": "2026-04-30T10:28:16.783838+00:00",
+      "candidate_id": "terrain-sdxl-base+StylizedTexture_ZIT-v1",
+      "checkpoint_id": "terrain-sdxl-base",
+      "loras": [
+        {
+          "name_ref": "terrain/StylizedTexture_ZIT",
+          "weight": 0.65
+        }
+      ],
+      "terrain_family": "grass_dirt",
+      "prompt": "seamless top-down orthographic terrain texture tile, grass and dirt micro-pattern only, no focal subject",
+      "seed": 101,
+      "output_path": "http://127.0.0.1:8700/v1/images/gen_3D4cgTpwdPv7TMJxS0jjsVOHjmH/0.png",
+      "job_id": null,
+      "status": "generated",
+      "local_output_path": "outputs/terrain-review/pass-004-zit/terrain-sdxl-base_StylizedTexture_ZIT-v1/grass_dirt/s101__no_job.png"
+    },
+    {
+      "timestamp": "2026-04-30T10:28:17.952546+00:00",
+      "candidate_id": "terrain-sdxl-base+StylizedTexture_ZIT-v1",
+      "checkpoint_id": "terrain-sdxl-base",
+      "loras": [
+        {
+          "name_ref": "terrain/StylizedTexture_ZIT",
+          "weight": 0.65
+        }
+      ],
+      "terrain_family": "snow_ice",
+      "prompt": "seamless top-down orthographic terrain texture tile, snow and ice micro-pattern only, no focal subject",
+      "seed": 101,
+      "output_path": "http://127.0.0.1:8700/v1/images/gen_3D4cgolSzfVfOK71LEOERdKKiL5/0.png",
+      "job_id": null,
+      "status": "generated",
+      "local_output_path": "outputs/terrain-review/pass-004-zit/terrain-sdxl-base_StylizedTexture_ZIT-v1/snow_ice/s101__no_job.png"
+    },
+    {
+      "timestamp": "2026-04-30T10:28:19.116442+00:00",
+      "candidate_id": "terrain-sdxl-base+StylizedTexture_ZIT-v1",
+      "checkpoint_id": "terrain-sdxl-base",
+      "loras": [
+        {
+          "name_ref": "terrain/StylizedTexture_ZIT",
+          "weight": 0.65
+        }
+      ],
+      "terrain_family": "desert_sand",
+      "prompt": "seamless top-down orthographic terrain texture tile, desert sand micro-grain pattern only, no focal subject",
+      "seed": 101,
+      "output_path": "http://127.0.0.1:8700/v1/images/gen_3D4cgwyz33RwSEfXEAFcAIWyxLs/0.png",
+      "job_id": null,
+      "status": "generated",
+      "local_output_path": "outputs/terrain-review/pass-004-zit/terrain-sdxl-base_StylizedTexture_ZIT-v1/desert_sand/s101__no_job.png"
+    },
+    {
+      "timestamp": "2026-04-30T10:28:20.297140+00:00",
+      "candidate_id": "terrain-sdxl-base+StylizedTexture_ZIT-v1",
+      "checkpoint_id": "terrain-sdxl-base",
+      "loras": [
+        {
+          "name_ref": "terrain/StylizedTexture_ZIT",
+          "weight": 0.65
+        }
+      ],
+      "terrain_family": "swamp_mud",
+      "prompt": "seamless top-down orthographic terrain texture tile, swamp mud wet-noise pattern only, no focal subject",
+      "seed": 101,
+      "output_path": "http://127.0.0.1:8700/v1/images/gen_3D4chCNvdST8HgTuMKOPRotNIZO/0.png",
+      "job_id": null,
+      "status": "generated",
+      "local_output_path": "outputs/terrain-review/pass-004-zit/terrain-sdxl-base_StylizedTexture_ZIT-v1/swamp_mud/s101__no_job.png"
+    },
+    {
+      "timestamp": "2026-04-30T10:28:21.487355+00:00",
+      "candidate_id": "terrain-sdxl-base+StylizedTexture_ZIT-v1",
+      "checkpoint_id": "terrain-sdxl-base",
+      "loras": [
+        {
+          "name_ref": "terrain/StylizedTexture_ZIT",
+          "weight": 0.65
+        }
+      ],
+      "terrain_family": "lava_volcanic",
+      "prompt": "seamless top-down orthographic terrain texture tile, cooled basalt and faint lava vein pattern only, no focal subject",
+      "seed": 101,
+      "output_path": "http://127.0.0.1:8700/v1/images/gen_3D4chKZFQ9EG4QErShJMmXCNJh8/0.png",
+      "job_id": null,
+      "status": "generated",
+      "local_output_path": "outputs/terrain-review/pass-004-zit/terrain-sdxl-base_StylizedTexture_ZIT-v1/lava_volcanic/s101__no_job.png"
+    },
+    {
+      "timestamp": "2026-04-30T10:28:22.653488+00:00",
+      "candidate_id": "terrain-sdxl-base+StylizedTexture_ZIT-v1",
+      "checkpoint_id": "terrain-sdxl-base",
+      "loras": [
+        {
+          "name_ref": "terrain/StylizedTexture_ZIT",
+          "weight": 0.65
+        }
+      ],
+      "terrain_family": "water_coast",
+      "prompt": "seamless top-down orthographic terrain texture tile, shallow water and coast blend pattern only, no focal subject",
+      "seed": 101,
+      "output_path": "http://127.0.0.1:8700/v1/images/gen_3D4chS3vnvwgDMMXHAj6UbUYxqw/0.png",
+      "job_id": null,
+      "status": "generated",
+      "local_output_path": "outputs/terrain-review/pass-004-zit/terrain-sdxl-base_StylizedTexture_ZIT-v1/water_coast/s101__no_job.png"
+    },
+    {
+      "timestamp": "2026-04-30T10:32:57.362965+00:00",
+      "candidate_id": "terrain-sdxl-base+checkpoint-only-verify",
+      "checkpoint_id": "terrain-sdxl-base",
+      "loras": [],
+      "terrain_family": "swamp_mud",
+      "prompt": "seamless top-down orthographic terrain texture tile, swamp mud wet-noise pattern only, no focal subject",
+      "seed": 101,
+      "output_path": "http://127.0.0.1:8700/v1/images/gen_3D4dFnWtAWFDfxMBWSO9M0VV6AN/0.png",
+      "job_id": null,
+      "status": "generated",
+      "local_output_path": "outputs/terrain-review/checkpoint-only-verify/terrain-sdxl-base_checkpoint-only-verify/swamp_mud/s101__no_job.png"
+    },
+    {
+      "timestamp": "2026-04-30T10:38:08.513765+00:00",
+      "candidate_id": "terrain-dreamshaper+checkpoint-only-verify",
+      "checkpoint_id": "terrain-dreamshaper",
+      "loras": [],
+      "terrain_family": "swamp_mud",
+      "prompt": "seamless top-down orthographic terrain texture tile, swamp mud wet-noise pattern only, no focal subject",
+      "seed": 101,
+      "output_path": "http://127.0.0.1:8700/v1/images/gen_3D4dtCQsUwIV3pN6HuHI1I70dDN/0.png",
+      "job_id": null,
+      "status": "generated",
+      "local_output_path": "outputs/terrain-review/checkpoint-verify-dreamshaper/terrain-dreamshaper_checkpoint-only-verify/swamp_mud/s101__no_job.png"
+    }
+  ],
+  "scores": [
+    {
+      "candidate_id": "noobai-xl-v1.1+FantasyMap-Heavy",
+      "genre_fit_0_2": null,
+      "readability_0_2": null,
+      "consistency_0_2": null,
+      "artifact_severity_0_2": null,
+      "prompt_responsiveness_0_2": null,
+      "total_score_0_10": null,
+      "decision": null,
+      "status_update": "downloaded->reviewed->approved_candidate"
+    },
+    {
+      "candidate_id": "noobai-xl-v1.1+Battlemap-v1",
+      "genre_fit_0_2": null,
+      "readability_0_2": null,
+      "consistency_0_2": null,
+      "artifact_severity_0_2": null,
+      "prompt_responsiveness_0_2": null,
+      "total_score_0_10": null,
+      "decision": null,
+      "status_update": "downloaded->reviewed->approved_candidate"
+    },
+    {
+      "candidate_id": "noobai-xl-v1.1+SDXL_ScienceFictionStyle_v1",
+      "genre_fit_0_2": null,
+      "readability_0_2": null,
+      "consistency_0_2": null,
+      "artifact_severity_0_2": null,
+      "prompt_responsiveness_0_2": null,
+      "total_score_0_10": null,
+      "decision": null,
+      "status_update": "downloaded->reviewed->approved_candidate"
+    },
+    {
+      "candidate_id": "chineseMartialArts_v10+wuxia-people-test-v1",
+      "genre_fit_0_2": null,
+      "readability_0_2": null,
+      "consistency_0_2": null,
+      "artifact_severity_0_2": null,
+      "prompt_responsiveness_0_2": null,
+      "total_score_0_10": null,
+      "decision": null,
+      "status_update": "downloaded->reviewed->approved_candidate"
+    },
+    {
+      "candidate_id": "noobai-xl-v1.1+baseline-no-lora",
+      "genre_fit_0_2": 1,
+      "readability_0_2": 1,
+      "consistency_0_2": 1,
+      "artifact_severity_0_2": 1,
+      "prompt_responsiveness_0_2": 2,
+      "total_score_0_10": 6,
+      "decision": "reviewed",
+      "status_update": "downloaded->reviewed->approved_candidate"
+    },
+    {
+      "candidate_id": "noobai-xl-v1.1+baseline-no-lora-v2-texture",
+      "genre_fit_0_2": null,
+      "readability_0_2": null,
+      "consistency_0_2": null,
+      "artifact_severity_0_2": null,
+      "prompt_responsiveness_0_2": null,
+      "total_score_0_10": null,
+      "decision": null,
+      "status_update": "downloaded->reviewed->approved_candidate"
+    },
+    {
+      "candidate_id": "terrain-sdxl-base+baseline-no-lora-v3-texture",
+      "genre_fit_0_2": null,
+      "readability_0_2": null,
+      "consistency_0_2": null,
+      "artifact_severity_0_2": null,
+      "prompt_responsiveness_0_2": null,
+      "total_score_0_10": null,
+      "decision": null,
+      "status_update": "downloaded->reviewed->approved_candidate"
+    },
+    {
+      "candidate_id": "terrain-sdxl-base+StylizedTexture_ZIT-v1",
+      "genre_fit_0_2": null,
+      "readability_0_2": null,
+      "consistency_0_2": null,
+      "artifact_severity_0_2": null,
+      "prompt_responsiveness_0_2": null,
+      "total_score_0_10": null,
+      "decision": null,
+      "status_update": "downloaded->reviewed->approved_candidate"
+    },
+    {
+      "candidate_id": "terrain-sdxl-base+checkpoint-only-verify",
+      "genre_fit_0_2": null,
+      "readability_0_2": null,
+      "consistency_0_2": null,
+      "artifact_severity_0_2": null,
+      "prompt_responsiveness_0_2": null,
+      "total_score_0_10": null,
+      "decision": null,
+      "status_update": "downloaded->reviewed->approved_candidate"
+    },
+    {
+      "candidate_id": "terrain-dreamshaper+checkpoint-only-verify",
+      "genre_fit_0_2": null,
+      "readability_0_2": null,
+      "consistency_0_2": null,
+      "artifact_severity_0_2": null,
+      "prompt_responsiveness_0_2": null,
+      "total_score_0_10": null,
+      "decision": null,
+      "status_update": "downloaded->reviewed->approved_candidate"
+    }
+  ],
+  "decisions": {
+    "grass_dirt": null,
+    "snow_ice": null,
+    "desert_sand": null,
+    "swamp_mud": null,
+    "lava_volcanic": null,
+    "water_coast": null
+  }
+}

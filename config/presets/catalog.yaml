@@ -1,0 +1,27 @@
+presets:
+  - id: terrain-53858-v1
+    version: 1.0.0
+    asset_type: tile_texture
+    status: approved
+    confirmed: true
+    description: Close-up terrain texture generation preset validated on 6 terrain families.
+    bundle:
+      model: terrain-sdxl-base
+      loras:
+        - name: texture/53858_SDXL_sxz-texture-sdxl
+          weight: 0.55
+    generation_defaults:
+      size: "1024x1024"
+      steps: 28
+      cfg: 5.5
+      sampler: euler_ancestral
+      scheduler: karras
+      seed: 101
+      runtime_mode: auto
+    supported_asset_types:
+      - tile_texture
+    variables_schema:
+      - name: terrain_material
+        required: true
+      - name: palette
+        required: true

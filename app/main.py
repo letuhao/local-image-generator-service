@@ -27,6 +27,7 @@ from app.queue.reaper import OrphanReaper
 from app.queue.recovery import recover_jobs
 from app.queue.store import JobStore
 from app.queue.worker import QueueWorker
+from app.registry.presets import PresetRegistryValidationError, load_preset_registry
 from app.startup.checks import StartupCheckError, build_context_from_env, run_startup_checks
 from app.startup.smoke_test import StartupSmokeError, run_registry_smoke_tests
 from app.storage.s3 import S3Config, S3Storage
@@ -43,6 +44,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     )
 
     startup_ctx = build_context_from_env()
+    app.state.startup_ctx = startup_ctx
+    app.state.runtime_reconfig_lock = asyncio.Lock()
+    app.state.runtime_bundle = {"active_models": [], "warmup": False, "updated_at": None}
     try:
         store = JobStore(os.environ.get("DATABASE_PATH", "/app/data/jobs.db"))
         await store.connect()
@@ -51,6 +55,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         # Registry and startup posture checks.
         registry = run_startup_checks(startup_ctx)
         app.state.registry = registry
+        presets_yaml_path = Path(os.environ.get("PRESETS_YAML_PATH", "config/presets/catalog.yaml"))
+        app.state.preset_registry = load_preset_registry(presets_yaml_path, models=registry)
 
         # S3 storage — bucket ensured at boot (idempotent).
         s3 = S3Storage(S3Config.from_env())
@@ -172,7 +178,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             recovery=recovery_stats,
             fetch_recovery=fetch_recovery_stats,
         )
-    except (StartupCheckError, StartupSmokeError) as exc:
+    except (StartupCheckError, StartupSmokeError, PresetRegistryValidationError) as exc:
         log.error("startup_failed", stage=getattr(exc, "stage", "smoke_test"), reason=str(exc))
         for task_attr in ("reaper_task", "worker_task", "webhook_dispatcher_task"):
             task = getattr(app.state, task_attr, None)

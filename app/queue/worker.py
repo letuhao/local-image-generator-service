@@ -19,6 +19,7 @@ from app.backends.base import (
     ComfyNodeError,
     ComfyTimeoutError,
     ComfyUnreachableError,
+    ModelConfig,
 )
 from app.queue.jobs import (
     Job,
@@ -31,6 +32,7 @@ from app.registry.models import Registry
 from app.registry.workflows import (
     find_anchor,
     inject_loras,
+    inject_model_source,
     inject_vpred,
     load_workflow,
 )
@@ -124,6 +126,10 @@ class QueueWorker:
         already for this to not deadlock (lifespan spawns worker BEFORE recovery)."""
         await self._queue.put(_WorkerItem(job, None))
 
+    def set_registry(self, registry: Registry) -> None:
+        """Swap runtime registry reference (used by admin hot-reload)."""
+        self._registry = registry
+
     # ───────────────────────── main loop ─────────────────────────
 
     async def run(self) -> None:
@@ -183,6 +189,42 @@ class QueueWorker:
             log.info("queue_worker.free_ok")
         except Exception as exc:
             log.warning("queue_worker.free_failed", error=str(exc))
+
+    async def _has_swap_headroom(self, next_model: ModelConfig) -> bool:
+        """Allow swap when current free VRAM is already sufficient.
+
+        `/free` verification is based on "vram_free increased". On some CUDA
+        allocator paths, free VRAM can remain flat after unload even when
+        enough headroom already exists for the next model.
+        """
+        health_fn = getattr(self._adapter, "health", None)
+        if not callable(health_fn):
+            return False
+        try:
+            snapshot = await health_fn()
+        except Exception as exc:  # pragma: no cover - defensive
+            log.warning("queue_worker.swap_headroom_health_failed", error=str(exc))
+            return False
+
+        if snapshot.get("status") != "ok":
+            return False
+
+        free_gb_raw = snapshot.get("vram_free_gb")
+        try:
+            free_gb = float(free_gb_raw)
+        except (TypeError, ValueError):
+            return False
+
+        required_gb = float(next_model.vram_estimate_gb) + 0.5
+        ok = free_gb >= required_gb
+        log.info(
+            "queue_worker.swap_headroom_check",
+            model=next_model.name,
+            free_gb=round(free_gb, 3),
+            required_gb=round(required_gb, 3),
+            ok=ok,
+        )
+        return ok
 
     # ───────────────────────── pipeline (used by _process_one) ─────────────────────────
 
@@ -245,7 +287,11 @@ class QueueWorker:
             graph[nid]["inputs"]["height"] = validated.height
             graph[nid]["inputs"]["batch_size"] = validated.n
 
-        # 2b. v-prediction scaffold (no-op for eps) + LoRA chain injection.
+        # 2b. Inject runtime model sources first so template hardcoded source refs
+        # (checkpoint/vae/encoders) do not override the selected model ID.
+        inject_model_source(graph, model_cfg=validated.model)
+
+        # 2c. v-prediction scaffold (no-op for eps) + LoRA chain injection.
         # Order matters: vpred first (may reshape model-source outputs once
         # implemented), then inject_loras consumes the final MODEL/CLIP anchors.
         inject_vpred(graph, model_cfg=validated.model)
@@ -256,17 +302,24 @@ class QueueWorker:
         if self._last_model_name is not None and self._last_model_name != current_model:
             unloaded = await self._adapter.unload_models(verify_timeout_s=30.0)
             if not unloaded:
-                msg = (
-                    "model swap refused: /free did not increase vram_free within 30s "
-                    f"({self._last_model_name} -> {current_model})"
-                )
-                await set_failed(
-                    self._store,
-                    job.id,
-                    error_code="vram_budget_exceeded",
-                    error_message=msg,
-                )
-                raise ComfyNodeError(msg)
+                if await self._has_swap_headroom(validated.model):
+                    log.warning(
+                        "queue_worker.swap_unload_unverified_but_headroom_ok",
+                        previous_model=self._last_model_name,
+                        next_model=current_model,
+                    )
+                else:
+                    msg = (
+                        "model swap refused: /free did not increase vram_free within 30s "
+                        f"({self._last_model_name} -> {current_model})"
+                    )
+                    await set_failed(
+                        self._store,
+                        job.id,
+                        error_code="vram_budget_exceeded",
+                        error_message=msg,
+                    )
+                    raise ComfyNodeError(msg)
 
         # 4. Submit to ComfyUI + update DB.
         try:
