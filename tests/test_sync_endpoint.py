@@ -5,6 +5,7 @@ from typing import Any
 
 import pytest
 from httpx import AsyncClient
+from PIL import Image
 
 from app.backends.base import (
     ComfyNodeError,
@@ -21,7 +22,7 @@ class _FakeAdapter:
 
     def __init__(self) -> None:
         self.submit_calls: list[dict] = []
-        self.images: list[bytes] = [b"\x89PNG\r\n\x1a\n" + b"payload"]
+        self.images: list[bytes] = [_png_bytes((255, 255, 255, 255))]
         self.submit_exc: Exception | None = None
         self.wait_exc: Exception | None = None
         self.fetch_exc: Exception | None = None
@@ -98,6 +99,15 @@ def _body(**overrides: Any) -> dict:
     base = {"model": "noobai-xl-v1.1", "prompt": "a sphere"}
     base.update(overrides)
     return base
+
+
+def _png_bytes(color: tuple[int, int, int, int]) -> bytes:
+    from io import BytesIO
+
+    buf = BytesIO()
+    img = Image.new("RGBA", (2, 2), color=color)
+    img.save(buf, format="PNG")
+    return buf.getvalue()
 
 
 # ───────────────────────── happy path ─────────────────────────
@@ -212,10 +222,7 @@ async def test_sync_generation_b64_json_with_n_equals_2(
     client_with_fakes: AsyncClient, fake_adapter: _FakeAdapter
 ) -> None:
     """Coverage gap plugged: b64_json + n=2 returns two b64 entries."""
-    fake_adapter.images = [
-        b"\x89PNG\r\n\x1a\n" + b"img0",
-        b"\x89PNG\r\n\x1a\n" + b"img1",
-    ]
+    fake_adapter.images = [_png_bytes((255, 255, 255, 255)), _png_bytes((0, 0, 0, 255))]
     fake_adapter.n_outputs = 2
     resp = await client_with_fakes.post(
         "/v1/images/generations",
@@ -232,10 +239,7 @@ async def test_sync_generation_b64_json_with_n_equals_2(
 async def test_sync_generation_n_equals_2_returns_two_images(
     client_with_fakes: AsyncClient, fake_adapter: _FakeAdapter
 ) -> None:
-    fake_adapter.images = [
-        b"\x89PNG\r\n\x1a\n" + b"img0",
-        b"\x89PNG\r\n\x1a\n" + b"img1",
-    ]
+    fake_adapter.images = [_png_bytes((255, 255, 255, 255)), _png_bytes((0, 0, 0, 255))]
     fake_adapter.n_outputs = 2
     resp = await client_with_fakes.post(
         "/v1/images/generations",
@@ -244,6 +248,70 @@ async def test_sync_generation_n_equals_2_returns_two_images(
     )
     assert resp.status_code == 200
     assert len(resp.json()["data"]) == 2
+
+
+async def test_sync_binary_returns_png_bytes(client_with_fakes: AsyncClient) -> None:
+    resp = await client_with_fakes.post(
+        "/v1/images/generations/binary",
+        json=_body(),
+        headers={"Authorization": "Bearer test-gen-key"},
+    )
+    assert resp.status_code == 200, resp.text
+    assert resp.headers["content-type"] == "image/png"
+    assert resp.content.startswith(b"\x89PNG\r\n\x1a\n")
+    assert resp.headers["x-job-id"].startswith("gen_")
+
+
+async def test_sync_binary_transparent_background_default_true(
+    client_with_fakes: AsyncClient, fake_adapter: _FakeAdapter
+) -> None:
+    from io import BytesIO
+
+    fake_adapter.images = [_png_bytes((255, 255, 255, 255))]
+    resp = await client_with_fakes.post(
+        "/v1/images/generations/binary",
+        json=_body(),
+        headers={"Authorization": "Bearer test-gen-key"},
+    )
+    assert resp.status_code == 200, resp.text
+    img = Image.open(BytesIO(resp.content)).convert("RGBA")
+    assert img.getpixel((0, 0))[3] == 0
+
+
+async def test_sync_binary_transparent_background_can_disable(
+    client_with_fakes: AsyncClient, fake_adapter: _FakeAdapter
+) -> None:
+    from io import BytesIO
+
+    fake_adapter.images = [_png_bytes((255, 255, 255, 255))]
+    resp = await client_with_fakes.post(
+        "/v1/images/generations/binary",
+        json=_body(transparent_background=False),
+        headers={"Authorization": "Bearer test-gen-key"},
+    )
+    assert resp.status_code == 200, resp.text
+    img = Image.open(BytesIO(resp.content)).convert("RGBA")
+    assert img.getpixel((0, 0))[3] == 255
+
+
+async def test_sync_binary_rejects_async_mode(client_with_fakes: AsyncClient) -> None:
+    resp = await client_with_fakes.post(
+        "/v1/images/generations/binary",
+        json=_body(mode="async"),
+        headers={"Authorization": "Bearer test-gen-key"},
+    )
+    assert resp.status_code == 400
+    assert resp.json()["error"]["code"] == "validation_error"
+
+
+async def test_sync_binary_rejects_n_gt_1(client_with_fakes: AsyncClient) -> None:
+    resp = await client_with_fakes.post(
+        "/v1/images/generations/binary",
+        json=_body(n=2),
+        headers={"Authorization": "Bearer test-gen-key"},
+    )
+    assert resp.status_code == 400
+    assert resp.json()["error"]["code"] == "validation_error"
 
 
 # ───────────────────────── auth + validation ─────────────────────────
@@ -355,6 +423,7 @@ async def test_lifespan_rejects_malformed_public_base_url(tmp_path, monkeypatch)
 
     monkeypatch.setenv("DATABASE_PATH", str(tmp_path / "bad.db"))
     monkeypatch.setenv("IMAGE_GEN_PUBLIC_BASE_URL", "invalid-no-scheme")
+    monkeypatch.setenv("COMFYUI_URL", "http://127.0.0.1:8188")
     monkeypatch.setattr(
         "app.storage.s3.S3Storage.ensure_bucket",
         lambda self: _noop_async(self),

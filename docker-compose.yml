@@ -23,6 +23,8 @@ services:
       DATABASE_PATH: ${DATABASE_PATH:-/app/data/jobs.db}
       COMFYUI_URL: http://comfyui:8188
       COMFYUI_WS_URL: ws://comfyui:8188/ws
+      STARTUP_SMOKE_ENABLED: ${STARTUP_SMOKE_ENABLED:-true}
+      STARTUP_SMOKE_TIMEOUT_S: ${STARTUP_SMOKE_TIMEOUT_S:-120}
       ASYNC_MODE_ENABLED: ${ASYNC_MODE_ENABLED:-false}
       S3_INTERNAL_ENDPOINT: http://minio:9000
       S3_BUCKET: ${S3_BUCKET:-image-gen}

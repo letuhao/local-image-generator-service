@@ -25,3 +25,30 @@ presets:
         required: true
       - name: palette
         required: true
+  - id: object-sprite-v1
+    version: 0.1.0
+    asset_type: object_sprite
+    status: draft
+    confirmed: false
+    description: Isometric object sprite generation lane for trees, rocks, and props.
+    bundle:
+      model: terrain-sdxl-base
+      loras:
+        - name: game/asset/118775_Stylized_Setting_SDXL
+          weight: 0.65
+    generation_defaults:
+      size: "1024x1024"
+      steps: 28
+      cfg: 6.5
+      sampler: euler_ancestral
+      scheduler: karras
+      seed: 101
+      runtime_mode: auto
+      background: white
+    supported_asset_types:
+      - object_sprite
+    variables_schema:
+      - name: object_subject
+        required: true
+      - name: palette
+        required: false

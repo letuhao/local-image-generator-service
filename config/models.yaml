@@ -14,6 +14,7 @@
 models:
   - name: noobai-xl-v1.1
     backend: comfyui
+    family: sdxl
     workflow: workflows/sdxl_eps.json
     checkpoint: checkpoints/NoobAI-XL-v1.1.safetensors
     prediction: eps
@@ -35,6 +36,7 @@ models:
 
   - name: chroma-hd-q8
     backend: comfyui
+    family: flux
     workflow: workflows/chroma_gguf.json
     checkpoint: unet/chroma1-hd-q8.gguf
     prediction: eps
@@ -59,6 +61,7 @@ models:
 
   - name: terrain-chinese-v10
     backend: comfyui
+    family: sdxl
     workflow: workflows/sdxl_eps.json
     checkpoint: checkpoints/chineseMartialArts_v10.safetensors
     prediction: eps
@@ -80,6 +83,7 @@ models:
 
   - name: terrain-sdxl-base
     backend: comfyui
+    family: sdxl
     workflow: workflows/sdxl_eps.json
     checkpoint: checkpoints/sd_xl_base_1.0.safetensors
     prediction: eps
@@ -101,6 +105,7 @@ models:
 
   - name: terrain-dreamshaper
     backend: comfyui
+    family: sdxl
     workflow: workflows/sdxl_eps.json
     checkpoint: checkpoints/dreamshaper_8.safetensors
     prediction: eps
@@ -118,3 +123,72 @@ models:
       n_max: 2
       size_max_pixels: 1048576
     vram_estimate_gb: 7
+
+  - name: terrain-realisticfantasy-v30
+    backend: comfyui
+    family: sdxl
+    workflow: workflows/sdxl_eps.json
+    checkpoint: checkpoints/realisticFantasyMix_v30.safetensors
+    prediction: eps
+    vae: vae/sdxl_vae.safetensors
+    capabilities:
+      image_gen: true
+    defaults:
+      size: "1024x1024"
+      steps: 28
+      cfg: 6.0
+      sampler: euler_ancestral
+      scheduler: karras
+      negative_prompt: "person, human, character, face, body, anatomy, creature, monster, nsfw, nude"
+    limits:
+      steps_max: 50
+      n_max: 2
+      size_max_pixels: 1572864
+    vram_estimate_gb: 8
+
+  - name: flux1-dev
+    backend: comfyui
+    family: flux
+    workflow: workflows/flux_checkpoint.json
+    checkpoint: checkpoints/flux1-dev.safetensors
+    prediction: eps
+    vae: vae/ae.safetensors
+    clip_l: text_encoders/clip_l.safetensors
+    t5xxl: text_encoders/t5xxl_fp8_e4m3fn.safetensors
+    dual_clip_type: flux
+    capabilities:
+      image_gen: true
+    defaults:
+      size: "1024x1024"
+      steps: 28
+      cfg: 4.0
+      sampler: euler
+      scheduler: simple
+      negative_prompt: ""
+    limits:
+      steps_max: 50
+      n_max: 2
+      size_max_pixels: 1572864
+    vram_estimate_gb: 12
+
+  - name: terrain-illustrious-xl-v1
+    backend: comfyui
+    family: sdxl
+    workflow: workflows/sdxl_eps.json
+    checkpoint: checkpoints/Illustrious-XL-v1.0.safetensors
+    prediction: eps
+    vae: vae/sdxl_vae.safetensors
+    capabilities:
+      image_gen: true
+    defaults:
+      size: "1024x1024"
+      steps: 26
+      cfg: 5.5
+      sampler: euler_ancestral
+      scheduler: karras
+      negative_prompt: "person, human, character, face, body, anatomy, creature, monster, nsfw, nude"
+    limits:
+      steps_max: 50
+      n_max: 2
+      size_max_pixels: 1572864
+    vram_estimate_gb: 8

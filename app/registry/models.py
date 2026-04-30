@@ -7,14 +7,15 @@ import yaml
 
 from app.backends.base import ModelConfig
 from app.registry.workflows import (
-    REQUIRED_ANCHORS_SDXL,
     WorkflowValidationError,
     load_workflow,
+    required_anchors_for_family,
     validate_anchors,
 )
 
 _ALLOWED_BACKENDS: frozenset[str] = frozenset({"comfyui"})
 _ALLOWED_PREDICTIONS: frozenset[str] = frozenset({"eps", "vpred"})
+_ALLOWED_FAMILIES: frozenset[str] = frozenset({"sdxl", "flux"})
 
 log = structlog.get_logger(__name__)
 
@@ -56,6 +57,7 @@ def _parse_entry(raw: dict) -> ModelConfig:
         clip_l=raw.get("clip_l"),
         t5xxl=raw.get("t5xxl"),
         dual_clip_type=raw.get("dual_clip_type"),
+        family=raw.get("family", "sdxl"),
         vram_estimate_gb=float(raw["vram_estimate_gb"]),
         prediction=raw.get("prediction", "eps"),
         capabilities=raw.get("capabilities") or {},
@@ -88,7 +90,7 @@ def load_registry(
         raise RegistryValidationError("empty_registry", "models.yaml has no entries")
 
     # Late import to avoid circular: app.validation → app.registry.models → app.validation.
-    from app.validation import ALLOWED_SAMPLERS, ALLOWED_SCHEDULERS
+    from app.validation import ALLOWED_SAMPLERS_BY_FAMILY, ALLOWED_SCHEDULERS_BY_FAMILY
 
     models: dict[str, ModelConfig] = {}
     for raw in entries:
@@ -108,6 +110,11 @@ def load_registry(
                 "unknown_prediction",
                 f"{cfg.name}: prediction {cfg.prediction!r} not in {_ALLOWED_PREDICTIONS}",
             )
+        if cfg.family not in _ALLOWED_FAMILIES:
+            raise RegistryValidationError(
+                "unknown_family",
+                f"{cfg.name}: family {cfg.family!r} not in {_ALLOWED_FAMILIES}",
+            )
         # vpred injection is deferred per arch v0.5. The primary guard lives here
         # at boot so a YAML bump can't slip past and raise per-request later.
         if cfg.prediction == "vpred":
@@ -119,16 +126,24 @@ def load_registry(
                 ),
             )
         default_sampler = (cfg.defaults or {}).get("sampler")
-        if default_sampler is not None and default_sampler not in ALLOWED_SAMPLERS:
+        allowed_samplers = ALLOWED_SAMPLERS_BY_FAMILY.get(cfg.family, frozenset())
+        if default_sampler is not None and default_sampler not in allowed_samplers:
             raise RegistryValidationError(
                 "unknown_sampler",
-                f"{cfg.name}: defaults.sampler {default_sampler!r} not in allowed set",
+                (
+                    f"{cfg.name}: defaults.sampler {default_sampler!r} not in "
+                    f"allowed set for family={cfg.family!r}"
+                ),
             )
         default_scheduler = (cfg.defaults or {}).get("scheduler")
-        if default_scheduler is not None and default_scheduler not in ALLOWED_SCHEDULERS:
+        allowed_schedulers = ALLOWED_SCHEDULERS_BY_FAMILY.get(cfg.family, frozenset())
+        if default_scheduler is not None and default_scheduler not in allowed_schedulers:
             raise RegistryValidationError(
                 "unknown_scheduler",
-                f"{cfg.name}: defaults.scheduler {default_scheduler!r} not in allowed set",
+                (
+                    f"{cfg.name}: defaults.scheduler {default_scheduler!r} not in "
+                    f"allowed set for family={cfg.family!r}"
+                ),
             )
 
         # Checkpoint must exist under models_root.
@@ -156,13 +171,13 @@ def load_registry(
                     "t5xxl_missing", f"{cfg.name}: {t5xxl_path} not found"
                 )
 
-        # Workflow file must exist and have required SDXL anchors.
+        # Workflow file must exist and have required family-specific anchors.
         wf_path = workflows_root / cfg.workflow_path
         if not wf_path.exists():
             raise RegistryValidationError("workflow_missing", f"{cfg.name}: {wf_path} not found")
         try:
             graph = load_workflow(wf_path)
-            validate_anchors(graph, REQUIRED_ANCHORS_SDXL)
+            validate_anchors(graph, required_anchors_for_family(cfg.family))
         except WorkflowValidationError as exc:
             raise RegistryValidationError("anchors_missing", f"{cfg.name}: {exc}") from exc
 

@@ -16,12 +16,14 @@ from app.api.health import router as health_router
 from app.api.images import router as images_router
 from app.api.loras import router as loras_router
 from app.api.models import router as models_router
+from app.api.monitoring import router as monitoring_router
 from app.auth import load_keyset_from_env
 from app.backends.comfyui import ComfyUIAdapter
 from app.errors import install_error_envelope
 from app.logging_config import configure_logging
 from app.loras.civitai import CivitaiFetcher
 from app.middleware.logging import RequestContextMiddleware
+from app.monitoring.metrics import MonitoringMetrics
 from app.queue.fetches_recovery import recover_fetches
 from app.queue.reaper import OrphanReaper
 from app.queue.recovery import recover_jobs
@@ -47,6 +49,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.startup_ctx = startup_ctx
     app.state.runtime_reconfig_lock = asyncio.Lock()
     app.state.runtime_bundle = {"active_models": [], "warmup": False, "updated_at": None}
+    app.state.metrics = MonitoringMetrics()
     try:
         store = JobStore(os.environ.get("DATABASE_PATH", "/app/data/jobs.db"))
         await store.connect()
@@ -87,7 +90,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         app.state.public_base_url = public_base_url
         app.state.job_timeout_s = float(os.environ.get("JOB_TIMEOUT_S", "300"))
         max_queue = int(os.environ.get("MAX_QUEUE", "20"))
+        worker_concurrency = int(os.environ.get("WORKER_CONCURRENCY", "1"))
+        if worker_concurrency < 1:
+            raise RuntimeError(
+                f"WORKER_CONCURRENCY must be >= 1, got {worker_concurrency}"
+            )
         app.state.max_queue = max_queue
+        app.state.worker_concurrency = worker_concurrency
 
     # LoRA root — served by GET /v1/loras and consulted by validation for
     # realpath containment. Resolved once at boot so the validator does not
@@ -111,9 +120,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             max_queue=max_queue,
             loras_root=app.state.loras_root,
             async_mode_enabled=app.state.async_mode_enabled,
+            metrics=app.state.metrics,
         )
         app.state.worker = worker
-        app.state.worker_task = asyncio.create_task(worker.run(), name="queue-worker")
+        app.state.worker_tasks = [
+            asyncio.create_task(worker.run(), name=f"queue-worker-{idx + 1}")
+            for idx in range(worker_concurrency)
+        ]
 
         reaper = OrphanReaper(
             store=store,
@@ -133,13 +146,17 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             name="webhook-dispatcher",
         )
 
-        # Cycle 10 startup smoke: run one tiny generation per registered model.
-        await run_registry_smoke_tests(
-            adapter=adapter,
-            registry=registry,
-            loras_root=app.state.loras_root,
-            timeout_s=float(os.environ.get("STARTUP_SMOKE_TIMEOUT_S", "120")),
-        )
+        startup_smoke_enabled = os.environ.get("STARTUP_SMOKE_ENABLED", "true").lower() == "true"
+        if startup_smoke_enabled:
+            # Cycle 10 startup smoke: run one tiny generation per registered model.
+            await run_registry_smoke_tests(
+                adapter=adapter,
+                registry=registry,
+                loras_root=app.state.loras_root,
+                timeout_s=float(os.environ.get("STARTUP_SMOKE_TIMEOUT_S", "120")),
+            )
+        else:
+            log.info("startup_smoke.skipped", reason="STARTUP_SMOKE_ENABLED=false")
 
         # Recovery scan. Worker + reaper are already spawned above.
         recovery_stats = await recover_jobs(store, worker)
@@ -180,7 +197,12 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         )
     except (StartupCheckError, StartupSmokeError, PresetRegistryValidationError) as exc:
         log.error("startup_failed", stage=getattr(exc, "stage", "smoke_test"), reason=str(exc))
-        for task_attr in ("reaper_task", "worker_task", "webhook_dispatcher_task"):
+        worker_tasks = getattr(app.state, "worker_tasks", None)
+        if worker_tasks:
+            for task in worker_tasks:
+                if task is not None and not task.done():
+                    task.cancel()
+        for task_attr in ("reaper_task", "webhook_dispatcher_task"):
             task = getattr(app.state, task_attr, None)
             if task is not None and not task.done():
                 task.cancel()
@@ -211,7 +233,15 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         # Cycle 6: cancel fetcher first so its per-version locks release before
         # store.close() rips the DB connection.
         await fetcher.close()
-        for task_attr in ("reaper_task", "worker_task", "webhook_dispatcher_task"):
+        worker_tasks = getattr(app.state, "worker_tasks", [])
+        for task in worker_tasks:
+            if task is not None and not task.done():
+                task.cancel()
+                try:
+                    await task
+                except asyncio.CancelledError:
+                    pass
+        for task_attr in ("reaper_task", "webhook_dispatcher_task"):
             task = getattr(app.state, task_attr, None)
             if task is not None and not task.done():
                 task.cancel()
@@ -246,6 +276,7 @@ app.include_router(images_router)
 app.include_router(models_router)
 app.include_router(loras_router)
 app.include_router(admin_router)
+app.include_router(monitoring_router)
 
 # RequestContextMiddleware added LAST so it wraps everything (outermost layer).
 app.add_middleware(RequestContextMiddleware)

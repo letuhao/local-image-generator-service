@@ -60,6 +60,16 @@ ALLOWED_SCHEDULERS: frozenset[str] = frozenset(
     }
 )
 
+ALLOWED_SAMPLERS_BY_FAMILY: dict[str, frozenset[str]] = {
+    "sdxl": ALLOWED_SAMPLERS,
+    "flux": frozenset({"euler", "euler_ancestral", "dpmpp_2m", "dpmpp_2m_sde"}),
+}
+
+ALLOWED_SCHEDULERS_BY_FAMILY: dict[str, frozenset[str]] = {
+    "sdxl": ALLOWED_SCHEDULERS,
+    "flux": frozenset({"simple", "karras", "normal"}),
+}
+
 
 class ValidationFailureError(Exception):
     """Raised by resolve_and_validate when registry-dependent checks fail.
@@ -123,7 +133,9 @@ class GenerateRequest(BaseModel):
     sampler: str | None = Field(default=None, min_length=1)
     scheduler: str | None = Field(default=None, min_length=1)
     response_format: Literal["url", "b64_json"] = "url"
+    transparent_background: bool = True
     mode: Literal["sync", "async"] = "sync"
+    timeout_s: float | None = Field(default=None, ge=1.0, le=3600.0)
     loras: list[LoraSpec] | None = Field(default=None, max_length=20)
     webhook: WebhookSpec | None = None
 
@@ -145,7 +157,9 @@ class ValidatedJob:
     sampler: str
     scheduler: str
     response_format: Literal["url", "b64_json"]
+    transparent_background: bool
     mode: Literal["sync", "async"]
+    timeout_s: float | None
     webhook_url: str | None = None
     webhook_headers: dict[str, str] | None = None
     loras: tuple[ResolvedLoraRef, ...] = field(default=())
@@ -205,16 +219,25 @@ def resolve_and_validate(
         else defaults.get("negative_prompt", "")
     )
 
-    # 3. Enum checks on sampler/scheduler — arch §6.0.
-    if sampler not in ALLOWED_SAMPLERS:
+    # 3. Enum checks on sampler/scheduler — family-aware while keeping a
+    # universal payload shape for clients.
+    allowed_samplers = ALLOWED_SAMPLERS_BY_FAMILY.get(model.family, ALLOWED_SAMPLERS)
+    allowed_schedulers = ALLOWED_SCHEDULERS_BY_FAMILY.get(model.family, ALLOWED_SCHEDULERS)
+    if sampler not in allowed_samplers:
         raise ValidationFailureError(
             error_code="validation_error",
-            message=f"sampler {sampler!r} not in allowed set",
+            message=(
+                f"sampler {sampler!r} not in allowed set for family={model.family!r}: "
+                f"{sorted(allowed_samplers)}"
+            ),
         )
-    if scheduler not in ALLOWED_SCHEDULERS:
+    if scheduler not in allowed_schedulers:
         raise ValidationFailureError(
             error_code="validation_error",
-            message=f"scheduler {scheduler!r} not in allowed set",
+            message=(
+                f"scheduler {scheduler!r} not in allowed set for family={model.family!r}: "
+                f"{sorted(allowed_schedulers)}"
+            ),
         )
 
     # 4. Size bounds against model.limits.size_max_pixels.
@@ -346,7 +369,9 @@ def resolve_and_validate(
         sampler=sampler,
         scheduler=scheduler,
         response_format=req.response_format,
+        transparent_background=req.transparent_background,
         mode=req.mode,
+        timeout_s=req.timeout_s,
         webhook_url=webhook_url,
         webhook_headers=webhook_headers,
         loras=resolved_loras,

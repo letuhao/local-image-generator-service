@@ -28,6 +28,7 @@ async def list_models(
                 "owned_by": "local",
                 "capabilities": cfg.capabilities,
                 "backend": cfg.backend,
+                "family": cfg.family,
                 "description": next(
                     (p.description for p in preset_registry.confirmed_for_model(cfg.name)),
                     None,
@@ -62,6 +63,7 @@ async def catalog_models(
             {
                 "id": cfg.name,
                 "backend": cfg.backend,
+                "family": cfg.family,
                 "capabilities": cfg.capabilities,
                 "description": confirmed[0].description if confirmed else None,
                 "supported_asset_types": sorted(

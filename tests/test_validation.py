@@ -46,6 +46,33 @@ def registry() -> Registry:
     return Registry({cfg.name: cfg})
 
 
+@pytest.fixture
+def registry_with_flux(registry: Registry) -> Registry:
+    flux_cfg = ModelConfig(
+        name="flux1-dev",
+        backend="comfyui",
+        family="flux",
+        workflow_path="workflows/flux_checkpoint.json",
+        checkpoint="checkpoints/flux1-dev.safetensors",
+        vae=None,
+        vram_estimate_gb=12.0,
+        prediction="eps",
+        capabilities={"image_gen": True},
+        defaults={
+            "size": "1024x1024",
+            "steps": 28,
+            "cfg": 4.0,
+            "sampler": "euler",
+            "scheduler": "simple",
+            "negative_prompt": "",
+        },
+        limits={"steps_max": 50, "n_max": 2, "size_max_pixels": 1572864},
+    )
+    existing = {cfg.name: cfg for cfg in registry.all()}
+    existing[flux_cfg.name] = flux_cfg
+    return Registry(existing)
+
+
 def _body(**overrides: Any) -> dict[str, Any]:
     base = {"model": "noobai-xl-v1.1", "prompt": "a cat"}
     base.update(overrides)
@@ -115,6 +142,24 @@ def test_seed_above_max_rejected() -> None:
 def test_response_format_invalid_rejected() -> None:
     with pytest.raises(ValidationError):
         GenerateRequest.model_validate(_body(response_format="raw"))
+
+
+def test_timeout_s_below_min_rejected() -> None:
+    with pytest.raises(ValidationError):
+        GenerateRequest.model_validate(_body(timeout_s=0.5))
+
+
+def test_timeout_s_above_max_rejected() -> None:
+    with pytest.raises(ValidationError):
+        GenerateRequest.model_validate(_body(timeout_s=3601))
+
+
+def test_timeout_s_parses_and_resolves(registry: Registry, tmp_path: Any) -> None:
+    req = GenerateRequest.model_validate(_body(timeout_s=123.0))
+    job = resolve_and_validate(
+        req, registry=registry, async_mode_enabled=False, loras_root=tmp_path
+    )
+    assert job.timeout_s == pytest.approx(123.0)
 
 
 def test_unknown_field_rejected() -> None:
@@ -207,6 +252,45 @@ def test_scheduler_not_in_enum_rejected(registry: Registry, tmp_path: Any) -> No
         resolve_and_validate(req, registry=registry, async_mode_enabled=False, loras_root=tmp_path)
     assert exc.value.error_code == "validation_error"
     assert "scheduler" in exc.value.message.lower()
+
+
+def test_flux_family_rejects_scheduler_outside_flux_profile(
+    registry_with_flux: Registry, tmp_path: Any
+) -> None:
+    req = GenerateRequest.model_validate(_body(model="flux1-dev", scheduler="ddim_uniform"))
+    with pytest.raises(ValidationFailureError) as exc:
+        resolve_and_validate(
+            req, registry=registry_with_flux, async_mode_enabled=False, loras_root=tmp_path
+        )
+    assert exc.value.error_code == "validation_error"
+    assert "family='flux'" in exc.value.message
+
+
+def test_universal_payload_parity_for_sdxl_and_flux(
+    registry_with_flux: Registry, tmp_path: Any
+) -> None:
+    payload = {
+        "prompt": "single game prop",
+        "size": "1024x1024",
+        "steps": 24,
+        "cfg": 4.2,
+        "seed": 101,
+        "sampler": "euler",
+        "scheduler": "simple",
+        "mode": "sync",
+        "transparent_background": True,
+    }
+    sdxl_req = GenerateRequest.model_validate({"model": "noobai-xl-v1.1", **payload})
+    flux_req = GenerateRequest.model_validate({"model": "flux1-dev", **payload})
+    sdxl_job = resolve_and_validate(
+        sdxl_req, registry=registry_with_flux, async_mode_enabled=False, loras_root=tmp_path
+    )
+    flux_job = resolve_and_validate(
+        flux_req, registry=registry_with_flux, async_mode_enabled=False, loras_root=tmp_path
+    )
+    assert sdxl_job.model.family == "sdxl"
+    assert flux_job.model.family == "flux"
+    assert sdxl_job.prompt == flux_job.prompt
 
 
 def test_mode_async_rejected_when_flag_off(registry: Registry, tmp_path: Any) -> None:

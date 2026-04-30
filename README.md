@@ -23,6 +23,10 @@ curl http://127.0.0.1:8700/health
 ```
 
 Fill `API_KEYS` (and optionally `ADMIN_API_KEYS`) in `.env` before calling authenticated routes.
+For faster local startup, set `STARTUP_SMOKE_ENABLED=false` in `.env` to skip model smoke
+generations at boot (recommended when using runtime reload/setup endpoints during development).
+If sync requests can block each other under long-running jobs, raise `WORKER_CONCURRENCY`
+above `1` in `.env` so multiple queue consumers can process jobs in parallel.
 
 ### MinIO web UI and host ports (dev)
 
@@ -69,6 +73,29 @@ While runtime reconfiguration is in progress, generation requests may return:
 
 - `503` / `runtime_reconfiguring`
 
+### Monitoring endpoints
+
+The service now exposes two monitoring surfaces with split visibility:
+
+- Public safe Prometheus scrape: `GET /metrics` (no auth)
+- Detailed runtime/admin JSON:
+  - `GET /v1/admin/monitoring/status`
+  - `GET /v1/admin/monitoring/queue`
+  - both require `ADMIN_API_KEYS`
+
+```bash
+# Prometheus scrape target (safe/public fields only).
+curl -sS http://127.0.0.1:8700/metrics
+
+# Admin runtime snapshot (sensitive runtime internals).
+curl -sS http://127.0.0.1:8700/v1/admin/monitoring/status \
+  -H "Authorization: Bearer REPLACE_WITH_ADMIN_API_KEY" | jq .
+
+# Admin queue and worker summary.
+curl -sS http://127.0.0.1:8700/v1/admin/monitoring/queue \
+  -H "Authorization: Bearer REPLACE_WITH_ADMIN_API_KEY" | jq .
+```
+
 ### Model + preset discovery endpoints
 
 For user/LLM clients that need confirmed combo metadata and richer model details:
@@ -89,6 +116,47 @@ curl -sS http://127.0.0.1:8700/v1/catalog/presets \
 # Preset detail by id.
 curl -sS http://127.0.0.1:8700/v1/catalog/presets/terrain-53858-v1 \
   -H "Authorization: Bearer REPLACE_WITH_FIRST_API_KEY" | jq .
+```
+
+Flux-family models now appear in discovery endpoints with `family: "flux"` while
+using the same universal generation payload shape as SDXL models.
+
+### Broad asset review batch (Flux lane)
+
+Use the generic matrix runner for terrain/object/POI/decor smoke passes:
+
+```bash
+python scripts/asset-review-batch.py --api-key REPLACE_WITH_FIRST_API_KEY \
+  --pack docs/architecture/flux-asset-review-pack.json \
+  --out-dir outputs/asset-review/pass-001
+```
+
+### Tree environment batch (Fantasy checkpoint lane)
+
+For tree/object sprite review we currently standardize on the fantasy checkpoint lane:
+`terrain-realisticfantasy-v30`.
+
+The batch pack includes multiple environments and tree archetypes (including high-fantasy trees),
+and uses the white-ground + `transparent_background` workflow for cleaner cutouts.
+
+```bash
+python scripts/tree-environment-batch.py --api-key REPLACE_WITH_FIRST_API_KEY \
+  --pack docs/architecture/tree-environment-batch-pack.json \
+  --model-override terrain-realisticfantasy-v30 \
+  --out-dir outputs/tree-review/pass-001
+```
+
+### Transparent background option
+
+All generation payloads now accept `transparent_background` (default `true`).
+When enabled, near-white backgrounds are converted to transparent alpha in output PNGs.
+
+```bash
+curl -sS -X POST http://127.0.0.1:8700/v1/images/generations/binary \
+  -H "Authorization: Bearer REPLACE_WITH_FIRST_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"terrain-realisticfantasy-v30","prompt":"isometric tree sprite","transparent_background":true}' \
+  --output sprite.png
 ```
 
 ## Run tests locally

@@ -1,0 +1,46 @@
+{
+  "model": "terrain-realisticfantasy-v30",
+  "size": "1024x1024",
+  "steps": 30,
+  "cfg": 7.5,
+  "transparent_background": true,
+  "seeds": [102, 202, 302],
+  "tree_types": [
+    "ancient oak tree",
+    "pine conifer tree",
+    "weeping willow tree",
+    "cherry blossom tree",
+    "twisted dead tree",
+    "crystal arcane tree",
+    "glowing mana tree",
+    "world tree sapling"
+  ],
+  "prompt_template": "sprite object, single {tree_type}, top-down degree view, shallow root, isolated object, single centered object, white background, white ground, hand-painted fantasy strategy game style, HoMM3 art style, {environment_hint}",
+  "negative_prompt": "terrain tile, grass patch, soil texture, dirt floor, platform, pedestal, island, cliff, rocks, scene background, multiple objects, dark ground, colored ground, person, human, character, face",
+  "environments": [
+    {
+      "id": "grassland_temperate",
+      "hint": "temperate grassland palette, healthy green foliage, neutral daylight tones"
+    },
+    {
+      "id": "swamp_dark",
+      "hint": "dark swamp-adapted palette, damp bark tones, muted mossy greens"
+    },
+    {
+      "id": "snow_frost",
+      "hint": "frost biome palette, sparse cold foliage tint, cool blue-gray highlights"
+    },
+    {
+      "id": "desert_dry",
+      "hint": "arid biome palette, dry bark, reduced leaf saturation, warm ochre tones"
+    },
+    {
+      "id": "volcanic_ash",
+      "hint": "volcanic biome palette, charred bark accents, smoky dark red-brown tones"
+    },
+    {
+      "id": "enchanted_arcane",
+      "hint": "enchanted fantasy palette, subtle magical glow in canopy highlights"
+    }
+  ]
+}

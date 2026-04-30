@@ -21,12 +21,14 @@ from app.backends.base import (
     ComfyUnreachableError,
     ModelConfig,
 )
+from app.monitoring.metrics import MonitoringMetrics
 from app.queue.jobs import (
     Job,
     set_completed,
     set_failed,
     set_running,
 )
+from app.postprocess.transparency import apply_transparent_background
 from app.queue.store import JobStore
 from app.registry.models import Registry
 from app.registry.workflows import (
@@ -92,6 +94,7 @@ class QueueWorker:
         max_queue: int,
         loras_root: Path,
         async_mode_enabled: bool = False,
+        metrics: MonitoringMetrics | None = None,
     ) -> None:
         self._store = store
         self._adapter = adapter
@@ -103,6 +106,7 @@ class QueueWorker:
         self._loras_root = loras_root
         self._queue: asyncio.Queue[_WorkerItem] = asyncio.Queue(maxsize=max_queue)
         self._last_model_name: str | None = None
+        self._metrics = metrics
 
     # ───────────────────────── enqueue ─────────────────────────
 
@@ -130,6 +134,12 @@ class QueueWorker:
         """Swap runtime registry reference (used by admin hot-reload)."""
         self._registry = registry
 
+    def queue_depth(self) -> int:
+        return self._queue.qsize()
+
+    def last_model_name(self) -> str | None:
+        return self._last_model_name
+
     # ───────────────────────── main loop ─────────────────────────
 
     async def run(self) -> None:
@@ -152,14 +162,21 @@ class QueueWorker:
             result = await self._run_pipeline(job)
         except (BackendError, StorageError) as exc:
             # DB state already recorded by _run_pipeline's per-step set_failed.
+            if self._metrics is not None:
+                error_code = exc.__class__.__name__.lower()
+                self._metrics.record_job_event(status="failed", error_code=error_code)
             if fut is not None and not fut.done():
                 fut.set_exception(exc)
         except Exception as exc:  # pragma: no cover — defensive
             log.exception("queue_worker.unexpected", job_id=job.id)
             await set_failed(self._store, job.id, error_code="internal", error_message=str(exc))
+            if self._metrics is not None:
+                self._metrics.record_job_event(status="failed", error_code="internal")
             if fut is not None and not fut.done():
                 fut.set_exception(exc)
         else:
+            if self._metrics is not None:
+                self._metrics.record_job_event(status="completed")
             if fut is not None and not fut.done():
                 fut.set_result(result)
             log.info(
@@ -249,6 +266,8 @@ class QueueWorker:
             await set_failed(
                 self._store, job.id, error_code=exc.error_code, error_message=exc.message
             )
+            if self._metrics is not None:
+                self._metrics.record_job_event(status="failed", error_code=exc.error_code)
             raise ComfyNodeError(f"re-validation failed: {exc}") from exc
         except (ValidationError, json.JSONDecodeError) as exc:
             await set_failed(
@@ -257,6 +276,8 @@ class QueueWorker:
                 error_code="validation_error",
                 error_message=f"re-validation of stored input_json failed: {exc}",
             )
+            if self._metrics is not None:
+                self._metrics.record_job_event(status="failed", error_code="validation_error")
             raise ComfyNodeError(f"re-validation failed: {exc}") from exc
 
         # 2. Prepare graph from workflow template.
@@ -319,6 +340,10 @@ class QueueWorker:
                         error_code="vram_budget_exceeded",
                         error_message=msg,
                     )
+                    if self._metrics is not None:
+                        self._metrics.record_job_event(
+                            status="failed", error_code="vram_budget_exceeded"
+                        )
                     raise ComfyNodeError(msg)
 
         # 4. Submit to ComfyUI + update DB.
@@ -328,9 +353,13 @@ class QueueWorker:
             await set_failed(
                 self._store, job.id, error_code="comfy_unreachable", error_message=str(exc)
             )
+            if self._metrics is not None:
+                self._metrics.record_job_event(status="failed", error_code="comfy_unreachable")
             raise
         except ComfyNodeError as exc:
             await set_failed(self._store, job.id, error_code="comfy_error", error_message=str(exc))
+            if self._metrics is not None:
+                self._metrics.record_job_event(status="failed", error_code="comfy_error")
             raise
 
         # set_running failure would leave ComfyUI running an untracked prompt —
@@ -343,6 +372,8 @@ class QueueWorker:
                 prompt_id=prompt_id,
                 client_id=getattr(self._adapter, "client_id", "unknown"),
             )
+            if self._metrics is not None:
+                self._metrics.record_job_event(status="running")
         except Exception as exc:
             log.exception("queue_worker.set_running_failed", job_id=job.id, prompt_id=prompt_id)
             await self._safe_cancel(prompt_id)
@@ -350,8 +381,13 @@ class QueueWorker:
 
         # 5. Wait + fetch.
         start_gen = time.perf_counter()
+        wait_timeout_s = float(
+            validated.timeout_s
+            if validated.timeout_s is not None
+            else validated.model.defaults.get("job_timeout_s", self._job_timeout_s)
+        )
         try:
-            await self._adapter.wait_for_completion(prompt_id, timeout_s=self._job_timeout_s)
+            await self._adapter.wait_for_completion(prompt_id, timeout_s=wait_timeout_s)
         except ComfyTimeoutError as exc:
             # Arch §12: on timeout, interrupt + free VRAM before surrendering.
             await self._safe_cancel(prompt_id)
@@ -359,11 +395,15 @@ class QueueWorker:
             await set_failed(
                 self._store, job.id, error_code="comfy_timeout", error_message=str(exc)
             )
+            if self._metrics is not None:
+                self._metrics.record_job_event(status="failed", error_code="comfy_timeout")
             raise
         except ComfyUnreachableError as exc:
             await set_failed(
                 self._store, job.id, error_code="comfy_unreachable", error_message=str(exc)
             )
+            if self._metrics is not None:
+                self._metrics.record_job_event(status="failed", error_code="comfy_unreachable")
             raise
 
         try:
@@ -372,6 +412,8 @@ class QueueWorker:
             await set_failed(
                 self._store, job.id, error_code="comfy_unreachable", error_message=str(exc)
             )
+            if self._metrics is not None:
+                self._metrics.record_job_event(status="failed", error_code="comfy_unreachable")
             raise
 
         # 6. Validate bytes + upload. Zero-output or malformed PNG means ComfyUI
@@ -379,8 +421,11 @@ class QueueWorker:
         if not images:
             msg = "ComfyUI returned zero outputs"
             await set_failed(self._store, job.id, error_code="comfy_error", error_message=msg)
+            if self._metrics is not None:
+                self._metrics.record_job_event(status="failed", error_code="comfy_error")
             raise ComfyNodeError(msg)
 
+        processed_images: list[bytes] = []
         for png in images:
             try:
                 _raise_if_not_png(png)
@@ -388,7 +433,23 @@ class QueueWorker:
                 await set_failed(
                     self._store, job.id, error_code="comfy_error", error_message=str(exc)
                 )
+                if self._metrics is not None:
+                    self._metrics.record_job_event(status="failed", error_code="comfy_error")
                 raise
+            if validated.transparent_background:
+                try:
+                    png = apply_transparent_background(png)
+                except Exception as exc:
+                    msg = f"transparent postprocess failed: {exc}"
+                    await set_failed(
+                        self._store, job.id, error_code="comfy_error", error_message=msg
+                    )
+                    if self._metrics is not None:
+                        self._metrics.record_job_event(status="failed", error_code="comfy_error")
+                    raise ComfyNodeError(msg) from exc
+            processed_images.append(png)
+
+        images = processed_images
 
         output_keys: list[str] = []
         try:
@@ -399,6 +460,8 @@ class QueueWorker:
             await set_failed(
                 self._store, job.id, error_code="storage_error", error_message=str(exc)
             )
+            if self._metrics is not None:
+                self._metrics.record_job_event(status="failed", error_code="storage_error")
             raise  # handler maps StorageError → 502 storage_error per Cycle 3
 
         # 7. Build response data.

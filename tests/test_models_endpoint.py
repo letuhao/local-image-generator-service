@@ -23,6 +23,7 @@ async def test_list_models_happy_path(client: AsyncClient) -> None:
         assert entry["owned_by"] == "local"
         assert entry["capabilities"].get("image_gen") is True
         assert entry["backend"] == "comfyui"
+        assert entry["family"] in {"sdxl", "flux"}
         assert "description" in entry
         assert "supported_asset_types" in entry
         assert "has_confirmed_combo" in entry
@@ -44,6 +45,7 @@ async def test_catalog_models_lists_confirmed_presets(client: AsyncClient) -> No
     terrain = by_id["terrain-sdxl-base"]
     assert "terrain-53858-v1" in terrain["confirmed_presets"]
     assert "tile_texture" in terrain["supported_asset_types"]
+    assert terrain["family"] in {"sdxl", "flux"}
 
 
 async def test_catalog_presets_endpoints(client: AsyncClient) -> None:

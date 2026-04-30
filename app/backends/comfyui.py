@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import time
 from collections.abc import Awaitable, Callable
 from typing import Any
@@ -72,6 +73,8 @@ class ComfyUIAdapter:
         ws_url: str,
         http_timeout_s: float = 30.0,
         poll_interval_ms: int = 1000,
+        stall_timeout_s: float | None = None,
+        progress_poll_interval_s: float = 2.0,
         ws_connect: WSConnectFactory | None = None,
     ) -> None:
         if poll_interval_ms <= 0:
@@ -80,6 +83,16 @@ class ComfyUIAdapter:
         self._http = httpx.AsyncClient(base_url=http_url, timeout=http_timeout_s)
         self._ws_url_base = ws_url
         self._poll_interval_s = poll_interval_ms / 1000
+        if progress_poll_interval_s <= 0:
+            raise ValueError(f"progress_poll_interval_s must be > 0, got {progress_poll_interval_s}")
+        env_stall = os.environ.get("COMFY_STALL_TIMEOUT_S")
+        if stall_timeout_s is None and env_stall:
+            try:
+                stall_timeout_s = float(env_stall)
+            except ValueError:
+                stall_timeout_s = None
+        self._stall_timeout_s = stall_timeout_s if stall_timeout_s and stall_timeout_s > 0 else None
+        self._progress_poll_interval_s = progress_poll_interval_s
         self._ws_connect = ws_connect or _default_ws_connect
 
         self._ws: Any | None = None
@@ -149,6 +162,10 @@ class ComfyUIAdapter:
         fut: asyncio.Future[None] = asyncio.get_running_loop().create_future()
         self._pending[prompt_id] = fut
         reconnects_used = 0
+        last_progress_at = time.monotonic()
+        last_progress_sig: str | None = None
+        if self._stall_timeout_s is not None:
+            last_progress_sig = await self._history_progress_signature(prompt_id)
 
         try:
             # Phase 1 — initial connect with one retry, else polling.
@@ -167,9 +184,27 @@ class ComfyUIAdapter:
                 wait_set = {fut}
                 if current_reader is not None:
                     wait_set.add(current_reader)
-                done, _pending = await asyncio.wait(
-                    wait_set, timeout=remaining, return_when=asyncio.FIRST_COMPLETED
+                wait_timeout = (
+                    min(remaining, self._progress_poll_interval_s)
+                    if self._stall_timeout_s is not None
+                    else remaining
                 )
+                done, _pending = await asyncio.wait(
+                    wait_set, timeout=wait_timeout, return_when=asyncio.FIRST_COMPLETED
+                )
+                if not done and self._stall_timeout_s is not None:
+                    progressed, last_progress_sig = await self._check_progress(
+                        prompt_id, last_progress_sig
+                    )
+                    if progressed:
+                        last_progress_at = time.monotonic()
+                        continue
+                    if time.monotonic() - last_progress_at >= self._stall_timeout_s:
+                        raise ComfyTimeoutError(
+                            f"wait_for_completion({prompt_id}) stalled for "
+                            f"{self._stall_timeout_s:.1f}s without progress"
+                        )
+                    continue
                 if not done:
                     raise ComfyTimeoutError(
                         f"wait_for_completion({prompt_id}) exceeded {timeout_s}s"
@@ -208,6 +243,8 @@ class ComfyUIAdapter:
     async def _poll_until_done(self, prompt_id: str, deadline: float) -> None:
         """Fallback when WS is unusable: poll /history until terminal or deadline."""
         log.info("comfy.poll.start", prompt_id=prompt_id)
+        last_progress_at = time.monotonic()
+        last_signature: str | None = None
         while True:
             remaining = deadline - time.monotonic()
             if remaining <= 0:
@@ -224,7 +261,52 @@ class ComfyUIAdapter:
                     # Discriminate via status_str; anything other than "success" raises.
                     _raise_if_errored(entry.get("status") or {})
                     return
+                sig = self._progress_signature(entry)
+                if sig is not None and sig != last_signature:
+                    last_signature = sig
+                    last_progress_at = time.monotonic()
+                elif (
+                    self._stall_timeout_s is not None
+                    and time.monotonic() - last_progress_at >= self._stall_timeout_s
+                ):
+                    raise ComfyTimeoutError(
+                        f"polling for {prompt_id} stalled for {self._stall_timeout_s:.1f}s "
+                        "without progress"
+                    )
             await asyncio.sleep(min(self._poll_interval_s, max(0.01, remaining)))
+
+    async def _history_progress_signature(self, prompt_id: str) -> str | None:
+        try:
+            resp = await self._http.get(f"/history/{prompt_id}")
+        except httpx.HTTPError:
+            return None
+        if resp.status_code != 200:
+            return None
+        entry = (resp.json() or {}).get(prompt_id)
+        return self._progress_signature(entry)
+
+    def _progress_signature(self, entry: dict | None) -> str | None:
+        if not entry:
+            return None
+        status = entry.get("status") or {}
+        outputs = entry.get("outputs") or {}
+        messages = status.get("messages") or []
+        return "|".join(
+            [
+                str(status.get("completed")),
+                str(status.get("status_str")),
+                str(len(messages)),
+                str(len(outputs)),
+            ]
+        )
+
+    async def _check_progress(self, prompt_id: str, previous: str | None) -> tuple[bool, str | None]:
+        current = await self._history_progress_signature(prompt_id)
+        if current is None:
+            return False, previous
+        if previous is None:
+            return True, current
+        return current != previous, current
 
     # ───────────────────────── WS lifecycle ─────────────────────────
 

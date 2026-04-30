@@ -22,6 +22,22 @@ REQUIRED_ANCHORS_SDXL: tuple[str, ...] = (
     "%OUTPUT%",
 )
 
+REQUIRED_ANCHORS_FLUX: tuple[str, ...] = (
+    "%MODEL_SOURCE%",
+    "%CLIP_SOURCE%",
+    "%LORA_INSERT%",
+    "%POSITIVE_PROMPT%",
+    "%NEGATIVE_PROMPT%",
+    "%KSAMPLER%",
+    "%OUTPUT%",
+)
+
+
+def required_anchors_for_family(family: str) -> tuple[str, ...]:
+    if family == "flux":
+        return REQUIRED_ANCHORS_FLUX
+    return REQUIRED_ANCHORS_SDXL
+
 
 class WorkflowValidationError(Exception):
     """Workflow JSON was not parseable or failed anchor validation."""

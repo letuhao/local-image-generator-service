@@ -67,6 +67,15 @@ class RequestContextMiddleware:
             # Float ms with 3-decimal (microsecond) resolution. Sub-ms requests
             # show as e.g. 0.317 instead of being truncated to 0.
             duration_ms = round((time.perf_counter() - start) * 1000, 3)
+            metrics = getattr(scope.get("app"), "state", None)
+            collector = getattr(metrics, "metrics", None) if metrics is not None else None
+            if collector is not None:
+                collector.record_http_request(
+                    method=scope.get("method", "UNKNOWN"),
+                    path=scope.get("path", ""),
+                    status_code=status_code,
+                    duration_ms=duration_ms,
+                )
             log.info(
                 "request.served",
                 method=scope.get("method"),

@@ -234,6 +234,38 @@ async def test_wait_for_completion_raises_timeout(adapter: ComfyUIAdapter, fake_
         await adapter.wait_for_completion("pid-never", timeout_s=0.3)
 
 
+@respx.mock
+async def test_wait_for_completion_stall_watchdog_triggers_early() -> None:
+    async def _factory(url: str) -> FakeWS:
+        raise ConnectionRefusedError("WS refused")
+
+    respx.get(f"{HTTP}/history/pid-stall").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "pid-stall": {
+                    "status": {"completed": False, "status_str": "running", "messages": []},
+                    "outputs": {},
+                }
+            },
+        )
+    )
+    adapter = ComfyUIAdapter(
+        http_url=HTTP,
+        ws_url=WS,
+        http_timeout_s=5.0,
+        poll_interval_ms=50,
+        stall_timeout_s=0.2,
+        progress_poll_interval_s=0.05,
+        ws_connect=_factory,
+    )
+    try:
+        with pytest.raises(ComfyTimeoutError, match="stalled"):
+            await adapter.wait_for_completion("pid-stall", timeout_s=5.0)
+    finally:
+        await adapter.close()
+
+
 # ───────────────────────── fetch_outputs ─────────────────────────
 
 

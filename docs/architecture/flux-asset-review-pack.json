@@ -1,0 +1,50 @@
+{
+  "model": "flux1-dev",
+  "transparent_background": true,
+  "seeds": [101, 202],
+  "negative_prompt": "blurry, noisy texture, overdetail, oversharpen, aliasing, person, human, character, face, watermark, logo, text",
+  "scenarios": [
+    {
+      "id": "terrain_grass_tile",
+      "prompt": "top-down seamless terrain tile texture, grass and dirt blend, hand-painted strategy game style, readable at map scale",
+      "size": "1024x1024",
+      "steps": 24,
+      "cfg": 4.0
+    },
+    {
+      "id": "terrain_snow_tile",
+      "prompt": "top-down seamless terrain tile texture, compacted snow and light ice cracks, hand-painted strategy game style, readable at map scale",
+      "size": "1024x1024",
+      "steps": 24,
+      "cfg": 4.0
+    },
+    {
+      "id": "object_tree_sprite",
+      "prompt": "isometric 2.5D game object sprite, isometric side view, slight elevation angle, viewed from slight above-side, single ancient oak tree, hand-painted fantasy strategy game style, isolated object, trunk base terminates cleanly, no ground contact",
+      "size": "1024x1024",
+      "steps": 28,
+      "cfg": 4.0
+    },
+    {
+      "id": "object_rock_sprite",
+      "prompt": "isometric 2.5D game object sprite, side-view isometric perspective, single mossy rock formation, stylized hand-painted strategy game art, isolated object, no ground plane",
+      "size": "1024x1024",
+      "steps": 28,
+      "cfg": 4.0
+    },
+    {
+      "id": "poi_tower_landmark",
+      "prompt": "isometric 2.5D strategy game landmark, single fantasy watch tower, readable silhouette, hand-painted style, isolated object, no terrain base",
+      "size": "1024x1024",
+      "steps": 30,
+      "cfg": 4.2
+    },
+    {
+      "id": "decor_crate_set",
+      "prompt": "isometric 2.5D strategy game decor object, wooden crate and barrel cluster as one prop, readable silhouette, stylized hand-painted, isolated object, no floor",
+      "size": "1024x1024",
+      "steps": 26,
+      "cfg": 4.0
+    }
+  ]
+}

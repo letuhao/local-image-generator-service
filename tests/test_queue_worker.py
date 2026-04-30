@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import asyncio
 import json
+from io import BytesIO
 from collections.abc import AsyncIterator
 from pathlib import Path
 
 import pytest
+from PIL import Image
 
 from app.backends.base import (
     ComfyNodeError,
@@ -23,7 +25,9 @@ from app.validation import ValidationFailureError
 class _FakeAdapter:
     def __init__(self) -> None:
         self.client_id = "fake-client"
-        self.images: list[bytes] = [b"\x89PNG\r\n\x1a\n" + b"payload"]
+        buf = BytesIO()
+        Image.new("RGBA", (2, 2), color=(255, 255, 255, 255)).save(buf, format="PNG")
+        self.images: list[bytes] = [buf.getvalue()]
         self.submit_exc: Exception | None = None
         self.wait_exc: Exception | None = None
         self.fetch_exc: Exception | None = None
@@ -31,6 +35,7 @@ class _FakeAdapter:
         self.unload_ok = True
         self.unload_calls = 0
         self.vram_free_gb = 0.0
+        self.wait_timeouts: list[float] = []
 
     async def submit(self, graph: dict) -> str:
         if self.submit_exc:
@@ -39,6 +44,7 @@ class _FakeAdapter:
         return f"pid-{len(self.submits)}"
 
     async def wait_for_completion(self, prompt_id: str, timeout_s: float) -> None:
+        self.wait_timeouts.append(timeout_s)
         if self.wait_exc:
             raise self.wait_exc
 
@@ -382,3 +388,41 @@ async def test_worker_injects_checkpoint_and_vae_from_selected_model(
     vae_node = graph["2"]
     assert vae_node["class_type"] == "VAELoader"
     assert vae_node["inputs"]["vae_name"] == "clearvaeSD15_v23.safetensors"
+
+
+async def test_worker_uses_per_model_timeout_override(
+    worker: tuple[QueueWorker, _FakeAdapter, _FakeS3, asyncio.Task],
+    store: JobStore,
+    registry: Registry,
+) -> None:
+    w, adapter, _s3, _task = worker
+    cfg = registry.get("terrain-sdxl-base")
+    cfg.defaults["job_timeout_s"] = 12.5
+    job = await create_queued(
+        store,
+        model_name="terrain-sdxl-base",
+        input_json=_input_json(model="terrain-sdxl-base"),
+    )
+    fut = await w.enqueue(job)
+    assert fut is not None
+    await asyncio.wait_for(fut, timeout=5.0)
+    assert adapter.wait_timeouts[-1] == pytest.approx(12.5)
+
+
+async def test_worker_request_timeout_overrides_model_default(
+    worker: tuple[QueueWorker, _FakeAdapter, _FakeS3, asyncio.Task],
+    store: JobStore,
+    registry: Registry,
+) -> None:
+    w, adapter, _s3, _task = worker
+    cfg = registry.get("terrain-sdxl-base")
+    cfg.defaults["job_timeout_s"] = 200.0
+    job = await create_queued(
+        store,
+        model_name="terrain-sdxl-base",
+        input_json=_input_json(model="terrain-sdxl-base", timeout_s=15.0),
+    )
+    fut = await w.enqueue(job)
+    assert fut is not None
+    await asyncio.wait_for(fut, timeout=5.0)
+    assert adapter.wait_timeouts[-1] == pytest.approx(15.0)

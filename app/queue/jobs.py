@@ -275,6 +275,14 @@ async def count_active(store: JobStore) -> int:
     return int(row[0]) if row else 0
 
 
+async def count_by_status(store: JobStore) -> dict[str, int]:
+    """Return aggregate job counts grouped by status."""
+    conn = await store.read()
+    cursor = await conn.execute("SELECT status, COUNT(*) FROM jobs GROUP BY status")
+    rows = await cursor.fetchall()
+    return {str(status): int(count) for status, count in rows}
+
+
 async def scan_non_terminal(store: JobStore) -> list[Job]:
     """Return all jobs currently in `queued` or `running`, oldest first.
 

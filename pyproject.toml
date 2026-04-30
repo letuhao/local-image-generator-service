@@ -20,6 +20,9 @@ dependencies = [
     "boto3>=1.35,<2",
     "tenacity>=9",
     "PyYAML>=6.0.2",
+    "Pillow>=11.2.1",
+    "torch>=2.11.0",
+    "transformers>=5.7.0",
 ]
 
 [dependency-groups]

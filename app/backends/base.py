@@ -41,6 +41,9 @@ class ModelConfig:
     clip_l: str | None = None  # optional secondary text encoder (e.g. FLUX/Chroma)
     t5xxl: str | None = None  # optional T5 text encoder (e.g. FLUX/Chroma)
     dual_clip_type: str | None = None  # DualCLIPLoader type; Chroma HD uses "flux"
+    # Runtime family marker used for workflow/validation branching while keeping
+    # a universal client payload contract.
+    family: Literal["sdxl", "flux"] = "sdxl"
     # "eps" | "vpred" — informational in Cycle 3; Cycle 5+ uses it for graph injection.
     prediction: Literal["eps", "vpred"] = "eps"
     capabilities: dict[str, Any] = field(default_factory=dict)  # e.g. {"image_gen": True}

@@ -72,6 +72,35 @@ def _make_dummy_workflow(path: Path) -> None:
     path.write_text(json.dumps(graph), encoding="utf-8")
 
 
+def _make_dummy_flux_workflow(path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    graph = {
+        "1": {
+            "class_type": "UnetLoaderGGUF",
+            "inputs": {"unet_name": "chroma.gguf"},
+            "_meta": {"title": "%MODEL_SOURCE%,%LORA_INSERT%"},
+        },
+        "2": {
+            "class_type": "DualCLIPLoader",
+            "inputs": {"clip_name1": "clip_l.safetensors", "clip_name2": "t5xxl.safetensors"},
+            "_meta": {"title": "%CLIP_SOURCE%"},
+        },
+        "3": {
+            "class_type": "CLIPTextEncode",
+            "inputs": {"text": "", "clip": ["2", 0]},
+            "_meta": {"title": "%POSITIVE_PROMPT%"},
+        },
+        "4": {
+            "class_type": "CLIPTextEncode",
+            "inputs": {"text": "", "clip": ["2", 0]},
+            "_meta": {"title": "%NEGATIVE_PROMPT%"},
+        },
+        "5": {"class_type": "KSampler", "inputs": {}, "_meta": {"title": "%KSAMPLER%"}},
+        "6": {"class_type": "SaveImage", "inputs": {}, "_meta": {"title": "%OUTPUT%"}},
+    }
+    path.write_text(json.dumps(graph), encoding="utf-8")
+
+
 def _scaffold(
     tmp_path: Path,
     *,
@@ -267,6 +296,39 @@ def test_unknown_prediction_raises(tmp_path: Path) -> None:
             vram_budget_gb=12,
         )
     assert exc.value.stage == "unknown_prediction"
+
+
+def test_unknown_family_raises(tmp_path: Path) -> None:
+    import copy as _copy
+
+    body = _copy.deepcopy(_BASE_YAML)
+    body["models"][0]["family"] = "mystery"
+    yaml_path, models_root, workflows_root = _scaffold_with_yaml_override(tmp_path, body)
+    with pytest.raises(RegistryValidationError) as exc:
+        load_registry(
+            yaml_path,
+            models_root=models_root,
+            workflows_root=workflows_root.parent,
+            vram_budget_gb=12,
+        )
+    assert exc.value.stage == "unknown_family"
+
+
+def test_flux_family_workflow_anchor_validation(tmp_path: Path) -> None:
+    import copy as _copy
+
+    body = _copy.deepcopy(_BASE_YAML)
+    body["models"][0]["family"] = "flux"
+    body["models"][0]["workflow"] = "workflows/flux_mock.json"
+    yaml_path, models_root, workflows_root = _scaffold_with_yaml_override(tmp_path, body)
+    _make_dummy_flux_workflow(workflows_root / "flux_mock.json")
+    registry = load_registry(
+        yaml_path,
+        models_root=models_root,
+        workflows_root=workflows_root.parent,
+        vram_budget_gb=12,
+    )
+    assert registry.get("noobai-xl-v1.1").family == "flux"
 
 
 def test_vpred_prediction_refused_at_boot(tmp_path: Path) -> None:
