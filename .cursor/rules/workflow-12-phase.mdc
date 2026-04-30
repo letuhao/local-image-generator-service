@@ -1,0 +1,29 @@
+---
+description: Enforce 12-phase workflow gates and evidence
+alwaysApply: true
+---
+
+# 12-Phase Workflow Enforcement
+
+Use `scripts/workflow-gate.sh` as the source of truth for phase state.
+
+- Classify size before substantive work:
+  - `bash scripts/workflow-gate.sh size <XS|S|M|L|XL> <files> <logic> <side_effects>`
+- Enter each phase explicitly before work:
+  - `bash scripts/workflow-gate.sh phase <clarify|design|review-design|plan|build|verify|review-code|qc|post-review|session|commit|retro>`
+- Complete each phase with evidence:
+  - `bash scripts/workflow-gate.sh complete <phase> "<evidence>"`
+
+## Non-Negotiable Rules
+
+- Never skip phases unless the size policy allows it (XS/S) or user explicitly approves skip.
+- If scope grows, stop, reclassify size, and continue from the correct phase.
+- Never claim success without fresh verification evidence.
+- Never commit before `verify`, `post-review`, and `session` are completed in gate state.
+- `post-review` is human-interactive: present summary, wait for user response, then record evidence.
+
+## Commit Behavior
+
+- Before any commit, run:
+  - `bash scripts/workflow-gate.sh pre-commit`
+- If blocked, fix missing phase evidence instead of bypassing checks.

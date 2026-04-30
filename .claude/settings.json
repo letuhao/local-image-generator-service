@@ -8,7 +8,7 @@
             "type": "command",
             "command": "bash -c 'if echo \"$CLAUDE_TOOL_INPUT\" | grep -qE \"git commit\"; then bash ./scripts/workflow-gate.sh pre-commit; fi'",
             "timeout": 10000,
-            "description": "Block git commit if VERIFY or SESSION phases not completed"
+            "description": "Block git commit unless verify, post-review, and session are complete"
           }
         ]
       }
