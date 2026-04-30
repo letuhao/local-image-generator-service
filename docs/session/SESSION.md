@@ -2,7 +2,33 @@
 
 > Append the newest sprint at the top. Keep each entry short: one-line outcome, changed files, notable decisions, what's next.
 
-**Last session ended:** 2026-04-30 after Sprint 11 / Cycle 8 complete. Resume from [HANDOFF.md](HANDOFF.md) — it holds the pick-up-where-you-left-off summary.
+**Last session ended:** 2026-04-30 after Sprint 13 / Cycle 10 complete. Resume from [HANDOFF.md](HANDOFF.md) — it holds the pick-up-where-you-left-off summary.
+
+---
+
+## Sprint 13 — 2026-04-30 — Cycle 10 startup validation + all-model startup smoke + prod posture
+
+**Outcome:** Startup now fail-closes on prod posture misconfiguration and registry/check failures, runs all-registered-model smoke generation during boot, and emits structured `startup_failed` logs on refusal. Added `pull-models` helper for `hf://` model sources with retry and disk delta reporting.
+
+**Files (key):** `app/startup/checks.py`, `app/startup/smoke_test.py`, `app/main.py`, `scripts/pull-models.sh`, `tests/test_startup_checks.py`, `tests/integration/test_smoke_boot.py`.
+
+**Review fixes:** `/review-impl` findings all fixed: (1) corrected `hf://` parser to `owner/repo + path`, (2) smoke test no longer writes persistent DB/S3 artifacts, (3) boot-failure integration test now scopes assertions to recreated container ID + exit code.
+
+**Verify:** `uv run ruff check app/startup/smoke_test.py app/main.py tests/integration/test_smoke_boot.py` → **clean**. `bash -n scripts/pull-models.sh` → **ok**. `uv run pytest -q tests/test_startup_checks.py tests/test_model_registry.py tests/integration/test_smoke_boot.py` → **22 passed, 1 skipped** (integration gate via `RUN_SMOKE_BOOT_TEST=true`).
+
+**Next:** Cycle 11 (parallel/user-owned) LoreWeave integration-guide amendment PR and receiver alignment.
+
+---
+
+## Sprint 12 — 2026-04-30 — Cycle 9 webhook dispatcher hardened and completed
+
+**Outcome:** Implemented durable webhook delivery dispatcher with retries, HMAC signing, TOCTOU revalidation, admin delivery inspection endpoint, and end-to-end webhook integration coverage. Included post-review hardening fixes for dispatcher survivability and stale-attempt recovery.
+
+**Files (key):** `app/webhooks/dispatcher.py`, `app/webhooks/signing.py`, `app/webhooks/retry.py`, `app/api/admin.py`, `app/queue/jobs.py`, `app/main.py`, `tests/test_webhook_dispatcher.py`, `tests/integration/test_webhook_e2e.py`, `tests/test_admin_webhooks.py`.
+
+**Verify:** unit + integration webhook suites passed in-session; cycle committed on `main`.
+
+**Next:** Cycle 10 startup validation + smoke boot.
 
 ---
 

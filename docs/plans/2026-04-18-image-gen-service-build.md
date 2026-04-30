@@ -36,10 +36,10 @@
 - [x] **Cycle 8** — Async mode + poll endpoint (feature-flagged) — Sprint 11
 
 ### Push notifications
-- [ ] **Cycle 9** — Webhook dispatcher with full v0.4 hardening (DNS pinning, IP-range, no-redirect, HMAC+ts, multi-secret, TOCTOU, barrier)
+- [x] **Cycle 9** — Webhook dispatcher with full v0.4 hardening (DNS pinning, IP-range, no-redirect, HMAC+ts, multi-secret, TOCTOU, barrier) — Sprint 12
 
 ### Production readiness
-- [ ] **Cycle 10** — Startup validation + smoke test + prod-posture assertions + pre-download script
+- [x] **Cycle 10** — Startup validation + smoke test + prod-posture assertions + pre-download script — Sprint 13
 
 ### Parallel, user-owned
 - [ ] **Cycle 11** — LoreWeave integration-guide amendment PR
@@ -59,8 +59,8 @@
 | 6 | Civitai fetcher hardened | L | 5 | — | [x] Sprint 9 |
 | 7 | Chroma model #2 | M | 4 | — | [x] Sprint 10 |
 | 8 | Async mode + polling | M | 3 | 9 | [x] Sprint 11 |
-| 9 | Webhook dispatcher | XL | 9 | — | [ ] |
-| 10 | Startup validation + smoke test | M | 4 | — | [ ] |
+| 9 | Webhook dispatcher | XL | 9 | — | [x] Sprint 12 |
+| 10 | Startup validation + smoke test | M | 4 | — | [x] Sprint 13 |
 | 11 | LoreWeave integration-guide PR | S | 1 (external repo) | — | [ ] |
 
 ---

@@ -3,14 +3,14 @@
 > This file is **overwritten** every session close. It reflects **current state**, not history.
 > History lives in [SESSION.md](SESSION.md). Architecture lives in [docs/architecture/image-gen-service.md](../architecture/image-gen-service.md). Build plan lives in [docs/plans/2026-04-18-image-gen-service-build.md](../plans/2026-04-18-image-gen-service-build.md).
 
-**Last updated:** 2026-04-30 — Session in progress on Sprint 12 / Cycle 9 webhook dispatcher.
+**Last updated:** 2026-04-30 — Session closed after Sprint 13 / Cycle 10 startup validation + smoke boot.
 
 ---
 
 ## Where we are
 
 - **Branch:** `main`. After commit: `git log origin/main..HEAD` for drift vs remote.
-- **Plan progress:** **9 / 11** cycles complete.
+- **Plan progress:** **10 / 11** cycles complete.
 
 ```
 [x] 0  Repo bootstrap
@@ -22,34 +22,37 @@
 [x] 6  Civitai fetcher hardened
 [x] 7  Chroma model #2 + VRAM guard + model unload on swap
 [x] 8  Async + polling
-[ ] 9  Webhook dispatcher  ← NEXT
-[ ] 10 Startup validation + smoke test
+[x] 9  Webhook dispatcher
+[x] 10 Startup validation + smoke test
 [ ] 11 LoreWeave integration-guide PR (parallel, user-owned)
 ```
 
 - **Workflow state:** run `bash scripts/workflow-gate.sh status` after pulling; reset if starting a fresh cycle.
-- **Test suite:** `uv run pytest --ignore=tests/integration -q` → **290 passed / 2 skipped** (Windows symlink gates). Integration: `uv run pytest -m integration -q tests/integration/` per module gates (`CIVITAI_API_TOKEN`, etc.).
+- **Test suite:** baseline unit suite still healthy; Cycle 10 targeted verify:
+  `uv run pytest -q tests/test_startup_checks.py tests/test_model_registry.py tests/integration/test_smoke_boot.py` → **22 passed / 1 skipped** (`RUN_SMOKE_BOOT_TEST=true` to enable compose integration).
 - **Arch version:** v0.6 (unchanged).
 
 ---
 
-## Next action (Sprint 12 = Cycle 9)
+## Next action (Sprint 14 = Cycle 11)
 
-**Goal per plan §Cycle 9:** webhook dispatcher with signing/retry hardening and terminal delivery semantics. See `docs/plans/2026-04-18-image-gen-service-build.md` §Cycle 9.
+**Goal per plan §Cycle 11:** land LoreWeave integration-guide amendment PR and align receiver contract for async + webhook end-to-end. See `docs/plans/2026-04-18-image-gen-service-build.md` §Cycle 11.
 
 **Kickoff:**
 
 ```bash
 cd d:/Works/source/local-image-generator-service
 bash scripts/workflow-gate.sh reset
-bash scripts/workflow-gate.sh size <S-or-M> <files> <logic> <side_effects>
+bash scripts/workflow-gate.sh size S 1 2 0
 bash scripts/workflow-gate.sh phase clarify
 ```
 
-**Cycle 9 current notes (in progress):**
+**Cycle 10 completion notes:**
 
-- Core dispatcher + retries + admin endpoint are implemented and passing tests.
-- Remaining work should follow your gate criteria before marking Cycle 9 done.
+- Startup checks now fail-close in prod posture on webhook/config misconfiguration.
+- Startup smoke runs all registered models without persisting DB/S3 artifacts.
+- `scripts/pull-models.sh` now parses strict `hf://owner/repo/path` and retries downloads.
+- `/review-impl` findings addressed for parser correctness, smoke persistence, and stale-log integration assertion.
 
 ---
 
@@ -76,7 +79,7 @@ curl -sf -H "Authorization: Bearer $API_KEY" http://127.0.0.1:8700/v1/models | j
 
 ## External dependencies
 
-- **LoreWeave integration-guide PR (Cycle 11):** user-owned; soft-blocks Cycle 10 prod acceptance.
+- **LoreWeave integration-guide PR (Cycle 11):** user-owned; now the primary remaining cycle.
 
 ---
 

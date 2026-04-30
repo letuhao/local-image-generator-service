@@ -11,11 +11,11 @@ import structlog
 from fastapi import FastAPI
 
 from app import __version__
+from app.api.admin import router as admin_router
 from app.api.health import router as health_router
 from app.api.images import router as images_router
 from app.api.loras import router as loras_router
 from app.api.models import router as models_router
-from app.api.admin import router as admin_router
 from app.auth import load_keyset_from_env
 from app.backends.comfyui import ComfyUIAdapter
 from app.errors import install_error_envelope
@@ -27,7 +27,8 @@ from app.queue.reaper import OrphanReaper
 from app.queue.recovery import recover_jobs
 from app.queue.store import JobStore
 from app.queue.worker import QueueWorker
-from app.registry.models import load_registry
+from app.startup.checks import StartupCheckError, build_context_from_env, run_startup_checks
+from app.startup.smoke_test import StartupSmokeError, run_registry_smoke_tests
 from app.storage.s3 import S3Config, S3Storage
 from app.webhooks.dispatcher import WebhookDispatcher
 
@@ -41,129 +42,158 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         log_prompts=os.environ.get("LOG_PROMPTS", "false").lower() == "true",
     )
 
-    store = JobStore(os.environ.get("DATABASE_PATH", "/app/data/jobs.db"))
-    await store.connect()
-    app.state.store = store
+    startup_ctx = build_context_from_env()
+    try:
+        store = JobStore(os.environ.get("DATABASE_PATH", "/app/data/jobs.db"))
+        await store.connect()
+        app.state.store = store
 
-    # Registry — fail-fast validation at startup.
-    registry = load_registry(
-        yaml_path=os.environ.get("MODELS_YAML_PATH", "config/models.yaml"),
-        models_root=os.environ.get("MODELS_ROOT", "./models"),
-        workflows_root=os.environ.get("WORKFLOWS_ROOT", "."),
-        vram_budget_gb=float(os.environ.get("VRAM_BUDGET_GB", "12")),
-    )
-    app.state.registry = registry
+        # Registry and startup posture checks.
+        registry = run_startup_checks(startup_ctx)
+        app.state.registry = registry
 
-    # S3 storage — bucket ensured at boot (idempotent).
-    s3 = S3Storage(S3Config.from_env())
-    await s3.ensure_bucket()
-    app.state.s3 = s3
+        # S3 storage — bucket ensured at boot (idempotent).
+        s3 = S3Storage(S3Config.from_env())
+        await s3.ensure_bucket()
+        app.state.s3 = s3
 
-    # ComfyUI adapter — lazy (no network until first request).
-    adapter = ComfyUIAdapter(
-        http_url=os.environ.get("COMFYUI_URL", "http://comfyui:8188"),
-        ws_url=os.environ.get("COMFYUI_WS_URL", "ws://comfyui:8188/ws"),
-        http_timeout_s=float(os.environ.get("COMFY_HTTP_TIMEOUT_S", "30")),
-        poll_interval_ms=int(os.environ.get("COMFY_POLL_INTERVAL_MS", "1000")),
-    )
-    app.state.adapter = adapter
-
-    app.state.keyset = load_keyset_from_env()
-    app.state.async_mode_enabled = os.environ.get("ASYNC_MODE_ENABLED", "false").lower() == "true"
-    public_base_url = os.environ.get("IMAGE_GEN_PUBLIC_BASE_URL", "http://127.0.0.1:8700").rstrip(
-        "/"
-    )
-    if not public_base_url.startswith(("http://", "https://")):
-        raise RuntimeError(
-            "IMAGE_GEN_PUBLIC_BASE_URL must start with http:// or https://, "
-            f"got {public_base_url!r}"
+        # ComfyUI adapter — lazy (no network until first request).
+        adapter = ComfyUIAdapter(
+            http_url=os.environ.get("COMFYUI_URL", "http://comfyui:8188"),
+            ws_url=os.environ.get("COMFYUI_WS_URL", "ws://comfyui:8188/ws"),
+            http_timeout_s=float(os.environ.get("COMFY_HTTP_TIMEOUT_S", "30")),
+            poll_interval_ms=int(os.environ.get("COMFY_POLL_INTERVAL_MS", "1000")),
         )
-    app.state.public_base_url = public_base_url
-    app.state.job_timeout_s = float(os.environ.get("JOB_TIMEOUT_S", "300"))
-    max_queue = int(os.environ.get("MAX_QUEUE", "20"))
-    app.state.max_queue = max_queue
+        app.state.adapter = adapter
+
+        app.state.keyset = load_keyset_from_env()
+        app.state.async_mode_enabled = (
+            os.environ.get("ASYNC_MODE_ENABLED", "false").lower() == "true"
+        )
+        public_base_url = os.environ.get("IMAGE_GEN_PUBLIC_BASE_URL", "http://127.0.0.1:8700").rstrip(
+            "/"
+        )
+        if not public_base_url.startswith(("http://", "https://")):
+            raise RuntimeError(
+                "IMAGE_GEN_PUBLIC_BASE_URL must start with http:// or https://, "
+                f"got {public_base_url!r}"
+            )
+        app.state.public_base_url = public_base_url
+        app.state.job_timeout_s = float(os.environ.get("JOB_TIMEOUT_S", "300"))
+        max_queue = int(os.environ.get("MAX_QUEUE", "20"))
+        app.state.max_queue = max_queue
 
     # LoRA root — served by GET /v1/loras and consulted by validation for
     # realpath containment. Resolved once at boot so the validator does not
     # re-resolve from CWD per-request (CWD can drift in tests). Startup is
     # allowed to block on disk; lifespan wraps everything.
-    app.state.loras_root = Path(  # noqa: ASYNC240
-        os.environ.get("LORAS_ROOT", "./loras")
-    ).resolve()
+        app.state.loras_root = Path(  # noqa: ASYNC240
+            os.environ.get("LORAS_ROOT", "./loras")
+        ).resolve()
 
     # Cycle 4: queue worker + orphan reaper + restart recovery.
     # IMPORTANT ordering: worker must be running BEFORE recover_jobs calls
     # worker.enqueue_recovery (blocking put), otherwise recovery deadlocks on
     # a full queue waiting for a consumer.
-    worker = QueueWorker(
-        store=store,
-        adapter=adapter,
-        s3=s3,
-        registry=registry,
-        public_base_url=public_base_url,
-        job_timeout_s=app.state.job_timeout_s,
-        max_queue=max_queue,
-        loras_root=app.state.loras_root,
-        async_mode_enabled=app.state.async_mode_enabled,
-    )
-    app.state.worker = worker
-    app.state.worker_task = asyncio.create_task(worker.run(), name="queue-worker")
+        worker = QueueWorker(
+            store=store,
+            adapter=adapter,
+            s3=s3,
+            registry=registry,
+            public_base_url=public_base_url,
+            job_timeout_s=app.state.job_timeout_s,
+            max_queue=max_queue,
+            loras_root=app.state.loras_root,
+            async_mode_enabled=app.state.async_mode_enabled,
+        )
+        app.state.worker = worker
+        app.state.worker_task = asyncio.create_task(worker.run(), name="queue-worker")
 
-    reaper = OrphanReaper(
-        store=store,
-        s3=s3,
-        ttl_seconds=int(os.environ.get("ORPHAN_REAPER_TTL", "86400")),
-        scan_interval_seconds=int(os.environ.get("ORPHAN_REAPER_SCAN_INTERVAL_S", "600")),
-    )
-    app.state.reaper = reaper
-    app.state.reaper_task = asyncio.create_task(reaper.run(), name="orphan-reaper")
+        reaper = OrphanReaper(
+            store=store,
+            s3=s3,
+            ttl_seconds=int(os.environ.get("ORPHAN_REAPER_TTL", "86400")),
+            scan_interval_seconds=int(os.environ.get("ORPHAN_REAPER_SCAN_INTERVAL_S", "600")),
+        )
+        app.state.reaper = reaper
+        app.state.reaper_task = asyncio.create_task(reaper.run(), name="orphan-reaper")
 
-    webhook_http = httpx.AsyncClient()
-    webhook_dispatcher = WebhookDispatcher(store=store, http_client=webhook_http)
-    app.state.webhook_http = webhook_http
-    app.state.webhook_dispatcher = webhook_dispatcher
-    app.state.webhook_dispatcher_task = asyncio.create_task(
-        webhook_dispatcher.run(),
-        name="webhook-dispatcher",
-    )
+        webhook_http = httpx.AsyncClient()
+        webhook_dispatcher = WebhookDispatcher(store=store, http_client=webhook_http)
+        app.state.webhook_http = webhook_http
+        app.state.webhook_dispatcher = webhook_dispatcher
+        app.state.webhook_dispatcher_task = asyncio.create_task(
+            webhook_dispatcher.run(),
+            name="webhook-dispatcher",
+        )
 
-    # Recovery scan. Worker + reaper are already spawned above.
-    recovery_stats = await recover_jobs(store, worker)
+        # Cycle 10 startup smoke: run one tiny generation per registered model.
+        await run_registry_smoke_tests(
+            adapter=adapter,
+            registry=registry,
+            loras_root=app.state.loras_root,
+            timeout_s=float(os.environ.get("STARTUP_SMOKE_TIMEOUT_S", "120")),
+        )
 
-    # Cycle 6: CivitaiFetcher + lora_fetches recovery. Install BEFORE recovery
-    # scans the table so a handover-flip row is consistent with the fetcher's
-    # in-flight set (always empty at boot).
-    fetcher_http = httpx.AsyncClient()
-    fetcher = CivitaiFetcher(
-        store=store,
-        loras_root=app.state.loras_root,
-        api_token=os.environ.get("CIVITAI_API_TOKEN") or None,
-        http_client=fetcher_http,
-        dir_max_bytes=int(float(os.environ.get("LORA_DIR_MAX_SIZE_GB", "60")) * (1024**3)),
-        file_max_bytes=int(os.environ.get("LORA_MAX_SIZE_BYTES", "2147483648")),
-        recent_use_days=int(os.environ.get("LORA_RECENT_USE_DAYS", "7")),
-        max_concurrent=int(os.environ.get("LORA_MAX_CONCURRENT_FETCHES", "1")),
-        metadata_timeout_s=float(os.environ.get("LORA_FETCH_METADATA_TIMEOUT_S", "30")),
-        download_overall_timeout_s=float(
-            os.environ.get("LORA_FETCH_DOWNLOAD_OVERALL_TIMEOUT_S", "1800")
-        ),
-        chunk_read_timeout_s=float(os.environ.get("LORA_FETCH_CHUNK_READ_TIMEOUT_S", "30")),
-    )
-    app.state.fetcher = fetcher
-    app.state.fetcher_http = fetcher_http
-    fetch_recovery_stats = await recover_fetches(store, app.state.loras_root)
+        # Recovery scan. Worker + reaper are already spawned above.
+        recovery_stats = await recover_jobs(store, worker)
 
-    log.info(
-        "service.started",
-        version=__version__,
-        imagegen_env=os.environ.get("IMAGEGEN_ENV", "dev"),
-        generation_keys=len(app.state.keyset.generation),
-        admin_keys=len(app.state.keyset.admin),
-        models=registry.names(),
-        public_base_url=app.state.public_base_url,
-        recovery=recovery_stats,
-        fetch_recovery=fetch_recovery_stats,
-    )
+        # Cycle 6: CivitaiFetcher + lora_fetches recovery. Install BEFORE recovery
+        # scans the table so a handover-flip row is consistent with the fetcher's
+        # in-flight set (always empty at boot).
+        fetcher_http = httpx.AsyncClient()
+        fetcher = CivitaiFetcher(
+            store=store,
+            loras_root=app.state.loras_root,
+            api_token=os.environ.get("CIVITAI_API_TOKEN") or None,
+            http_client=fetcher_http,
+            dir_max_bytes=int(float(os.environ.get("LORA_DIR_MAX_SIZE_GB", "60")) * (1024**3)),
+            file_max_bytes=int(os.environ.get("LORA_MAX_SIZE_BYTES", "2147483648")),
+            recent_use_days=int(os.environ.get("LORA_RECENT_USE_DAYS", "7")),
+            max_concurrent=int(os.environ.get("LORA_MAX_CONCURRENT_FETCHES", "1")),
+            metadata_timeout_s=float(os.environ.get("LORA_FETCH_METADATA_TIMEOUT_S", "30")),
+            download_overall_timeout_s=float(
+                os.environ.get("LORA_FETCH_DOWNLOAD_OVERALL_TIMEOUT_S", "1800")
+            ),
+            chunk_read_timeout_s=float(os.environ.get("LORA_FETCH_CHUNK_READ_TIMEOUT_S", "30")),
+        )
+        app.state.fetcher = fetcher
+        app.state.fetcher_http = fetcher_http
+        fetch_recovery_stats = await recover_fetches(store, app.state.loras_root)
+
+        log.info(
+            "service.started",
+            version=__version__,
+            imagegen_env=os.environ.get("IMAGEGEN_ENV", "dev"),
+            generation_keys=len(app.state.keyset.generation),
+            admin_keys=len(app.state.keyset.admin),
+            models=registry.names(),
+            public_base_url=app.state.public_base_url,
+            recovery=recovery_stats,
+            fetch_recovery=fetch_recovery_stats,
+        )
+    except (StartupCheckError, StartupSmokeError) as exc:
+        log.error("startup_failed", stage=getattr(exc, "stage", "smoke_test"), reason=str(exc))
+        for task_attr in ("reaper_task", "worker_task", "webhook_dispatcher_task"):
+            task = getattr(app.state, task_attr, None)
+            if task is not None and not task.done():
+                task.cancel()
+        fetcher = getattr(app.state, "fetcher", None)
+        if fetcher is not None:
+            await fetcher.close()
+        fetcher_http = getattr(app.state, "fetcher_http", None)
+        if fetcher_http is not None:
+            await fetcher_http.aclose()
+        webhook_http = getattr(app.state, "webhook_http", None)
+        if webhook_http is not None:
+            await webhook_http.aclose()
+        adapter = getattr(app.state, "adapter", None)
+        if adapter is not None:
+            await adapter.close()
+        store = getattr(app.state, "store", None)
+        if store is not None:
+            await store.close()
+        raise RuntimeError(f"startup_failed: {exc}") from exc
 
     try:
         yield
