@@ -10,6 +10,11 @@ services:
     image: image-gen-service:0.1.0
     environment:
       IMAGEGEN_ENV: ${IMAGEGEN_ENV:-dev}
+      WEBHOOK_SIGNING_SECRETS: ${WEBHOOK_SIGNING_SECRETS:-}
+      WEBHOOK_ALLOWED_HOSTS: ${WEBHOOK_ALLOWED_HOSTS:-}
+      WEBHOOK_ALLOW_ANY_HOST: ${WEBHOOK_ALLOW_ANY_HOST:-false}
+      WEBHOOK_HTTP_TIMEOUT_S: ${WEBHOOK_HTTP_TIMEOUT_S:-10}
+      WEBHOOK_MAX_IN_FLIGHT: ${WEBHOOK_MAX_IN_FLIGHT:-8}
       # Cycle 1: auth + SQLite + logging are live. Later cycles bring more env into use.
       API_KEYS: ${API_KEYS:-}
       ADMIN_API_KEYS: ${ADMIN_API_KEYS:-}
@@ -18,6 +23,7 @@ services:
       DATABASE_PATH: ${DATABASE_PATH:-/app/data/jobs.db}
       COMFYUI_URL: http://comfyui:8188
       COMFYUI_WS_URL: ws://comfyui:8188/ws
+      ASYNC_MODE_ENABLED: ${ASYNC_MODE_ENABLED:-false}
       S3_INTERNAL_ENDPOINT: http://minio:9000
       S3_BUCKET: ${S3_BUCKET:-image-gen}
       S3_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}

@@ -13,7 +13,7 @@
     "inputs": {
       "clip_name1": "clip_l.safetensors",
       "clip_name2": "t5xxl_fp8_e4m3fn.safetensors",
-      "type": "chroma"
+      "type": "flux"
     },
     "_meta": {
       "title": "%CLIP_SOURCE%"

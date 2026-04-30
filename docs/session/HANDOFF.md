@@ -3,14 +3,14 @@
 > This file is **overwritten** every session close. It reflects **current state**, not history.
 > History lives in [SESSION.md](SESSION.md). Architecture lives in [docs/architecture/image-gen-service.md](../architecture/image-gen-service.md). Build plan lives in [docs/plans/2026-04-18-image-gen-service-build.md](../plans/2026-04-18-image-gen-service-build.md).
 
-**Last updated:** 2026-04-30 — Session closed after Sprint 10 / Cycle 7 (+ post-review `/review-impl` fixes).
+**Last updated:** 2026-04-30 — Session in progress on Sprint 12 / Cycle 9 webhook dispatcher.
 
 ---
 
 ## Where we are
 
 - **Branch:** `main`. After commit: `git log origin/main..HEAD` for drift vs remote.
-- **Plan progress:** **8 / 11** cycles complete.
+- **Plan progress:** **9 / 11** cycles complete.
 
 ```
 [x] 0  Repo bootstrap
@@ -21,8 +21,8 @@
 [x] 5  LoRA local + injection
 [x] 6  Civitai fetcher hardened
 [x] 7  Chroma model #2 + VRAM guard + model unload on swap
-[ ] 8  Async + polling  ← NEXT
-[ ] 9  Webhook dispatcher
+[x] 8  Async + polling
+[ ] 9  Webhook dispatcher  ← NEXT
 [ ] 10 Startup validation + smoke test
 [ ] 11 LoreWeave integration-guide PR (parallel, user-owned)
 ```
@@ -33,9 +33,9 @@
 
 ---
 
-## Next action (Sprint 11 = Cycle 8)
+## Next action (Sprint 12 = Cycle 9)
 
-**Goal per plan §Cycle 8:** `ASYNC_MODE_ENABLED` path: `202` + poll (or documented contract), job states, and tests. See `docs/plans/2026-04-18-image-gen-service-build.md` §Cycle 8.
+**Goal per plan §Cycle 9:** webhook dispatcher with signing/retry hardening and terminal delivery semantics. See `docs/plans/2026-04-18-image-gen-service-build.md` §Cycle 9.
 
 **Kickoff:**
 
@@ -45,6 +45,11 @@ bash scripts/workflow-gate.sh reset
 bash scripts/workflow-gate.sh size <S-or-M> <files> <logic> <side_effects>
 bash scripts/workflow-gate.sh phase clarify
 ```
+
+**Cycle 9 current notes (in progress):**
+
+- Core dispatcher + retries + admin endpoint are implemented and passing tests.
+- Remaining work should follow your gate criteria before marking Cycle 9 done.
 
 ---
 

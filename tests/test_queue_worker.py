@@ -110,7 +110,7 @@ def registry() -> Registry:
         vae="vae/ae.safetensors",
         clip_l="text_encoders/clip_l.safetensors",
         t5xxl="text_encoders/t5xxl_fp8_e4m3fn.safetensors",
-        dual_clip_type="chroma",
+        dual_clip_type="flux",
         vram_estimate_gb=9.0,
         prediction="eps",
         capabilities={"image_gen": True},

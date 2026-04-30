@@ -2,7 +2,19 @@
 
 > Append the newest sprint at the top. Keep each entry short: one-line outcome, changed files, notable decisions, what's next.
 
-**Last session ended:** 2026-04-30 after Sprint 10 / Cycle 7 complete. Resume from [HANDOFF.md](HANDOFF.md) — it holds the pick-up-where-you-left-off summary.
+**Last session ended:** 2026-04-30 after Sprint 11 / Cycle 8 complete. Resume from [HANDOFF.md](HANDOFF.md) — it holds the pick-up-where-you-left-off summary.
+
+---
+
+## Sprint 11 — 2026-04-30 — Cycle 8 Async mode + poll endpoint (+ real runtime integration)
+
+**Outcome:** `POST /v1/images/generations` now supports `mode=async` behind `ASYNC_MODE_ENABLED`: returns `202 {id,status}` + `X-Job-Id`, enqueues detached worker execution, and marks `initial_response_delivered` after response flush. Added `GET /v1/images/generations/{id}` poll endpoint returning `id/status/webhook_delivery_status` and terminal payloads (`data` for completed, `error` for failed/abandoned). Added real integration coverage for async submit→poll→gateway PNG fetch.
+
+**Files (key):** `app/api/images.py`, `app/queue/jobs.py`, `app/queue/worker.py`, `tests/test_async_mode.py`, `tests/integration/test_e2e_async.py`, `docker-compose.yml`.
+
+**Verify:** `uv run pytest -q tests/test_async_mode.py tests/test_sync_endpoint.py tests/test_disconnect.py tests/test_validation.py` → **60 passed**. `uv run pytest --ignore=tests/integration -q` → **294 passed / 2 skipped**. Runtime: `uv run pytest -m integration -q tests/integration/test_e2e_async.py` → **1 passed**.
+
+**Next:** Cycle 9 — webhook dispatcher with signing/retry hardening.
 
 ---
 

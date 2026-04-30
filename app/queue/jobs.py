@@ -4,6 +4,7 @@ import json
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Literal
+from uuid import uuid4
 
 import structlog
 from ksuid import Ksuid
@@ -15,6 +16,7 @@ log = structlog.get_logger(__name__)
 JobStatus = Literal["queued", "running", "completed", "failed", "abandoned"]
 JobMode = Literal["sync", "async"]
 WebhookDeliveryStatus = Literal["pending", "succeeded", "failed", "suppressed"]
+WebhookAttemptStatus = Literal["pending", "delivering", "succeeded", "failed"]
 
 # Arch §4.2 transition table. Cycle 1 exposes the full set; Cycle 4 drives it at runtime.
 _ALLOWED_TRANSITIONS: dict[JobStatus, frozenset[JobStatus]] = {
@@ -56,6 +58,21 @@ class Job:
     webhook_delivery_status: WebhookDeliveryStatus | None
     webhook_handover: bool
     fetched_at: str | None  # Cycle 4: set by the GET gateway on first 2xx fetch.
+
+
+@dataclass(frozen=True, slots=True)
+class WebhookDeliveryAttempt:
+    id: str
+    job_id: str
+    attempt_n: int
+    status: WebhookAttemptStatus
+    status_code: int | None
+    response_body_snippet: str | None
+    error: str | None
+    error_code: str | None
+    next_retry_at: str | None
+    created_at: str
+    completed_at: str | None
 
 
 _COLUMNS = (
@@ -149,6 +166,11 @@ async def create_queued(
                 json.dumps(webhook_headers) if webhook_headers else None,
             ),
         )
+        if webhook_url is not None:
+            await conn.execute(
+                "UPDATE jobs SET webhook_delivery_status='pending' WHERE id=?",
+                (job_id,),
+            )
         row = await cursor.fetchone()
     log.info("job.created", job_id=job_id, model=model_name, mode=mode)
     assert row is not None
@@ -278,6 +300,16 @@ async def set_fetched(store: JobStore, job_id: str) -> None:
         )
 
 
+async def mark_initial_response_delivered(store: JobStore, job_id: str) -> None:
+    """BackgroundTask after async `202` body flushes — arch §4.8."""
+    async with store.write() as conn:
+        await conn.execute(
+            "UPDATE jobs SET initial_response_delivered=1, webhook_handover=1, updated_at=? "
+            "WHERE id=? AND mode='async'",
+            (_now(), job_id),
+        )
+
+
 async def mark_response_delivered(store: JobStore, job_id: str) -> None:
     """BackgroundTask commits after sync response flush. Sets both flags at once
     (arch §4.8 suppress rule needs webhook_handover=true alongside response_delivered).
@@ -307,4 +339,138 @@ async def mark_handover(store: JobStore, job_id: str) -> None:
         await conn.execute(
             "UPDATE jobs SET webhook_handover=1, updated_at=? WHERE id=?",
             (_now(), job_id),
+        )
+
+
+async def scan_webhook_candidates(store: JobStore) -> list[Job]:
+    """Terminal jobs eligible for webhook processing, oldest first."""
+    conn = await store.read()
+    cursor = await conn.execute(
+        f"SELECT {_COLUMNS} FROM jobs "  # noqa: S608
+        "WHERE webhook_url IS NOT NULL "
+        "AND webhook_handover=1 "
+        "AND status IN ('completed','failed','abandoned') "
+        "AND (webhook_delivery_status='pending' OR webhook_delivery_status IS NULL) "
+        "ORDER BY updated_at ASC"
+    )
+    rows = await cursor.fetchall()
+    return [_row_to_job(row) for row in rows]
+
+
+async def set_webhook_delivery_status(
+    store: JobStore, job_id: str, status: WebhookDeliveryStatus
+) -> None:
+    async with store.write() as conn:
+        await conn.execute(
+            "UPDATE jobs SET webhook_delivery_status=?, updated_at=? WHERE id=?",
+            (status, _now(), job_id),
+        )
+
+
+def _row_to_attempt(row: tuple) -> WebhookDeliveryAttempt:
+    (
+        id_,
+        job_id,
+        attempt_n,
+        status,
+        status_code,
+        response_body_snippet,
+        error,
+        error_code,
+        next_retry_at,
+        created_at,
+        completed_at,
+    ) = row
+    return WebhookDeliveryAttempt(
+        id=id_,
+        job_id=job_id,
+        attempt_n=attempt_n,
+        status=status,
+        status_code=status_code,
+        response_body_snippet=response_body_snippet,
+        error=error,
+        error_code=error_code,
+        next_retry_at=next_retry_at,
+        created_at=created_at,
+        completed_at=completed_at,
+    )
+
+
+async def get_latest_attempt(store: JobStore, job_id: str) -> WebhookDeliveryAttempt | None:
+    conn = await store.read()
+    cur = await conn.execute(
+        "SELECT id, job_id, attempt_n, status, status_code, response_body_snippet, "
+        "error, error_code, next_retry_at, created_at, completed_at "
+        "FROM webhook_deliveries WHERE job_id=? ORDER BY attempt_n DESC LIMIT 1",
+        (job_id,),
+    )
+    row = await cur.fetchone()
+    return _row_to_attempt(row) if row else None
+
+
+async def list_attempts_for_job(store: JobStore, job_id: str) -> list[WebhookDeliveryAttempt]:
+    conn = await store.read()
+    cur = await conn.execute(
+        "SELECT id, job_id, attempt_n, status, status_code, response_body_snippet, "
+        "error, error_code, next_retry_at, created_at, completed_at "
+        "FROM webhook_deliveries WHERE job_id=? ORDER BY attempt_n ASC",
+        (job_id,),
+    )
+    rows = await cur.fetchall()
+    return [_row_to_attempt(r) for r in rows]
+
+
+async def create_attempt(
+    store: JobStore, *, job_id: str, attempt_n: int, next_retry_at: str | None
+) -> WebhookDeliveryAttempt:
+    attempt_id = str(uuid4())
+    now = _now()
+    async with store.write() as conn:
+        cur = await conn.execute(
+            "INSERT INTO webhook_deliveries ("
+            "id, job_id, attempt_n, status, status_code, response_body_snippet, error, "
+            "error_code, next_retry_at, created_at, completed_at"
+            ") VALUES (?, ?, ?, 'pending', NULL, NULL, NULL, NULL, ?, ?, NULL) "
+            "RETURNING id, job_id, attempt_n, status, status_code, response_body_snippet, "
+            "error, error_code, next_retry_at, created_at, completed_at",
+            (attempt_id, job_id, attempt_n, next_retry_at, now),
+        )
+        row = await cur.fetchone()
+    assert row is not None
+    return _row_to_attempt(row)
+
+
+async def set_attempt_delivering(store: JobStore, attempt_id: str) -> None:
+    async with store.write() as conn:
+        await conn.execute(
+            "UPDATE webhook_deliveries SET status='delivering' WHERE id=?",
+            (attempt_id,),
+        )
+
+
+async def complete_attempt(
+    store: JobStore,
+    *,
+    attempt_id: str,
+    status: Literal["succeeded", "failed"],
+    status_code: int | None,
+    response_body_snippet: str | None,
+    error: str | None,
+    error_code: str | None,
+    next_retry_at: str | None,
+) -> None:
+    async with store.write() as conn:
+        await conn.execute(
+            "UPDATE webhook_deliveries SET status=?, status_code=?, response_body_snippet=?, "
+            "error=?, error_code=?, next_retry_at=?, completed_at=? WHERE id=?",
+            (
+                status,
+                status_code,
+                response_body_snippet,
+                error,
+                error_code,
+                next_retry_at,
+                _now(),
+                attempt_id,
+            ),
         )

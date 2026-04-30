@@ -22,6 +22,28 @@ curl http://127.0.0.1:8700/health
 # → {"status":"ok"}
 ```
 
+Fill `API_KEYS` (and optionally `ADMIN_API_KEYS`) in `.env` before calling authenticated routes.
+
+### MinIO web UI and host ports (dev)
+
+With the example override, MinIO is reachable on the loopback interface:
+
+- **Console:** `http://127.0.0.1:9101` — sign in with `MINIO_ROOT_USER` / `MINIO_ROOT_PASSWORD` from `.env`, open bucket **`image-gen`**, browse **`generations/`** to see uploaded PNGs.
+- **S3 API on host:** `http://127.0.0.1:9100` (for `aws s3`, MinIO Client, etc.).
+
+If ports **9100** / **9101** are already taken, set `MINIO_HOST_PORT` and `MINIO_CONSOLE_HOST_PORT` in `.env`, then `docker compose up -d` again. Use `MINIO_BIND=0.0.0.0` only if you intentionally want LAN exposure (not recommended on untrusted networks).
+
+### Higher-quality smoke request (optional)
+
+After `API_KEYS` is set, generate a fuller SDXL image and open the returned URL in a browser (same Bearer token):
+
+```bash
+curl -sS -X POST http://127.0.0.1:8700/v1/images/generations \
+  -H "Authorization: Bearer REPLACE_WITH_FIRST_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"noobai-xl-v1.1","prompt":"cinematic landscape at golden hour, volumetric light, detailed","size":"1024x1024","steps":28,"cfg":5.0,"seed":42}' | jq .
+```
+
 ## Run tests locally
 
 ```bash

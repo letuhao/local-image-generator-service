@@ -3,10 +3,12 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import re
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Literal
+from urllib.parse import urlparse
 
 import structlog
 from pydantic import BaseModel, ConfigDict, Field
@@ -85,12 +87,26 @@ class LoraSpec(BaseModel):
     weight: float = Field(ge=-2.0, le=2.0)
 
 
-class GenerateRequest(BaseModel):
-    """Pydantic validation of the POST /v1/images/generations body per arch §6.0.
+_RESERVED_WEBHOOK_HEADERS = {
+    "host",
+    "authorization",
+    "content-type",
+    "user-agent",
+}
+_WEBHOOK_HEADER_KEY_RE = re.compile(r"^[A-Za-z0-9\-_]{1,64}$")
 
-    `extra="forbid"` → unknown fields (webhook — Cycle 9) are rejected now so
-    callers can't silently lose data once that lands.
-    """
+
+class WebhookSpec(BaseModel):
+    """Optional caller-supplied webhook destination + passthrough headers."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    url: str = Field(min_length=1, max_length=2048)
+    headers: dict[str, str] | None = Field(default=None, max_length=10)
+
+
+class GenerateRequest(BaseModel):
+    """Pydantic validation of the POST /v1/images/generations body per arch §6.0."""
 
     model_config = ConfigDict(extra="forbid", populate_by_name=True)
 
@@ -109,6 +125,7 @@ class GenerateRequest(BaseModel):
     response_format: Literal["url", "b64_json"] = "url"
     mode: Literal["sync", "async"] = "sync"
     loras: list[LoraSpec] | None = Field(default=None, max_length=20)
+    webhook: WebhookSpec | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -129,6 +146,8 @@ class ValidatedJob:
     scheduler: str
     response_format: Literal["url", "b64_json"]
     mode: Literal["sync", "async"]
+    webhook_url: str | None = None
+    webhook_headers: dict[str, str] | None = None
     loras: tuple[ResolvedLoraRef, ...] = field(default=())
 
 
@@ -237,6 +256,43 @@ def resolve_and_validate(
             message="mode=async requires ASYNC_MODE_ENABLED=true",
         )
 
+    webhook_url: str | None = None
+    webhook_headers: dict[str, str] | None = None
+    if req.webhook is not None:
+        parsed = urlparse(req.webhook.url)
+        if parsed.scheme not in {"http", "https"}:
+            raise ValidationFailureError(
+                error_code="validation_error",
+                message="webhook.url must use http or https",
+            )
+        if not parsed.hostname:
+            raise ValidationFailureError(
+                error_code="validation_error",
+                message="webhook.url must include a host",
+            )
+        webhook_url = req.webhook.url
+        if req.webhook.headers:
+            normalized: dict[str, str] = {}
+            for k, v in req.webhook.headers.items():
+                lk = k.lower()
+                if lk in _RESERVED_WEBHOOK_HEADERS or lk.startswith("x-imagegen-"):
+                    raise ValidationFailureError(
+                        error_code="validation_error",
+                        message=f"webhook.headers key {k!r} is reserved",
+                    )
+                if not _WEBHOOK_HEADER_KEY_RE.match(k):
+                    raise ValidationFailureError(
+                        error_code="validation_error",
+                        message=f"webhook.headers key {k!r} has invalid characters",
+                    )
+                if len(v) > 256:
+                    raise ValidationFailureError(
+                        error_code="validation_error",
+                        message=f"webhook.headers key/value length invalid for {k!r}",
+                    )
+                normalized[k] = v
+            webhook_headers = normalized
+
     # 7. LoRA resolution: realpath-contain each reference under LORAS_ROOT, then
     #    confirm the .safetensors exists on disk. Realpath resolution catches
     #    symlink-escape attempts (e.g. a dev drops a symlink under ./loras/ that
@@ -291,6 +347,8 @@ def resolve_and_validate(
         scheduler=scheduler,
         response_format=req.response_format,
         mode=req.mode,
+        webhook_url=webhook_url,
+        webhook_headers=webhook_headers,
         loras=resolved_loras,
     )
 

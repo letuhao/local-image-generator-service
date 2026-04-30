@@ -32,8 +32,8 @@
 - [x] **Cycle 6** — Civitai fetcher with 11-rule hardening (host allowlist, SHA-256, lock, admin scope, audit) — Sprint 9
 
 ### Expanding capability
-- [ ] **Cycle 7** — Chroma1-HD model #2 (GGUF custom nodes, dual-source anchors, VRAM guard, model unload on swap)
-- [ ] **Cycle 8** — Async mode + poll endpoint (feature-flagged)
+- [x] **Cycle 7** — Chroma1-HD model #2 (GGUF custom nodes, dual-source anchors, VRAM guard, model unload on swap) — Sprint 10
+- [x] **Cycle 8** — Async mode + poll endpoint (feature-flagged) — Sprint 11
 
 ### Push notifications
 - [ ] **Cycle 9** — Webhook dispatcher with full v0.4 hardening (DNS pinning, IP-range, no-redirect, HMAC+ts, multi-secret, TOCTOU, barrier)
@@ -55,10 +55,10 @@
 | 2 | ComfyUI sidecar + adapter + NoobAI workflow | L→**XL** (actual 23) | 23 | 3+ | [x] Sprint 5 |
 | 3 | MinIO gateway + first sync endpoint | M→**L** (actual 18) | 18 | 4+ | [x] Sprint 6 |
 | 4 | Queue + disconnect + reaper + restart recovery | M→**L** (actual 14) | 14 | 8, 9 | [x] Sprint 7 |
-| 5 | LoRA local + graph injection | L | 8 | 6 | [ ] |
-| 6 | Civitai fetcher hardened | L | 5 | — | [ ] |
-| 7 | Chroma model #2 | M | 4 | — | [ ] |
-| 8 | Async mode + polling | M | 3 | 9 | [ ] |
+| 5 | LoRA local + graph injection | L | 8 | 6 | [x] Sprint 8 |
+| 6 | Civitai fetcher hardened | L | 5 | — | [x] Sprint 9 |
+| 7 | Chroma model #2 | M | 4 | — | [x] Sprint 10 |
+| 8 | Async mode + polling | M | 3 | 9 | [x] Sprint 11 |
 | 9 | Webhook dispatcher | XL | 9 | — | [ ] |
 | 10 | Startup validation + smoke test | M | 4 | — | [ ] |
 | 11 | LoreWeave integration-guide PR | S | 1 (external repo) | — | [ ] |

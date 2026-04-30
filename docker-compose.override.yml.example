@@ -14,7 +14,8 @@ services:
 
   minio:
     ports:
-      # Host 9100/9101 to avoid clashing with other MinIO instances on 9000/9001.
-      # Container-internal port stays 9000 so S3_INTERNAL_ENDPOINT works unchanged.
-      - "127.0.0.1:9100:9000"     # S3 API  → http://127.0.0.1:9100
-      - "127.0.0.1:9101:9001"     # Console → http://127.0.0.1:9101
+      # Host ports are configurable via .env (defaults avoid clashing with other
+      # MinIO stacks on 9000/9001). Container-internal ports stay 9000/9001 so
+      # S3_INTERNAL_ENDPOINT=http://minio:9000 inside the network is unchanged.
+      - "${MINIO_BIND:-127.0.0.1}:${MINIO_HOST_PORT:-9100}:9000" # S3 API
+      - "${MINIO_BIND:-127.0.0.1}:${MINIO_CONSOLE_HOST_PORT:-9101}:9001" # Web console

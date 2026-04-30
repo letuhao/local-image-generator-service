@@ -40,7 +40,7 @@ class ModelConfig:
     vram_estimate_gb: float
     clip_l: str | None = None  # optional secondary text encoder (e.g. FLUX/Chroma)
     t5xxl: str | None = None  # optional T5 text encoder (e.g. FLUX/Chroma)
-    dual_clip_type: str | None = None  # DualCLIPLoader clip_type, e.g. "chroma"
+    dual_clip_type: str | None = None  # DualCLIPLoader type; Chroma HD uses "flux"
     # "eps" | "vpred" — informational in Cycle 3; Cycle 5+ uses it for graph injection.
     prediction: Literal["eps", "vpred"] = "eps"
     capabilities: dict[str, Any] = field(default_factory=dict)  # e.g. {"image_gen": True}

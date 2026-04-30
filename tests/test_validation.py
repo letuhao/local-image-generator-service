@@ -122,10 +122,12 @@ def test_unknown_field_rejected() -> None:
         GenerateRequest.model_validate(_body(frobnicate=True))
 
 
-def test_webhook_field_rejected() -> None:
-    """Cycle 9 will enable; Cycle 3 rejects."""
-    with pytest.raises(ValidationError):
-        GenerateRequest.model_validate(_body(webhook={"url": "https://x"}))
+def test_webhook_field_accepted() -> None:
+    req = GenerateRequest.model_validate(
+        _body(webhook={"url": "https://receiver.example/webhooks/image-gen"})
+    )
+    assert req.webhook is not None
+    assert req.webhook.url.startswith("https://")
 
 
 def test_loras_field_accepted() -> None:
@@ -218,6 +220,53 @@ def test_mode_async_allowed_when_flag_on(registry: Registry, tmp_path: Any) -> N
     req = GenerateRequest.model_validate(_body(mode="async"))
     job = resolve_and_validate(req, registry=registry, async_mode_enabled=True, loras_root=tmp_path)
     assert job.mode == "async"
+
+
+def test_webhook_resolves_into_validated_job(registry: Registry, tmp_path: Any) -> None:
+    req = GenerateRequest.model_validate(
+        _body(
+            mode="async",
+            webhook={
+                "url": "https://receiver.example/v1/webhooks/image-gen",
+                "headers": {"X-Tenant": "tenant-a"},
+            },
+        )
+    )
+    job = resolve_and_validate(req, registry=registry, async_mode_enabled=True, loras_root=tmp_path)
+    assert job.webhook_url == "https://receiver.example/v1/webhooks/image-gen"
+    assert job.webhook_headers == {"X-Tenant": "tenant-a"}
+
+
+def test_webhook_reserved_header_rejected(registry: Registry, tmp_path: Any) -> None:
+    req = GenerateRequest.model_validate(
+        _body(
+            mode="async",
+            webhook={
+                "url": "https://receiver.example/v1/webhooks/image-gen",
+                "headers": {"Authorization": "Bearer nope"},
+            },
+        )
+    )
+    with pytest.raises(ValidationFailureError) as exc:
+        resolve_and_validate(req, registry=registry, async_mode_enabled=True, loras_root=tmp_path)
+    assert exc.value.error_code == "validation_error"
+    assert "reserved" in exc.value.message
+
+
+def test_webhook_header_invalid_key_rejected(registry: Registry, tmp_path: Any) -> None:
+    req = GenerateRequest.model_validate(
+        _body(
+            mode="async",
+            webhook={
+                "url": "https://receiver.example/v1/webhooks/image-gen",
+                "headers": {"Bad Header": "x"},
+            },
+        )
+    )
+    with pytest.raises(ValidationFailureError) as exc:
+        resolve_and_validate(req, registry=registry, async_mode_enabled=True, loras_root=tmp_path)
+    assert exc.value.error_code == "validation_error"
+    assert "invalid characters" in exc.value.message
 
 
 def test_allowed_sampler_scheduler_sets_sane_defaults() -> None:

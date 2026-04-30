@@ -114,6 +114,10 @@ class QueueWorker:
         await self._queue.put(_WorkerItem(job, fut))
         return fut
 
+    async def enqueue_detached(self, job: Job) -> None:
+        """Pure-async POST path: worker runs the pipeline with no handler Future."""
+        await self._queue.put(_WorkerItem(job, None))
+
     async def enqueue_recovery(self, job: Job) -> None:
         """Boot recovery path: no future, no handler waiting. Uses blocking put
         so asyncio.Queue capacity is honored. Worker task MUST be consuming

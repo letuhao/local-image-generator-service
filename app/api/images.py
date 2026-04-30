@@ -17,10 +17,12 @@ from app.backends.base import (
     ComfyUnreachableError,
 )
 from app.queue.jobs import (
+    Job,
     count_active,
     create_queued,
     get_by_id,
     mark_async_with_handover,
+    mark_initial_response_delivered,
     mark_response_delivered,
     set_fetched,
 )
@@ -112,11 +114,26 @@ async def create_image(
 
     # 4. Persist job.
     db_job = await create_queued(
-        store, model_name=body.model, input_json=json.dumps(raw), mode=body.mode
+        store,
+        model_name=body.model,
+        input_json=json.dumps(raw),
+        mode=body.mode,
+        webhook_url=validated.webhook_url,
+        webhook_headers=validated.webhook_headers,
     )
 
-    # 5. Enqueue + get future.
+    # 5. Pure async — return 202 immediately; worker runs without a waiter Future.
     worker = request.app.state.worker
+    if body.mode == "async":
+        await worker.enqueue_detached(db_job)
+        background_tasks.add_task(mark_initial_response_delivered, store, db_job.id)
+        return JSONResponse(
+            status_code=202,
+            content={"id": db_job.id, "status": "processing"},
+            headers={"X-Job-Id": db_job.id},
+            background=background_tasks,
+        )
+
     fut = await worker.enqueue(db_job)
 
     # 6. Disconnect watcher side-task.
@@ -154,6 +171,37 @@ async def create_image(
         headers={"X-Job-Id": db_job.id},
         background=background_tasks,
     )
+
+
+def _poll_body(job: Job) -> dict:
+    """Shape for `GET /v1/images/generations/{id}` per arch §6.3."""
+    wh = job.webhook_delivery_status
+    base: dict = {"id": job.id, "status": job.status, "webhook_delivery_status": wh}
+    if job.status == "completed":
+        parsed = json.loads(job.result_json) if job.result_json else {}
+        base["data"] = parsed.get("data", [])
+        return base
+    if job.status in ("failed", "abandoned"):
+        base["error"] = {
+            "code": job.error_code or job.status,
+            "message": job.error_message or "",
+        }
+        return base
+    return base
+
+
+@router.get("/v1/images/generations/{job_id}")
+async def get_generation_status(
+    job_id: str,
+    request: Request,
+    kid: str = Depends(require_auth),
+) -> JSONResponse:
+    """Poll async (or inspect sync) jobs — arch §6.3."""
+    store = request.app.state.store
+    job = await get_by_id(store, job_id)
+    if job is None:
+        return _error(404, "not_found", "unknown job id")
+    return JSONResponse(status_code=200, content=_poll_body(job))
 
 
 @router.api_route("/v1/images/{job_id}/{index_name}", methods=["GET", "HEAD"])

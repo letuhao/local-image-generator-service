@@ -15,6 +15,7 @@ from app.api.health import router as health_router
 from app.api.images import router as images_router
 from app.api.loras import router as loras_router
 from app.api.models import router as models_router
+from app.api.admin import router as admin_router
 from app.auth import load_keyset_from_env
 from app.backends.comfyui import ComfyUIAdapter
 from app.errors import install_error_envelope
@@ -28,6 +29,7 @@ from app.queue.store import JobStore
 from app.queue.worker import QueueWorker
 from app.registry.models import load_registry
 from app.storage.s3 import S3Config, S3Storage
+from app.webhooks.dispatcher import WebhookDispatcher
 
 log = structlog.get_logger(__name__)
 
@@ -116,6 +118,15 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.reaper = reaper
     app.state.reaper_task = asyncio.create_task(reaper.run(), name="orphan-reaper")
 
+    webhook_http = httpx.AsyncClient()
+    webhook_dispatcher = WebhookDispatcher(store=store, http_client=webhook_http)
+    app.state.webhook_http = webhook_http
+    app.state.webhook_dispatcher = webhook_dispatcher
+    app.state.webhook_dispatcher_task = asyncio.create_task(
+        webhook_dispatcher.run(),
+        name="webhook-dispatcher",
+    )
+
     # Recovery scan. Worker + reaper are already spawned above.
     recovery_stats = await recover_jobs(store, worker)
 
@@ -164,11 +175,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         # Cycle 6: cancel fetcher first so its per-version locks release before
         # store.close() rips the DB connection.
         await fetcher.close()
-        try:
-            await fetcher_http.aclose()
-        except Exception as exc:
-            log.warning("fetcher_http.close_failed", error=str(exc))
-        for task_attr in ("reaper_task", "worker_task"):
+        for task_attr in ("reaper_task", "worker_task", "webhook_dispatcher_task"):
             task = getattr(app.state, task_attr, None)
             if task is not None and not task.done():
                 task.cancel()
@@ -176,6 +183,14 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
                     await task
                 except asyncio.CancelledError:
                     pass
+        try:
+            await fetcher_http.aclose()
+        except Exception as exc:
+            log.warning("fetcher_http.close_failed", error=str(exc))
+        try:
+            await webhook_http.aclose()
+        except Exception as exc:
+            log.warning("webhook_http.close_failed", error=str(exc))
         await adapter.close()
         await store.close()
 
@@ -194,6 +209,7 @@ app.include_router(health_router)
 app.include_router(images_router)
 app.include_router(models_router)
 app.include_router(loras_router)
+app.include_router(admin_router)
 
 # RequestContextMiddleware added LAST so it wraps everything (outermost layer).
 app.add_middleware(RequestContextMiddleware)
