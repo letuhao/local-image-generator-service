@@ -123,6 +123,32 @@ curl -sS http://127.0.0.1:8700/v1/catalog/presets/terrain-53858-v1 \
 Flux-family models now appear in discovery endpoints with `family: "flux"` while
 using the same universal generation payload shape as SDXL models.
 
+### FLUX.2 Dev (GGUF UNet + Mistral TE)
+
+Registry model **`flux2-dev-q4-gguf`** uses **`workflows/flux2_dev_gguf.json`**: **`UnetLoaderGGUF`** + native **`CLIPLoader`** (`type: **flux2**`) + **`VAELoader`**. It expects:
+
+| Artifact | Put under `./models/` |
+|----------|------------------------|
+| Quantized UNet (`flux2-dev-Q4_K_S.gguf` from [city96/FLUX.2-dev-GGUF](https://huggingface.co/city96/FLUX.2-dev-GGUF)) | **`unet/`** (or **`diffusion_models/`** — both are scanned for GGUF UNets) |
+| Text encoder **`mistral_3_small_flux2_fp8.safetensors`** ([Comfy-Org bundle](https://huggingface.co/Comfy-Org/flux2-dev/tree/main/split_files/text_encoders)) | **`text_encoders/`** |
+| **`flux2-vae.safetensors`** ([same bundle, `split_files/vae`](https://huggingface.co/Comfy-Org/flux2-dev/tree/main/split_files/vae)) | **`vae/`** |
+
+Requires **recent ComfyUI** (CLIP `flux2` type) and **[ComfyUI-GGUF](https://github.com/city96/ComfyUI-GGUF)** in the sidecar. **`capabilities.skip_startup_smoke`** is set so boot does not run a GPU smoke on this lane.
+
+The registry snippet lives in **`docs/snippets/models-flux2-dev.fragment.yaml`**. Append it under **`models:`** in **`config/models.yaml`** once the files exist (keeping YAML indentation). Leaving it unmerged avoids failing startup validation when weights are absent.
+
+Example:
+
+```bash
+curl -sS -X POST http://127.0.0.1:8700/v1/images/generations/binary \
+  -H "Authorization: Bearer REPLACE_WITH_FIRST_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d "{\"model\":\"flux2-dev-q4-gguf\",\"prompt\":\"fantasy strategy map tile, marble plaza, painterly HoMM readability\",\"size\":\"1024x1024\",\"steps\":28,\"cfg\":1.0,\"sampler\":\"euler\",\"scheduler\":\"simple\",\"seed\":404}" \
+  --output flux2_smoke.png
+```
+
+Optional preset YAML: **`docs/snippets/preset-flux2-dev.fragment.yaml`** — merge into **`config/presets/catalog.yaml`** after the model appears in **`models.yaml`**.
+
 ### Flux Dev GGUF (Q8) — workflow and sampler defaults
 
 Flux GGUF models (`flux1-dev-q8`, `flux1-dev-q8-tree`, …) use **`workflows/flux_gguf.json`**

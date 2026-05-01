@@ -38,9 +38,10 @@ class ModelConfig:
     checkpoint: str  # relative to models/ (e.g. "checkpoints/NoobAI-XL-v1.1.safetensors")
     vae: str | None  # None = use checkpoint's baked-in VAE
     vram_estimate_gb: float
-    clip_l: str | None = None  # optional secondary text encoder (e.g. FLUX/Chroma)
-    t5xxl: str | None = None  # optional T5 text encoder (e.g. FLUX/Chroma)
-    dual_clip_type: str | None = None  # DualCLIPLoader type; Chroma HD uses "flux"
+    clip_l: str | None = None  # DualCLIP clip_name1 or CLIPLoader clip_name (e.g. FLUX / FLUX.2 TE)
+    t5xxl: str | None = None  # DualCLIP clip_name2 (e.g. T5 for FLUX.1)
+    dual_clip_type: str | None = None  # DualCLIPLoader type (e.g. "flux"); unused for CLIPLoader graphs
+    clip_loader_type: str | None = None  # CLIPLoader type (e.g. "flux2") when workflow uses CLIPLoader
     # Runtime family marker used for workflow/validation branching while keeping
     # a universal client payload contract.
     family: Literal["sdxl", "flux"] = "sdxl"

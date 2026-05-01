@@ -175,6 +175,16 @@ def inject_model_source(graph: dict[str, dict], *, model_cfg) -> None:
         clip_inputs["clip_name2"] = _basename(model_cfg.t5xxl)
         if model_cfg.dual_clip_type:
             clip_inputs["type"] = model_cfg.dual_clip_type
+    elif clip_class == "CLIPLoader":
+        if not model_cfg.clip_l:
+            raise WorkflowValidationError("inject_model_source: CLIPLoader requires clip_l")
+        clip_inputs["clip_name"] = _basename(model_cfg.clip_l)
+        te_type = (model_cfg.clip_loader_type or "").strip()
+        if not te_type:
+            raise WorkflowValidationError(
+                "inject_model_source: CLIPLoader requires clip_loader_type (e.g. flux2)"
+            )
+        clip_inputs["type"] = te_type
 
     # Optional external VAE loader(s).
     if model_cfg.vae:

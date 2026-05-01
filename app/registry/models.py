@@ -57,6 +57,7 @@ def _parse_entry(raw: dict) -> ModelConfig:
         clip_l=raw.get("clip_l"),
         t5xxl=raw.get("t5xxl"),
         dual_clip_type=raw.get("dual_clip_type"),
+        clip_loader_type=raw.get("clip_loader_type"),
         family=raw.get("family", "sdxl"),
         vram_estimate_gb=float(raw["vram_estimate_gb"]),
         prediction=raw.get("prediction", "eps"),

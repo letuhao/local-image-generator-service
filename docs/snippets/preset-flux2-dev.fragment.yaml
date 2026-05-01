@@ -1,0 +1,26 @@
+# After merging docs/snippets/models-flux2-dev.fragment.yaml into models.yaml,
+# append this preset under `presets:` in config/presets/catalog.yaml.
+
+  - id: flux2-dev-asset-smoke-v1
+    version: 0.1.0
+    asset_type: concept_art
+    status: draft
+    confirmed: false
+    description: >-
+      Draft preset for FLUX.2 Dev (flux2-dev-q4-gguf).
+    bundle:
+      model: flux2-dev-q4-gguf
+      loras: []
+    generation_defaults:
+      size: "1024x1024"
+      steps: 28
+      cfg: 1.0
+      sampler: euler
+      scheduler: simple
+      seed: 404
+      runtime_mode: auto
+    supported_asset_types:
+      - concept_art
+    variables_schema:
+      - name: subject
+        required: true

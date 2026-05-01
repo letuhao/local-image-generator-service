@@ -1,0 +1,31 @@
+# Paste under `models:` in config/models.yaml (or merge into your registry YAML)
+# after downloading artifacts listed in README § FLUX.2 Dev.
+#
+#   mistral_3_small_flux2_fp8.safetensors → models/text_encoders/
+#   flux2-vae.safetensors                 → models/vae/
+#   flux2-dev-Q4_K_S.gguf                 → models/unet/   (city96/FLUX.2-dev-GGUF)
+
+  - name: flux2-dev-q4-gguf
+    backend: comfyui
+    family: flux
+    workflow: workflows/flux2_dev_gguf.json
+    checkpoint: unet/flux2-dev-Q4_K_S.gguf
+    prediction: eps
+    vae: vae/flux2-vae.safetensors
+    clip_l: text_encoders/mistral_3_small_flux2_fp8.safetensors
+    clip_loader_type: flux2
+    capabilities:
+      image_gen: true
+      skip_startup_smoke: true
+    defaults:
+      size: "1024x1024"
+      steps: 28
+      cfg: 1.0
+      sampler: euler
+      scheduler: simple
+      negative_prompt: ""
+    limits:
+      steps_max: 60
+      n_max: 2
+      size_max_pixels: 2621440
+    vram_estimate_gb: 14

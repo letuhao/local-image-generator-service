@@ -17,14 +17,16 @@ FROM nvidia/cuda:12.4.1-runtime-ubuntu22.04 AS base
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1
+    PIP_NO_CACHE_DIR=0
 
 # Python 3.11 + git (to clone custom nodes) + curl (healthcheck) + libgl1 (cv2 runtime).
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# BuildKit cache mounts keep apt package indexes/artifacts between rebuilds.
+RUN --mount=type=cache,id=comfy-apt-cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,id=comfy-apt-lists,target=/var/lib/apt/lists,sharing=locked \
+    apt-get update && apt-get install -y --no-install-recommends \
       python3.11 python3.11-venv python3.11-dev python3-pip \
       git curl ca-certificates libgl1 libglib2.0-0 && \
-    update-alternatives --install /usr/bin/python python /usr/bin/python3.11 1 && \
-    rm -rf /var/lib/apt/lists/*
+    update-alternatives --install /usr/bin/python python /usr/bin/python3.11 1
 
 # uv — matches host pin. Copy both binaries the uv image ships (`uv` and `uvx`).
 COPY --from=ghcr.io/astral-sh/uv:0.9.11 /uv /uvx /usr/local/bin/
@@ -48,8 +50,10 @@ RUN git clone https://github.com/city96/ComfyUI-GGUF.git && \
     git checkout ${COMFYUI_GGUF_REF}
 
 # Install deps into a shared venv via uv (faster than pip).
+# Cache mount avoids re-downloading torch/cuda wheels on rebuilds.
 WORKDIR /workspace/ComfyUI
-RUN uv venv /workspace/.venv --python 3.11 && \
+RUN --mount=type=cache,id=comfy-uv-cache,target=/home/comfy/.cache/uv,uid=1000,gid=1000 \
+    uv venv /workspace/.venv --python 3.11 && \
     uv pip install --python /workspace/.venv/bin/python -r requirements.txt && \
     uv pip install --python /workspace/.venv/bin/python -r custom_nodes/ComfyUI-GGUF/requirements.txt
 

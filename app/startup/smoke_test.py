@@ -107,9 +107,13 @@ async def run_registry_smoke_tests(
     loras_root,
     timeout_s: float = 120.0,
 ) -> None:
-    names = registry.names()
+    names = [
+        n
+        for n in registry.names()
+        if not (registry.get(n).capabilities or {}).get("skip_startup_smoke")
+    ]
     if not names:
-        raise StartupSmokeError("registry has no models for smoke test")
+        raise StartupSmokeError("registry has no models eligible for startup smoke")
     overall_deadline = time.monotonic() + timeout_s
     for index, model_name in enumerate(names):
         remaining = overall_deadline - time.monotonic()

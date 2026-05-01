@@ -54,6 +54,7 @@ async def test_catalog_presets_endpoints(client: AsyncClient) -> None:
     data = listing.json()["data"]
     preset_ids = {p["id"] for p in data}
     assert "terrain-53858-v1" in preset_ids
+    assert "flux-terrain-tile-draft-v1" in preset_ids
     p = next(p for p in data if p["id"] == "terrain-53858-v1")
     assert p["confirmed"] is True
 

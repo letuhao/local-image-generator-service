@@ -52,3 +52,87 @@ presets:
         required: true
       - name: palette
         required: false
+
+  # Three Flux lanes for distinct asset taxonomy (HoMM-style packs): ground vs landmark vs vegetation.
+  - id: flux-terrain-tile-draft-v1
+    version: 0.1.0
+    asset_type: terrain_tile
+    status: draft
+    confirmed: false
+    description: Seamless top-down terrain / ground tiles; FLUX.1 Dev GGUF with neutral negatives (full-bleed ground).
+    bundle:
+      model: flux1-dev-q8
+      loras:
+        - name: flux/FluxMythV2
+          weight: 0.5
+    generation_defaults:
+      size: "1024x1024"
+      steps: 24
+      cfg: 1.0
+      sampler: euler
+      scheduler: simple
+      seed: 303
+      runtime_mode: auto
+    supported_asset_types:
+      - terrain_tile
+    variables_schema:
+      - name: terrain_surface
+        required: true
+      - name: biome_mood
+        required: false
+
+  - id: flux-structure-sprite-draft-v1
+    version: 0.1.0
+    asset_type: structure_sprite
+    status: draft
+    confirmed: false
+    description: Isolated landmarks and structures (single readable silhouette); tree-tuned negatives reduce ground bleed.
+    bundle:
+      model: flux1-dev-q8-tree
+      loras:
+        - name: flux/FluxMythV2
+          weight: 0.55
+    generation_defaults:
+      size: "1024x1024"
+      steps: 24
+      cfg: 1.0
+      sampler: euler
+      scheduler: simple
+      seed: 404
+      runtime_mode: auto
+      background: transparent
+    supported_asset_types:
+      - structure_sprite
+    variables_schema:
+      - name: structure_subject
+        required: true
+      - name: readability_notes
+        required: false
+
+  - id: flux-flora-sprite-draft-v1
+    version: 0.1.0
+    asset_type: flora_sprite
+    status: draft
+    confirmed: false
+    description: Bushes, fungi, flowers, and small flora props as isolated sprites; same tree bundle as structures with lighter LoRA blend.
+    bundle:
+      model: flux1-dev-q8-tree
+      loras:
+        - name: flux/FluxMythV2
+          weight: 0.42
+    generation_defaults:
+      size: "1024x1024"
+      steps: 24
+      cfg: 1.0
+      sampler: euler
+      scheduler: simple
+      seed: 505
+      runtime_mode: auto
+      background: transparent
+    supported_asset_types:
+      - flora_sprite
+    variables_schema:
+      - name: plant_subject
+        required: true
+      - name: seasonal_palette
+        required: false
