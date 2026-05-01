@@ -3,7 +3,7 @@
 Any row in pending|downloading|verifying at process start is a leftover from
 a crashed previous run. We flip each to `failed{service_restarted, handover=true}`
 so the poll endpoint surfaces a clean terminal state to the caller. Partial
-`.safetensors.tmp` files under `./loras/civitai/` get unlinked.
+`.safetensors.tmp` files under `<LORAS_ROOT>/civitai/` get unlinked.
 
 Spec decision Q4: handover, no resume. Caller retries the original fetch URL.
 """

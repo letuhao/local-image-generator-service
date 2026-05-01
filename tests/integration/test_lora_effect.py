@@ -2,14 +2,14 @@
 
 Prereqs:
     docker compose up -d                 # all three services healthy
-    At least one addressable LoRA present in ./loras/ (any subdir OK).
+    At least one addressable LoRA present in models/loras/ (any subdir OK).
     uv run pytest -m integration -q tests/integration/test_lora_effect.py
 
 Strategy: same model + same seed, twice — once plain, once with a LoRA at
 strength 0.8. Assert the resulting PNG bytes hash differ. Even a light-touch
 LoRA changes enough pixels for SHA-256 to diverge at seed-level determinism.
 
-If `./loras/` is empty or holds no addressable entries, the test self-skips
+If `models/loras/` is empty or holds no addressable entries, the test self-skips
 with a message pointing at the scanner output.
 """
 
@@ -61,12 +61,12 @@ def _all_healthy() -> bool:
 
 @pytest.fixture(scope="module")
 def fixture_lora_name() -> str:
-    """Pick the first addressable LoRA from ./loras/. Skip if none.
+    """Pick the first addressable LoRA from models/loras/. Skip if none.
 
     Scanner sorts by name deterministically; tests stay reproducible across runs
     even as the user adds/removes LoRAs (first-alphabetically is stable as long
     as the first entry exists)."""
-    loras_root = REPO_ROOT / "loras"
+    loras_root = REPO_ROOT / "models" / "loras"
     metas = scan_loras(loras_root)
     addressable = [m for m in metas if m.addressable]
     if not addressable:

@@ -1,0 +1,148 @@
+{
+  "_readme": "Misc props lane: small map clutter without creatures. Same runner as HoMM bundles; outputs under biome/misc/. Filenames include WxH.",
+  "lane": "misc",
+  "model": "flux1-dev-q8-tree",
+  "size": "1024x1024",
+  "steps": 28,
+  "cfg": 1.0,
+  "sampler": "euler",
+  "scheduler": "simple",
+  "transparent_background": true,
+  "loras": [
+    {
+      "name": "flux/dark_fantasy_digital_v11",
+      "weight": 0.8
+    }
+  ],
+  "seeds": [101, 202, 303],
+  "prompt_template": "isometric 2.5D fantasy strategy map clutter prop, single centered cluster {subject}, Heroes of Might and Magic III inspired hand-painted readability, isolated object, white neutral backdrop for alpha extraction, no riders no crews no creatures, biome accent cues only as material tint not backdrop scenery: {biome_hint}",
+  "negative_prompt": "blurry, soft focus, oversharpen, noisy texture, seamless terrain tile panorama, aerial satellite, grass carpet ground, person, human, character, face, dragon, mounted unit, army, soldier, civilian, watermark, logo, text",
+  "biomes": [
+    {
+      "id": "grassland_temperate",
+      "hint": "temperate grassland palette, weathered pine posts, faded rope hemp"
+    },
+    {
+      "id": "swamp_dark",
+      "hint": "dark swamp palette, mildew stained rope, corroded iron nails green tint"
+    },
+    {
+      "id": "snow_frost",
+      "hint": "cold snow biome palette, frost rimmed timber, muted frozen rope ice glaze"
+    },
+    {
+      "id": "glacier_alpine",
+      "hint": "high glacier palette, pale hoarfrost timber, dull worn bronze fittings"
+    },
+    {
+      "id": "desert_dry",
+      "hint": "arid desert palette, bleached cracked planks, bone pale rope tones"
+    },
+    {
+      "id": "volcanic_ash",
+      "hint": "volcanic ash biome palette, soot streaked poles, rust stained nails"
+    },
+    {
+      "id": "infernal_wastes",
+      "hint": "infernal hostile palette, charred stakes, faint heated rivets dull glow"
+    },
+    {
+      "id": "enchanted_arcane",
+      "hint": "enchanted fantasy palette, faint arcane notch marks on timber, violet soot streak"
+    },
+    {
+      "id": "coastal_water",
+      "hint": "coastal palette, salt streaked driftwood pegs, teal corroded lantern rim"
+    },
+    {
+      "id": "spectral_ethereal",
+      "hint": "spectral palette, faint luminous chalk dust on rope frays translucent residue stains on wooden pegs"
+    },
+    {
+      "id": "necropolis_blight",
+      "hint": "necropolis palette, frayed burial cord mildew tomb wax drips corroded urn shard peg weights"
+    },
+    {
+      "id": "ocean_abyssal",
+      "hint": "abyssal palette, coral grit peg stands kelp twine binds barnacle flake crust on stakes"
+    },
+    {
+      "id": "drake_badlands",
+      "hint": "drake palette, claw gouged timber pegs hoard nail brass verdigris flakes heat tempered spike accents"
+    },
+    {
+      "id": "heaven_cloud",
+      "hint": "celestial palette, pearl chalk stained hemp cords gilt nail caps faint luminous fray wisps on pegs fantasy"
+    },
+    {
+      "id": "abyss_chaos_rift",
+      "hint": "chaos cavern palette, angular chipped stakes violet ooze streaks dripping condensation stained rope binds fantasy"
+    }
+  ],
+  "misc_entries": [
+    {
+      "id": "signpost_direction_cluster",
+      "prompt_subject": "three wooden directional signposts clustered arrows carved readable silhouettes fantasy road junction clutter",
+      "asset_summary": "Cluster of directional wooden signposts.",
+      "asset_tags": ["misc", "sign", "navigation"],
+      "composition": "single_tile",
+      "category": "navigation"
+    },
+    {
+      "id": "lantern_post_double",
+      "prompt_subject": "twin hanging lanterns on timber pole bracket fantasy settlement clutter isolated prop",
+      "asset_summary": "Dual lantern pole street clutter.",
+      "asset_tags": ["misc", "light", "pole"],
+      "composition": "single_tile",
+      "category": "lighting"
+    },
+    {
+      "id": "haystack_pitchfork_prop",
+      "prompt_subject": "small hay mound with leaning wooden pitchfork fantasy farm clutter isolated prop",
+      "asset_summary": "Hay mound with pitchfork prop.",
+      "asset_tags": ["misc", "farm", "hay"],
+      "composition": "single_tile",
+      "category": "farm"
+    },
+    {
+      "id": "abandoned_cart_no_animals",
+      "prompt_subject": "broken wooden wheel cart tipped axle fantasy abandoned wagon clutter empty shafts no harness animals no riders",
+      "asset_summary": "Abandoned tipped cart without creatures.",
+      "asset_tags": ["misc", "cart", "farm"],
+      "composition": "single_tile",
+      "category": "transport"
+    },
+    {
+      "id": "barrel_crate_stack_small",
+      "prompt_subject": "small pile three barrels two crates rope lash fantasy dock clutter isolated stack readable silhouette",
+      "asset_summary": "Small barrel and crate stack.",
+      "asset_tags": ["misc", "storage", "cargo"],
+      "composition": "single_tile",
+      "category": "storage"
+    },
+    {
+      "id": "boundary_stones_ring",
+      "prompt_subject": "circle of worn boundary stones faint carved ward marks fantasy ritual clutter footprint isolated prop no glow beams",
+      "asset_summary": "Boundary stone circle clutter.",
+      "asset_tags": ["misc", "stones", "marker"],
+      "composition": "single_tile",
+      "category": "marker"
+    },
+    {
+      "id": "campfire_extinguished_ring",
+      "prompt_subject": "cold campfire ring blackened stones scattered charcoal ash fantasy campsite clutter isolated prop no flames no smoke no figures",
+      "asset_summary": "Extinguished campfire ring clutter.",
+      "asset_tags": ["misc", "camp", "fire"],
+      "composition": "single_tile",
+      "category": "camp"
+    },
+    {
+      "id": "rope_coil_stakes_cluster",
+      "prompt_subject": "heavy rope coils piled beside hammered wooden stakes fantasy siege camp clutter isolated cluster readable silhouette",
+      "asset_summary": "Rope coils and stakes clutter.",
+      "asset_tags": ["misc", "rope", "camp"],
+      "composition": "single_tile",
+      "category": "camp"
+    }
+  ]
+}

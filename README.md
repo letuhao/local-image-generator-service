@@ -121,6 +121,44 @@ curl -sS http://127.0.0.1:8700/v1/catalog/presets/terrain-53858-v1 \
 Flux-family models now appear in discovery endpoints with `family: "flux"` while
 using the same universal generation payload shape as SDXL models.
 
+### Flux Dev GGUF (Q8) — workflow and sampler defaults
+
+Flux GGUF models (`flux1-dev-q8`, `flux1-dev-q8-tree`, …) use **`workflows/flux_gguf.json`**
+(`UnetLoaderGGUF` + `DualCLIPLoader` + external `VAELoader`), not the legacy chroma-named template.
+
+For this stack, treat **`cfg: 1.0`**, **`sampler: euler`**, **`scheduler: simple`** as the baseline.
+Higher CFG or SDXL-style samplers (e.g. DPM++ + Karras) tend to over-smooth or drift quality.
+
+**Steps:** more steps mainly improve **denoising convergence** (structure/texture coherence), not
+intrinsic pixel sharpness. In practice, **24** is a reasonable default; **32–36** can help
+hero assets; beyond that you usually see diminishing returns and longer GPU time.
+
+**LoRAs:** request payloads accept `loras: [{ "name": "…", "weight": … }]`.  
+The `name` is a **path under `models/loras/`** on the host (POSIX, **no** `.safetensors` suffix), e.g. `flux/FluxMythV2`. Compose mounts **`./models/loras` → `/app/loras`** for the API (writable for Civitai fetch + sidecars) and ComfyUI reads the **same files** via `./models` → `/workspace/ComfyUI/models` — no separate top-level `./loras/` mount anymore.
+
+If you upgraded from an older compose file that used `./loras/`, move hand-placed files into `models/loras/` (and move `loras/civitai/` → `models/loras/civitai/` if you relied on fetched LoRAs).
+
+Example (Flux tree preset + style LoRA — **operator default:** `flux/dark_fantasy_digital_v11`; see [flux-lora-tree-batch-results.md](docs/architecture/flux-lora-tree-batch-results.md)):
+
+```bash
+curl -sS -X POST http://127.0.0.1:8700/v1/images/generations/binary \
+  -H "Authorization: Bearer REPLACE_WITH_FIRST_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d "{\"model\":\"flux1-dev-q8-tree\",\"prompt\":\"sprite object, ancient oak tree, top-down degree view, shallow root, white background, white ground, HoMM3 art style\",\"size\":\"1024x1024\",\"transparent_background\":true,\"steps\":28,\"cfg\":1.0,\"sampler\":\"euler\",\"scheduler\":\"simple\",\"seed\":404,\"loras\":[{\"name\":\"flux/dark_fantasy_digital_v11\",\"weight\":0.8}]}" \
+  --output tree_flux_lora.png
+```
+
+### Objective image metrics (batch / A-B)
+
+For repeatable comparisons (sharpness proxies, entropy, alpha coverage), use:
+
+```bash
+uv run python scripts/image-quality-metrics.py "outputs/tree-review/**/*.png" \
+  --csv-out outputs/tree-review/image-quality-metrics.csv
+```
+
+Scores are best interpreted **relative to your own baseline folder**, not as universal absolutes.
+
 ### Broad asset review batch (Flux lane)
 
 Use the generic matrix runner for terrain/object/POI/decor smoke passes:
@@ -131,19 +169,67 @@ python scripts/asset-review-batch.py --api-key REPLACE_WITH_FIRST_API_KEY \
   --out-dir outputs/asset-review/pass-001
 ```
 
-### Tree environment batch (Fantasy checkpoint lane)
+### Tree environment batch
 
-For tree/object sprite review we currently standardize on the fantasy checkpoint lane:
-`terrain-realisticfantasy-v30`.
+Default pack **`docs/architecture/tree-environment-batch-pack.json`** targets **Flux GGUF** (`flux1-dev-q8-tree`): **biome-specific `tree_species`** (no tropical trees in glacier / infernal variants for lava-volcano lanes), **three seeds per species** as variants, **2.5D orthographic sprite** wording in `prompt_template`, optional **`sampler` / `scheduler`**, and default LoRA **`flux/dark_fantasy_digital_v11`** (see [flux-lora-tree-batch-results.md](docs/architecture/flux-lora-tree-batch-results.md)).
 
-The batch pack includes multiple environments and tree archetypes (including high-fantasy trees),
-and uses the white-ground + `transparent_background` workflow for cleaner cutouts.
+Legacy SDXL fantasy lane (single global `tree_types` × all environments):
+
+```bash
+python scripts/tree-environment-batch.py --api-key REPLACE_WITH_FIRST_API_KEY \
+  --pack docs/architecture/tree-environment-batch-pack-sdxl.json \
+  --out-dir outputs/tree-review/pass-sdxl-001
+```
+
+Flux lane (uses pack model / LoRA / species maps):
 
 ```bash
 python scripts/tree-environment-batch.py --api-key REPLACE_WITH_FIRST_API_KEY \
   --pack docs/architecture/tree-environment-batch-pack.json \
-  --model-override terrain-realisticfantasy-v30 \
-  --out-dir outputs/tree-review/pass-001
+  --out-dir outputs/tree-review/pass-flux-001
+```
+
+Dry-run plan only:
+
+```bash
+python scripts/tree-environment-batch.py --api-key REPLACE_WITH_FIRST_API_KEY \
+  --pack docs/architecture/tree-environment-batch-pack.json --dry-run
+```
+
+### HoMM3-inspired biome bundle (terrain + structures + flora)
+
+Matrix batches expand **biomes × entries × sizes × seeds** with Flux parity (`loras`, `sampler`, `scheduler`). Filenames embed **`WxH`** (e.g. `mine_gold_entrance__1024x1024__s101.png`). Optional per-entry **`sizes`** override the pack default (e.g. **`1024x1536`** tall sprites, **`1536x1024`** wide compositions within model **`size_max_pixels`**). Optional authoring metadata on entries is copied into **`*.prompt.json`** / **`asset-manifest.ndjson`**: **`footprint_tiles_w`**, **`footprint_tiles_h`**, **`composition`** (`single_tile` \| `tall_sprite` \| `wide_scene` \| `dense_tile`), **`category`**.
+
+Shared biome **`id`** keys across packs align with **`tree-environment-batch-pack.json`** `environments[].id`: **fifteen** regions total — the earlier nine (including **`coastal_water`**) plus **`spectral_ethereal`**, **`necropolis_blight`**, **`ocean_abyssal`**, **`drake_badlands`**, **`heaven_cloud`** (celestial cloud deck tiles / props), and **`abyss_chaos_rift`** (underground chaos cavern read distinct from **`ocean_abyssal`**). The terrain pack adds dedicated **`biomes_include`** rows for heaven and chaos cave floor/path tiles (see **`cloud_marble_mosaic_floor`**, **`chaos_rift_fractured_basalt_floor`**, etc.).
+
+Outputs under `--out-dir`: `<biome>/terrain/`, `<biome>/structures/`, `<biome>/misc/`, `<biome>/bush/`, or `<biome>/mushroom/`, plus sidecars and **`asset-manifest.ndjson`**.
+
+Packs:
+
+- **`docs/architecture/homm3-flux-terrain-biome-pack.json`** — terrain + dense variants + vertical strata (**`sizes`** on selected entries).
+- **`docs/architecture/homm3-flux-structure-biome-pack.json`** — structures + tall/wide landmark fragments (**`coastal_water`**; ship wreck uses **`biomes_include`**).
+- **`docs/architecture/homm3-flux-misc-biome-pack.json`** — small clutter props (**`misc_entries`** lane).
+- **`docs/architecture/homm3-flux-bush-biome-pack.json`** — shrub sprites (**`bush_entries`** lane).
+- **`docs/architecture/homm3-flux-mushroom-biome-pack.json`** — fungal clusters (**`mushroom_entries`** lane).
+
+```bash
+python scripts/homm3-biome-bundle-batch.py --pack docs/architecture/homm3-flux-terrain-biome-pack.json \
+  --out-dir outputs/homm3-bundle/pass-terrain-001 --dry-run
+
+python scripts/homm3-biome-bundle-batch.py --pack docs/architecture/homm3-flux-terrain-biome-pack.json \
+  --api-key REPLACE_WITH_FIRST_API_KEY --out-dir outputs/homm3-bundle/pass-terrain-001
+
+python scripts/homm3-biome-bundle-batch.py --pack docs/architecture/homm3-flux-structure-biome-pack.json \
+  --api-key REPLACE_WITH_FIRST_API_KEY --out-dir outputs/homm3-bundle/pass-structures-001
+
+python scripts/homm3-biome-bundle-batch.py --pack docs/architecture/homm3-flux-misc-biome-pack.json \
+  --api-key REPLACE_WITH_FIRST_API_KEY --out-dir outputs/homm3-bundle/pass-misc-001
+
+python scripts/homm3-biome-bundle-batch.py --pack docs/architecture/homm3-flux-bush-biome-pack.json \
+  --api-key REPLACE_WITH_FIRST_API_KEY --out-dir outputs/homm3-bundle/pass-bush-001
+
+python scripts/homm3-biome-bundle-batch.py --pack docs/architecture/homm3-flux-mushroom-biome-pack.json \
+  --api-key REPLACE_WITH_FIRST_API_KEY --out-dir outputs/homm3-bundle/pass-mushroom-001
 ```
 
 ### Transparent background option

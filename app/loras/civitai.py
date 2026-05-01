@@ -1,6 +1,6 @@
 """Civitai fetcher — spec §8.1.
 
-Downloads a Civitai LoRA to `./loras/civitai/<slug>_<version_id>.safetensors`
+Downloads a Civitai LoRA to `<LORAS_ROOT>/civitai/<slug>_<version_id>.safetensors`
 with SHA-256 verification and a full JSON sidecar. Async-first: the handler
 returns 202 immediately; this class owns the background fetch work under a
 semaphore + per-version lock.

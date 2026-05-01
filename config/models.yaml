@@ -171,6 +171,81 @@ models:
       size_max_pixels: 1572864
     vram_estimate_gb: 12
 
+  - name: flux1-dev-q8
+    backend: comfyui
+    family: flux
+    workflow: workflows/flux_gguf.json
+    checkpoint: unet/flux1-dev-Q8_0.gguf
+    prediction: eps
+    vae: vae/ae.safetensors
+    clip_l: text_encoders/clip_l.safetensors
+    t5xxl: text_encoders/t5xxl_fp8_e4m3fn.safetensors
+    dual_clip_type: flux
+    capabilities:
+      image_gen: true
+    defaults:
+      size: "1024x1024"
+      steps: 24
+      cfg: 1.0
+      sampler: euler
+      scheduler: simple
+      negative_prompt: ""
+    limits:
+      steps_max: 50
+      n_max: 2
+      size_max_pixels: 1572864
+    vram_estimate_gb: 10
+
+  - name: flux1-dev-q8-tree
+    backend: comfyui
+    family: flux
+    workflow: workflows/flux_gguf.json
+    checkpoint: unet/flux1-dev-Q8_0.gguf
+    prediction: eps
+    vae: vae/ae.safetensors
+    clip_l: text_encoders/clip_l.safetensors
+    t5xxl: text_encoders/t5xxl_fp8_e4m3fn.safetensors
+    dual_clip_type: flux
+    capabilities:
+      image_gen: true
+    defaults:
+      size: "1024x1024"
+      steps: 24
+      cfg: 1.0
+      sampler: euler
+      scheduler: simple
+      negative_prompt: "blurry, soft focus, low detail, watercolor wash, fog, haze, terrain tile, platform, pedestal, scene background, multiple objects, dark ground, colored ground, person, human, character, face"
+    limits:
+      steps_max: 60
+      n_max: 2
+      size_max_pixels: 1572864
+    vram_estimate_gb: 10
+
+  - name: flux1-dev-q8-tree-vae-bfl
+    backend: comfyui
+    family: flux
+    workflow: workflows/flux_gguf.json
+    checkpoint: unet/flux1-dev-Q8_0.gguf
+    prediction: eps
+    vae: vae/black-forest-labsFLUX.1-dev_vae.safetensors
+    clip_l: text_encoders/clip_l.safetensors
+    t5xxl: text_encoders/t5xxl_fp8_e4m3fn.safetensors
+    dual_clip_type: flux
+    capabilities:
+      image_gen: true
+    defaults:
+      size: "1024x1024"
+      steps: 24
+      cfg: 1.0
+      sampler: euler
+      scheduler: simple
+      negative_prompt: "blurry, soft focus, low detail, watercolor wash, fog, haze, terrain tile, platform, pedestal, scene background, multiple objects, dark ground, colored ground, person, human, character, face"
+    limits:
+      steps_max: 60
+      n_max: 2
+      size_max_pixels: 1572864
+    vram_estimate_gb: 10
+
   - name: terrain-illustrious-xl-v1
     backend: comfyui
     family: sdxl

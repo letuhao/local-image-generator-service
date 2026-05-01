@@ -1,46 +1,160 @@
 {
-  "model": "terrain-realisticfantasy-v30",
+  "_readme": "Biome-specific tree_species prevent mismatches (e.g. tropical canopy in glacier). Multiple variants = seeds[]. Optional Kontext GGUF model override: flux1-kontext-dev-q8-tree after copying GGUF to models/unet/.",
+  "model": "flux1-dev-q8-tree",
   "size": "1024x1024",
-  "steps": 30,
-  "cfg": 7.5,
+  "steps": 28,
+  "cfg": 1.0,
+  "sampler": "euler",
+  "scheduler": "simple",
   "transparent_background": true,
-  "seeds": [102, 202, 302],
-  "tree_types": [
-    "ancient oak tree",
-    "pine conifer tree",
-    "weeping willow tree",
-    "cherry blossom tree",
-    "twisted dead tree",
-    "crystal arcane tree",
-    "glowing mana tree",
-    "world tree sapling"
+  "loras": [
+    {
+      "name": "flux/dark_fantasy_digital_v11",
+      "weight": 0.8
+    }
   ],
-  "prompt_template": "sprite object, single {tree_type}, top-down degree view, shallow root, isolated object, single centered object, white background, white ground, hand-painted fantasy strategy game style, HoMM3 art style, {environment_hint}",
-  "negative_prompt": "terrain tile, grass patch, soil texture, dirt floor, platform, pedestal, island, cliff, rocks, scene background, multiple objects, dark ground, colored ground, person, human, character, face",
+  "seeds": [
+    101,
+    202,
+    303
+  ],
+  "prompt_template": "sprite object, single {tree_type}, 2.5D orthographic sprite angle, subtle three-quarter tilt for readable depth, shallow root disk visible under canopy, isolated single centered prop, white background, white ground for clean alpha cutout, hand-painted fantasy strategy game asset, HoMM3-inspired painterly style, {environment_hint}",
+  "negative_prompt": "blurry, soft focus, low detail, watercolor wash, fog, haze, terrain tile, grass patch, soil texture, dirt floor, platform, pedestal, island, cliff, rocks, scene background, multiple trees, forest panorama, dark ground, colored ground, person, human, character, face",
   "environments": [
     {
       "id": "grassland_temperate",
-      "hint": "temperate grassland palette, healthy green foliage, neutral daylight tones"
+      "hint": "temperate grassland palette, healthy green foliage, neutral daylight bark tones",
+      "tree_species": [
+        "temperate spreading oak tree",
+        "silver birch grove tree",
+        "field maple tree"
+      ]
     },
     {
       "id": "swamp_dark",
-      "hint": "dark swamp-adapted palette, damp bark tones, muted mossy greens"
+      "hint": "dark swamp palette, damp bark, muted moss highlights, subdued greens",
+      "tree_species": [
+        "bald cypress swamp tree",
+        "moss draped dead snag tree",
+        "twisted tupelo swamp tree"
+      ]
     },
     {
       "id": "snow_frost",
-      "hint": "frost biome palette, sparse cold foliage tint, cool blue-gray highlights"
+      "hint": "cold snow biome palette, sparse needles, blue-gray bark frost accents",
+      "tree_species": [
+        "snow laden spruce tree",
+        "subalpine fir tree",
+        "frost stripped birch skeleton tree"
+      ]
+    },
+    {
+      "id": "glacier_alpine",
+      "hint": "high glacier palette, ice rimed needles, pale frozen bark, sparse silhouette",
+      "tree_species": [
+        "ice rimed dwarf pine tree",
+        "glacier deadwood snag tree",
+        "blue frost crusted conifer tree"
+      ]
     },
     {
       "id": "desert_dry",
-      "hint": "arid biome palette, dry bark, reduced leaf saturation, warm ochre tones"
+      "hint": "arid desert palette, sun bleached bark, sparse canopy, warm ochre accents",
+      "tree_species": [
+        "drought twisted mesquite tree",
+        "desert juniper snag tree",
+        "sun bleached acacia skeleton tree"
+      ]
     },
     {
       "id": "volcanic_ash",
-      "hint": "volcanic biome palette, charred bark accents, smoky dark red-brown tones"
+      "hint": "volcanic ash biome palette, charred bark, smoky gray-red accents, stressed silhouette",
+      "tree_species": [
+        "charred volcanic snag tree",
+        "ash coated dead pine tree",
+        "obsidian shard bark fantasy tree"
+      ]
+    },
+    {
+      "id": "infernal_wastes",
+      "hint": "infernal volcanic palette, glowing crack motifs in bark, ember rim light, hostile biome only",
+      "tree_species": [
+        "magma vein fantasy deadwood tree",
+        "infernal charcoal crown tree fantasy",
+        "brimstone twisted snag tree fantasy"
+      ]
     },
     {
       "id": "enchanted_arcane",
-      "hint": "enchanted fantasy palette, subtle magical glow in canopy highlights"
+      "hint": "enchanted fantasy palette, subtle magical canopy glow, jewel toned bark accents",
+      "tree_species": [
+        "crystal arcane tree",
+        "glowing mana lantern tree fantasy",
+        "rune carved oak tree fantasy"
+      ]
+    },
+    {
+      "id": "coastal_water",
+      "hint": "coastal palette, salt crusted bark, tidal splash moss accents, turquoise rope algae stains",
+      "tree_species": [
+        "salt crusted twisted cedar tree fantasy",
+        "driftwood snag bleached coral knot tree fantasy",
+        "tidal splash moss gnarled oak fantasy tree"
+      ]
+    },
+    {
+      "id": "spectral_ethereal",
+      "hint": "spectral palette, chalk pale bark glow seams faint veil luminosity translucent canopy accents",
+      "tree_species": [
+        "veil wisp birch skeleton tree fantasy",
+        "translucent hollow canopy tree fantasy",
+        "pale lantern moss snag tree fantasy"
+      ]
+    },
+    {
+      "id": "necropolis_blight",
+      "hint": "necropolis palette, tomb lichen draped bark bone ash streaks sick mint fungal bark accents",
+      "tree_species": [
+        "graveyard iron twisted yew tree",
+        "tomb lichen draped dead oak tree",
+        "bone white marrow snag tree fantasy"
+      ]
+    },
+    {
+      "id": "ocean_abyssal",
+      "hint": "abyssal palette, kelp weighted limbs coral crust bark patches cold blue dim silhouette clusters",
+      "tree_species": [
+        "kelp weighted twisted snag tree fantasy",
+        "coral crusted dwarf mangrove fantasy tree",
+        "abyss blue biolum sponge bark tree fantasy"
+      ]
+    },
+    {
+      "id": "drake_badlands",
+      "hint": "drake badlands palette, wind shear charcoal bark obsidian flake accents hoard scale mosaic bark motifs",
+      "tree_species": [
+        "wind shear charcoal juniper snag tree",
+        "obsidian flake bark twisted pine fantasy tree",
+        "hoard scale mosaic bark fantasy deadwood tree"
+      ]
+    },
+    {
+      "id": "heaven_cloud",
+      "hint": "celestial sky-island palette, silver gilt bark gleams pale gold rim highlights airy cumulus moss canopy accents readable silhouette fantasy",
+      "tree_species": [
+        "silver gilt birch snag tree fantasy",
+        "pale cumulus moss chandelier oak fantasy tree",
+        "marble dust juniper silhouette fantasy tree"
+      ]
+    },
+    {
+      "id": "abyss_chaos_rift",
+      "hint": "chaos cavern palette, twisted fracture bark charcoal violet bruise motifs angular chaos vein accents gnarled snag readability fantasy",
+      "tree_species": [
+        "angular fracture bark snag tree fantasy",
+        "violet bruise twisted deadwood fantasy tree",
+        "chaos vein mosaic bark snag fantasy tree"
+      ]
     }
   ]
 }

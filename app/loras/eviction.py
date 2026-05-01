@@ -1,8 +1,8 @@
 """LRU eviction for Civitai-fetched LoRAs.
 
 Runs inside the fetcher's semaphore-gated task (one evictor at a time).
-Operates on the `./loras/civitai/` subtree only — hand-dropped user LoRAs
-(anywhere under `./loras/`, typically at top-level or sibling subdirs) are
+Operates on the `<LORAS_ROOT>/civitai/` subtree only — hand-dropped user LoRAs
+(anywhere else under `LORAS_ROOT`, typically top-level or sibling subdirs) are
 never evicted.
 
 Protection rules (all OR'd together — match any = protect):
@@ -117,7 +117,7 @@ async def evict_for(
     if not civitai_root.is_dir():
         # Nothing under civitai/ to evict. User-drop only tree → refuse.
         raise InsufficientStorageError(
-            f"need {required} bytes but ./loras/civitai/ is empty (nothing to evict)"
+            f"need {required} bytes but civitai/ subtree is empty (nothing to evict)"
         )
 
     protected_by_jobs = await _non_terminal_lora_names(store)

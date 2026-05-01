@@ -1,0 +1,219 @@
+{
+  "_readme": "Terrain lane: biomes × terrain_entries × sizes[] × seeds. Filenames include WxH. Optional footprint_tiles_*, composition, category on entries.",
+  "lane": "terrain",
+  "model": "flux1-dev-q8-tree",
+  "size": "1024x1024",
+  "steps": 28,
+  "cfg": 1.0,
+  "sampler": "euler",
+  "scheduler": "simple",
+  "transparent_background": false,
+  "loras": [
+    {
+      "name": "flux/dark_fantasy_digital_v11",
+      "weight": 0.8
+    }
+  ],
+  "seeds": [101, 202, 303],
+  "prompt_template": "top-down seamless terrain tile texture, {subject}, hand-painted Heroes of Might and Magic III inspired fantasy strategy map art, readable macro shapes at map zoom, tileable impression without busy micro-noise, no freestanding buildings, no characters, no creatures, no UI, biome palette and materials: {biome_hint}",
+  "negative_prompt": "blurry, noisy texture, oversharpen, person, human, character, face, dragon, troops, units, watermark, logo, text, isometric sprite, vertical cliff monument",
+  "biomes": [
+    {
+      "id": "grassland_temperate",
+      "hint": "temperate grassland palette, healthy greens, neutral daylight soil browns"
+    },
+    {
+      "id": "swamp_dark",
+      "hint": "dark swamp palette, peat browns, muted moss greens, stagnant water sheen hints"
+    },
+    {
+      "id": "snow_frost",
+      "hint": "cold snow biome palette, packed powder whites, blue shadows, sparse exposed grit"
+    },
+    {
+      "id": "glacier_alpine",
+      "hint": "high glacier palette, pale ice blues, compact wind-packed snow, frost sparkle accents"
+    },
+    {
+      "id": "desert_dry",
+      "hint": "arid desert palette, warm ochre sands, sun bleached grit, sparse gravel flecks"
+    },
+    {
+      "id": "volcanic_ash",
+      "hint": "volcanic ash biome palette, charcoal gray dust, rusty ember flecks, uneven basalt grit"
+    },
+    {
+      "id": "infernal_wastes",
+      "hint": "infernal hostile palette, cracked dark crust, dull magma glow seams, brimstone ash drift"
+    },
+    {
+      "id": "enchanted_arcane",
+      "hint": "enchanted fantasy palette, jewel toned soil glints, subtle arcane shimmer dust in cracks"
+    },
+    {
+      "id": "coastal_water",
+      "hint": "coastal shallows palette, turquoise shallows foam edges, damp tan wet sand, muted seaweed browns"
+    },
+    {
+      "id": "spectral_ethereal",
+      "hint": "spectral veil palette, chalk pale soil, faint luminous fog bloom patches, soft ectoplasm sheen readable macro fog hints"
+    },
+    {
+      "id": "necropolis_blight",
+      "hint": "necropolis palette, tomb frost grit streaks, bone ash dust, sick mint corrosion flecks on packed soil"
+    },
+    {
+      "id": "ocean_abyssal",
+      "hint": "abyssal depth palette, indigo slate silt floor, sparse cold biolum speck noise still readable grain"
+    },
+    {
+      "id": "drake_badlands",
+      "hint": "drake badlands palette, wind scoured scorched grit, obsidian shard flecks, sparse hoard coin metallic dust on cracked tan soil"
+    },
+    {
+      "id": "heaven_cloud",
+      "hint": "celestial sky-island palette, soft cumulus puff marble grit blend, pale gold halo accents readable airy cloud deck macro masses"
+    },
+    {
+      "id": "abyss_chaos_rift",
+      "hint": "chaos cavern palette, bruised violet-black angular fracture veins wet drip stain charcoal speckle readable cave floor macro cracks"
+    }
+  ],
+  "terrain_entries": [
+    {
+      "id": "primary_surface_blend",
+      "prompt_subject": "open ground blend between vegetation patches and bare compacted soil",
+      "asset_summary": "Primary walkable terrain surface tile blending vegetation with exposed soil.",
+      "asset_tags": ["terrain", "surface", "tile", "primary"],
+      "composition": "single_tile",
+      "category": "surface"
+    },
+    {
+      "id": "road_wagon_ruts",
+      "prompt_subject": "worn wagon wheel ruts cutting across dirt with scattered stones along wheel tracks",
+      "asset_summary": "Dirt road tile with readable twin wheel ruts for strategy map paths.",
+      "asset_tags": ["terrain", "road", "path", "tile"],
+      "composition": "single_tile",
+      "category": "path"
+    },
+    {
+      "id": "elevation_cliff_rim_chunk",
+      "prompt_subject": "chunk of cliff rim showing stratified rock layers casting subtle shade downward onto lower terrace",
+      "asset_summary": "Cliff-edge terrain chunk emphasizing stratified stone readable at map scale.",
+      "asset_tags": ["terrain", "cliff", "elevation", "tile"],
+      "composition": "single_tile",
+      "category": "cliff"
+    },
+    {
+      "id": "elevation_cliff_vertical_strata",
+      "prompt_subject": "vertical slice terrain showing upper cliff rim stratified layers transitioning down to lower terrace grit readable stacked strata along tall axis",
+      "asset_summary": "Taller terrain slice emphasizing stacked cliff strata from rim to lower shelf.",
+      "asset_tags": ["terrain", "cliff", "elevation", "vertical"],
+      "sizes": ["1024x1024", "1024x1536"],
+      "composition": "dense_tile",
+      "category": "cliff"
+    },
+    {
+      "id": "water_edge_transition",
+      "prompt_subject": "shoreline transition strip foam lace meeting shallow ripples blending toward dry bank grit",
+      "asset_summary": "Coastal or shore transition strip suggesting shallow water meeting land.",
+      "asset_tags": ["terrain", "water", "shore", "transition"],
+      "composition": "single_tile",
+      "category": "water"
+    },
+    {
+      "id": "overlay_sparse_flowers_weeds",
+      "prompt_subject": "sparse scatter of wildflowers and tufted weeds breaking up bare soil patches without dense meadow carpet",
+      "asset_summary": "Sparse floral overlay terrain suggesting readable accent dots not full grass carpet.",
+      "asset_tags": ["terrain", "overlay", "vegetation", "tile"],
+      "composition": "single_tile",
+      "category": "overlay"
+    },
+    {
+      "id": "dense_scrub_brush_patch",
+      "prompt_subject": "dense tangled scrub brush patch tile knee high foliage masses breaking silhouette readability between gaps",
+      "asset_summary": "Dense scrub brush terrain with readable clumps at map zoom.",
+      "asset_tags": ["terrain", "dense", "vegetation"],
+      "composition": "dense_tile",
+      "category": "vegetation"
+    },
+    {
+      "id": "dense_reed_bed_shallows",
+      "prompt_subject": "dense reed stalk clusters emerging from muddy shallows packed vertical stems readable silhouette chaos",
+      "asset_summary": "Dense reed bed shallow-water terrain.",
+      "asset_tags": ["terrain", "dense", "wetland", "reeds"],
+      "composition": "dense_tile",
+      "category": "wetland",
+      "biomes_include": ["swamp_dark", "coastal_water", "ocean_abyssal"]
+    },
+    {
+      "id": "dense_volcanic_ash_drift",
+      "prompt_subject": "thick piled volcanic ash drift ridges overlapping footprints uneven soot heaps readable ridges",
+      "asset_summary": "Dense volcanic ash drift piles.",
+      "asset_tags": ["terrain", "dense", "ash", "volcanic"],
+      "composition": "dense_tile",
+      "category": "volcanic",
+      "biomes_exclude": [
+        "grassland_temperate",
+        "snow_frost",
+        "glacier_alpine",
+        "heaven_cloud",
+        "abyss_chaos_rift"
+      ]
+    },
+    {
+      "id": "dense_arcane_crystal_litter",
+      "prompt_subject": "dense scatter of small fantasy crystal shards litter packed jewel fragments sparkling clusters readable jewel chips",
+      "asset_summary": "Dense crystal litter terrain overlay.",
+      "asset_tags": ["terrain", "dense", "arcane", "crystal"],
+      "composition": "dense_tile",
+      "category": "arcane"
+    },
+    {
+      "id": "cloud_marble_mosaic_floor",
+      "prompt_subject": "top-down seamless celestial cloud deck tile soft cumulus puff masses blended into pale marble mosaic grit readable macro bubbly masses hand-painted strategy map",
+      "asset_summary": "Heaven cloud marble mosaic deck terrain tile.",
+      "asset_tags": ["terrain", "celestial", "cloud", "tile"],
+      "composition": "dense_tile",
+      "category": "celestial",
+      "biomes_include": ["heaven_cloud"]
+    },
+    {
+      "id": "celestial_gold_vein_path_strip",
+      "prompt_subject": "top-down seamless tile subtle inlaid gold-thread path curves across pale cloud marble readable wagon-scale curved lanes fantasy celestial roadway impression",
+      "asset_summary": "Celestial gold-vein path strip terrain tile.",
+      "asset_tags": ["terrain", "celestial", "path", "tile"],
+      "composition": "single_tile",
+      "category": "path",
+      "biomes_include": ["heaven_cloud"]
+    },
+    {
+      "id": "chaos_rift_fractured_basalt_floor",
+      "prompt_subject": "top-down seamless chaos cavern floor cracked angular violet-black fracture veins bruised readable fracture graph wet charcoal basalt chunks fantasy strategy map tile",
+      "asset_summary": "Chaos rift fractured basalt cave floor tile.",
+      "asset_tags": ["terrain", "chaos", "cave", "tile"],
+      "composition": "dense_tile",
+      "category": "chaos",
+      "biomes_include": ["abyss_chaos_rift"]
+    },
+    {
+      "id": "underdeep_dripstone_stain_floor",
+      "prompt_subject": "top-down seamless cave floor wet stalactite drip stain noise charcoal violet speckle readable chaos underdeep impression fantasy tile no hanging formations only ceiling drip stains as marks",
+      "asset_summary": "Underdeep drip stain chaos cave floor tile.",
+      "asset_tags": ["terrain", "chaos", "cave", "drip"],
+      "composition": "dense_tile",
+      "category": "chaos",
+      "biomes_include": ["abyss_chaos_rift"]
+    },
+    {
+      "id": "chaos_rift_vertical_strata",
+      "prompt_subject": "vertical slice chaos cavern strata showing fractured violet-black ceiling cracks transitioning down through wet drip stained pit wall readable stacked angular chaos bands along tall axis fantasy cave slice",
+      "asset_summary": "Chaos rift vertical cave strata terrain slice.",
+      "asset_tags": ["terrain", "chaos", "cave", "vertical"],
+      "sizes": ["1024x1024", "1024x1536"],
+      "composition": "dense_tile",
+      "category": "chaos",
+      "biomes_include": ["abyss_chaos_rift"]
+    }
+  ]
+}

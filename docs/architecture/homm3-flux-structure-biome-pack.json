@@ -1,0 +1,233 @@
+{
+  "_readme": "Structures lane: biome × entries × sizes[] × seeds. Tall/wide canvases use flux pixel limits (1536×1024 / 1024×1536). Filenames include WxH.",
+  "lane": "structures",
+  "model": "flux1-dev-q8-tree",
+  "size": "1024x1024",
+  "steps": 28,
+  "cfg": 1.0,
+  "sampler": "euler",
+  "scheduler": "simple",
+  "transparent_background": true,
+  "loras": [
+    {
+      "name": "flux/dark_fantasy_digital_v11",
+      "weight": 0.8
+    }
+  ],
+  "seeds": [101, 202, 303],
+  "prompt_template": "isometric 2.5D fantasy strategy map object sprite, single centered prop {subject}, Heroes of Might and Magic III inspired hand-painted readability, subtle orthographic tilt for depth, isolated object, white neutral backdrop for alpha extraction, no terrain floor plane beyond minimal prop shadow suggestion, biome palette cues only as accent not backdrop scenery: {biome_hint}",
+  "negative_prompt": "blurry, soft focus, oversharpen, noisy texture, seamless terrain tile panorama, aerial satellite, grass carpet ground, person, human, character, face, dragon, mounted unit, army, watermark, logo, text, duplicate buildings, city skyline",
+  "biomes": [
+    {
+      "id": "grassland_temperate",
+      "hint": "temperate grassland palette, healthy wood and thatch tones, neutral daylight metals"
+    },
+    {
+      "id": "swamp_dark",
+      "hint": "dark swamp palette, water stained wood, corroded iron greens, soggy rope texture"
+    },
+    {
+      "id": "snow_frost",
+      "hint": "cold snow biome palette, hoarfrost on roofs, pale blue ice sheen on metal, heavy timber"
+    },
+    {
+      "id": "glacier_alpine",
+      "hint": "high glacier palette, rime crusted stone, pale cold-welded timber, muted steel"
+    },
+    {
+      "id": "desert_dry",
+      "hint": "arid desert palette, sun bleached adobe cracks, oxidized bronze, wind scoured planks"
+    },
+    {
+      "id": "volcanic_ash",
+      "hint": "volcanic ash biome palette, soot dusted masonry, heat warped iron, cracked basalt fittings"
+    },
+    {
+      "id": "infernal_wastes",
+      "hint": "infernal hostile palette, charred beams, faint crack glow mortar, razor obsidian trims"
+    },
+    {
+      "id": "enchanted_arcane",
+      "hint": "enchanted fantasy palette, rune etched trims, faint crystal lensing highlights, violet-silver accents"
+    },
+    {
+      "id": "coastal_water",
+      "hint": "coastal palette, salt stained wood, barnacle crusted hull iron, teal rope fades"
+    },
+    {
+      "id": "spectral_ethereal",
+      "hint": "spectral palette, pale veil stained marble fragments, pewter fittings frost rim faint ash residue wash"
+    },
+    {
+      "id": "necropolis_blight",
+      "hint": "necropolis palette, tomb cracked masonry bone inlaid trims, verdigris stained iron hinges moss frost patina"
+    },
+    {
+      "id": "ocean_abyssal",
+      "hint": "abyssal palette, coral crust clamps on fittings, teal corrosion kelp stained hemp rope fiber accents"
+    },
+    {
+      "id": "drake_badlands",
+      "hint": "drake badlands palette, heat scored scaled iron trims, hoard corroded rivets, wind blasted charcoal timber accents"
+    },
+    {
+      "id": "heaven_cloud",
+      "hint": "celestial palette, pale marble trims soft gold filigree bands pearl peg fittings airy brushed silver hinges fantasy angelic architecture cues without wings"
+    },
+    {
+      "id": "abyss_chaos_rift",
+      "hint": "chaos cavern palette, angular fracture carved masonry violet bruised mortar chaotic iron clamps dripping violet condensation accents fantasy"
+    }
+  ],
+  "structure_entries": [
+    {
+      "id": "mine_gold_entrance",
+      "prompt_subject": "timber reinforced gold mine entrance with cart track slot and warning lintel carving",
+      "asset_summary": "Gold mine facade with cart track cue and timber bracing.",
+      "asset_tags": ["structure", "economy", "mine"]
+    },
+    {
+      "id": "mine_ore_entrance",
+      "prompt_subject": "rusted iron framed ore mine shaft mouth with stacked picket supports and spill rubble",
+      "asset_summary": "Ore mine entrance with industrial iron framing and rubble spill.",
+      "asset_tags": ["structure", "economy", "mine"]
+    },
+    {
+      "id": "mine_gem_cavern_mouth",
+      "prompt_subject": "crystal studded gem cavern mouth with ornate dwarven carved keystone fantasy",
+      "asset_summary": "Gem or precious cavern entrance with decorative fantasy keystone.",
+      "asset_tags": ["structure", "economy", "mine", "fantasy"]
+    },
+    {
+      "id": "workshop_windmill",
+      "prompt_subject": "compact fantasy windmill workshop hybrid with sturdy ladder and shuttered milling bay",
+      "asset_summary": "Windmill workshop landmark readable at map scale.",
+      "asset_tags": ["structure", "economy", "mill"]
+    },
+    {
+      "id": "wagon_depot",
+      "prompt_subject": "small wagon depot canopy with stacked crates barrels hitching posts fantasy",
+      "asset_summary": "Trade wagon depot prop with crates and hitching posts.",
+      "asset_tags": ["structure", "economy", "trade"]
+    },
+    {
+      "id": "shrine_magic_arcane",
+      "prompt_subject": "floating stone slab shrine with hovering flame bowls fantasy magic shrine",
+      "asset_summary": "Magic shrine focal prop without creatures.",
+      "asset_tags": ["structure", "interaction", "magic"]
+    },
+    {
+      "id": "portal_gate_stone",
+      "prompt_subject": "twin obelisk portal gate crackling faint planar energy fantasy stable portal frame",
+      "asset_summary": "Stone twin obelisk portal frame suggesting planar travel.",
+      "asset_tags": ["structure", "interaction", "portal"]
+    },
+    {
+      "id": "treasure_pile_prop",
+      "prompt_subject": "heaped treasure pile coins gems crowns fantasy loot mound isolated prop no guardians",
+      "asset_summary": "Treasure pile heap prop without guardians.",
+      "asset_tags": ["structure", "economy", "loot"]
+    },
+    {
+      "id": "cottage_cluster",
+      "prompt_subject": "cluster of two quaint cottages sharing chimney readable silhouette fantasy hamlet fragment",
+      "asset_summary": "Hamlet cottage cluster silhouette fragment.",
+      "asset_tags": ["structure", "settlement"]
+    },
+    {
+      "id": "walled_bailey_segment",
+      "prompt_subject": "curved curtain wall bailey segment with crenels arrow slit tower footing fantasy fragment",
+      "asset_summary": "Castle curtain wall readable fragment.",
+      "asset_tags": ["structure", "settlement", "fort"]
+    },
+    {
+      "id": "wizard_tower_ruin",
+      "prompt_subject": "leaning cracked wizard tower ruin with shattered balcony and toppled spells circle rubble fantasy",
+      "asset_summary": "Wizard tower ruin with balcony and magical rubble cues.",
+      "asset_tags": ["structure", "settlement", "ruin"]
+    },
+    {
+      "id": "rock_pillar_obstacle",
+      "prompt_subject": "cluster of jagged boulder pillars forming a natural choke obstacle fantasy",
+      "asset_summary": "Boulder choke obstacle cluster.",
+      "asset_tags": ["structure", "obstacle", "rocks"]
+    },
+    {
+      "id": "fallen_tree_barrier",
+      "prompt_subject": "massive fallen trunk barrier tangled branches blocking passage fantasy obstacle",
+      "asset_summary": "Fallen tree trunk obstacle blocking paths.",
+      "asset_tags": ["structure", "obstacle", "wood"]
+    },
+    {
+      "id": "lava_fissure_prop",
+      "prompt_subject": "ground lava fissure prop raised cracked rim glowing seams fantasy obstacle spike field variant small footprint",
+      "asset_summary": "Raised lava fissure rim obstacle footprint.",
+      "asset_tags": ["structure", "obstacle", "lava"]
+    },
+    {
+      "id": "palisade_fence_segment",
+      "prompt_subject": "wood stake palisade fence segment tied rope braces fantasy defensive clutter prop",
+      "asset_summary": "Palisade fence segment prop.",
+      "asset_tags": ["structure", "obstacle", "fence"]
+    },
+    {
+      "id": "monument_obelisk",
+      "prompt_subject": "ancient carved monument obelisk with readable heroic relief fantasy landmark",
+      "asset_summary": "Heroic relief monument obelisk landmark.",
+      "asset_tags": ["structure", "landmark"]
+    },
+    {
+      "id": "crystal_formation_poi",
+      "prompt_subject": "towering fantasy crystal shard cluster formation landmark glowing seams fantasy",
+      "asset_summary": "Crystal formation landmark cluster.",
+      "asset_tags": ["structure", "landmark", "crystal"]
+    },
+    {
+      "id": "derelict_ship_wreck_hull",
+      "prompt_subject": "rotten hull fragment of derelict sailing ship tilted keel splintered ribs coastal ruin prop",
+      "asset_summary": "Coastal derelict ship hull fragment ruin.",
+      "asset_tags": ["structure", "landmark", "coastal", "wreck"],
+      "biomes_include": ["coastal_water"]
+    },
+    {
+      "id": "hero_monument_statue_tall",
+      "prompt_subject": "massive heroic carved stone statue fantasy monument towering readable silhouette centered fills vertical canvas mostly statue",
+      "asset_summary": "Tall heroic statue monument readable at map scale.",
+      "asset_tags": ["structure", "landmark", "statue", "tall"],
+      "sizes": ["1024x1536"],
+      "composition": "tall_sprite",
+      "category": "landmark"
+    },
+    {
+      "id": "siege_tower_fragment_tall",
+      "prompt_subject": "wood and iron siege tower upper fragment fantasy assault tower readable height banners snapped ramps dangling isolated",
+      "asset_summary": "Tall siege tower upper fragment silhouette.",
+      "asset_tags": ["structure", "fort", "siege", "tall"],
+      "sizes": ["1024x1536"],
+      "composition": "tall_sprite",
+      "category": "fort"
+    },
+    {
+      "id": "castle_quarter_wide",
+      "prompt_subject": "wide castle ward fragment fantasy curtain walls inner keep chunk clustered rooftops readable silhouette occupies horizontal canvas isolated prop",
+      "asset_summary": "Wide castle district readable fragment silhouette.",
+      "asset_tags": ["structure", "settlement", "castle", "wide"],
+      "sizes": ["1536x1024"],
+      "composition": "wide_scene",
+      "category": "settlement",
+      "footprint_tiles_w": 3,
+      "footprint_tiles_h": 2
+    },
+    {
+      "id": "hamlet_timber_row_wide",
+      "prompt_subject": "wide fantasy timber hamlet street chunk clustered peaked roofs wagons tucked shadows readable silhouette isolated village fragment horizontal composition",
+      "asset_summary": "Wide timber hamlet street silhouette fragment.",
+      "asset_tags": ["structure", "settlement", "village", "wide"],
+      "sizes": ["1536x1024"],
+      "composition": "wide_scene",
+      "category": "settlement",
+      "footprint_tiles_w": 4,
+      "footprint_tiles_h": 2
+    }
+  ]
+}

@@ -51,11 +51,9 @@ services:
       - ./config:/app/config:ro
       - ./workflows:/app/workflows:ro
       - ./models:/app/models:ro
-      # LoRA directory — Cycle 5 shipped this as :ro; Cycle 6 (Civitai fetcher)
-      # needs the service to write `./loras/civitai/<slug>_<vid>.safetensors`
-      # + sidecar JSONs + sidecar last_used updates. ComfyUI side stays :ro
-      # (see comfyui.volumes below).
-      - ./loras:/app/loras
+      # LoRA library lives under `models/loras/` (same tree ComfyUI reads). Service
+      # needs write access for Civitai fetch + `<name>.json` sidecars + last_used.
+      - ./models/loras:/app/loras
     depends_on:
       minio:
         condition: service_healthy
@@ -85,12 +83,9 @@ services:
               count: 1
               capabilities: [gpu]
     volumes:
-      # Full ComfyUI models tree — subdirs (checkpoints/, vae/, loras/) live under ./models/.
+      # Full ComfyUI models tree — checkpoints/, vae/, loras/, etc. under ./models/.
+      # LoRAs are `models/loras/**`; no separate top-level ./loras overlay.
       - ./models:/workspace/ComfyUI/models:ro
-      # Top-level LoRA dir (arch v0.5 Option B) — mounted over ComfyUI's loras
-      # subtree so ComfyUI's LoraLoader can resolve names requested by our
-      # `inject_loras` chain without us reshuffling the ./models/ tree.
-      - ./loras:/workspace/ComfyUI/models/loras:ro
       # Writable user tree — ComfyUI ≥0.9 persists settings.json + an asset DB
       # (SQLite) here. Without a writable mount, the web UI throws
       # PermissionError on save and the asset scanner's Session factory stays

@@ -11,9 +11,10 @@ from urllib import error, request
 
 
 DEFAULT_PROMPT_TEMPLATE = (
-    "sprite object, single {tree_type}, top-down degree view, shallow root, "
-    "isolated object, single centered object, white background, white ground, "
-    "hand-painted fantasy strategy game style, HoMM3 art style, {environment_hint}"
+    "sprite object, single {tree_type}, 2.5D orthographic sprite angle, subtle three-quarter tilt "
+    "for readable depth, shallow root disk visible under canopy, isolated single centered prop, "
+    "white background, white ground for clean alpha cutout, hand-painted fantasy strategy game asset, "
+    "HoMM3-inspired painterly style, {environment_hint}"
 )
 
 DEFAULT_NEGATIVE = (
@@ -38,6 +39,38 @@ FORBIDDEN_HINT_TOKENS = {
 
 def _safe(value: str) -> str:
     return re.sub(r"[^A-Za-z0-9._-]+", "_", value).strip("_").lower()
+
+
+def _species_for_environment(env: dict, pack: dict) -> list[str]:
+    """Prefer per-biome `tree_species`; fall back to legacy global `tree_types`."""
+    raw = env.get("tree_species")
+    if isinstance(raw, list) and raw:
+        return [str(x).strip() for x in raw if str(x).strip()]
+    fallback = pack.get("tree_types", [])
+    if isinstance(fallback, list) and fallback:
+        return [str(x).strip() for x in fallback if str(x).strip()]
+    return []
+
+
+def _validate_loras_field(raw: object) -> list[dict[str, object]] | None:
+    if raw is None:
+        return None
+    if not isinstance(raw, list):
+        raise SystemExit("Batch pack `loras` must be a list of {name, weight} objects.")
+    out: list[dict[str, object]] = []
+    for idx, item in enumerate(raw):
+        if not isinstance(item, dict):
+            raise SystemExit(f"loras[{idx}] must be an object.")
+        name = str(item.get("name", "")).strip()
+        if not name:
+            raise SystemExit(f"loras[{idx}].name is required.")
+        w = item.get("weight", 1.0)
+        try:
+            weight = float(w)
+        except (TypeError, ValueError) as exc:
+            raise SystemExit(f"loras[{idx}].weight must be a number.") from exc
+        out.append({"name": name, "weight": weight})
+    return out
 
 
 def _validate_hint(env_id: str, hint: str) -> None:
@@ -121,6 +154,14 @@ def main() -> int:
         action="store_true",
         help="Print payload plan only; do not call API.",
     )
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help=(
+            "Skip API calls when the output PNG already exists and is non-empty. "
+            "Use after closing a run early."
+        ),
+    )
     args = parser.parse_args()
 
     pack = _load_pack(Path(args.pack))
@@ -130,18 +171,20 @@ def main() -> int:
     cfg = float(pack.get("cfg", 7.5))
     transparent_background = bool(pack.get("transparent_background", True))
     seeds = list(pack.get("seeds", [102]))
-    tree_types = list(pack.get("tree_types", ["ancient oak tree"]))
     prompt_template = args.prompt_template_override.strip() or str(
         pack.get("prompt_template", DEFAULT_PROMPT_TEMPLATE)
     )
     negative_prompt = args.negative_prompt_override.strip() or str(
         pack.get("negative_prompt", DEFAULT_NEGATIVE)
     )
+    sampler_opt = pack.get("sampler")
+    scheduler_opt = pack.get("scheduler")
+    loras_opt = _validate_loras_field(pack.get("loras"))
     environments = list(pack.get("environments", []))
     if not environments:
         raise SystemExit("Batch pack has no environments.")
-    if not tree_types:
-        raise SystemExit("Batch pack has no tree_types.")
+    if "{environment_hint}" not in prompt_template or "{tree_type}" not in prompt_template:
+        raise SystemExit("prompt_template must include {environment_hint} and {tree_type} placeholders.")
 
     out_root = Path(args.out_dir)
     out_root.mkdir(parents=True, exist_ok=True)
@@ -155,12 +198,17 @@ def main() -> int:
             "steps": steps,
             "cfg": cfg,
             "pack": args.pack,
+            "sampler": sampler_opt,
+            "scheduler": scheduler_opt,
+            "loras": loras_opt,
+            "resume": args.resume,
         },
         "runs": [],
     }
 
     total = 0
     failures = 0
+    skipped_existing = 0
     for env in environments:
         if not isinstance(env, dict):
             print("Skipping invalid environment entry (not object).", file=sys.stderr)
@@ -172,16 +220,21 @@ def main() -> int:
             continue
         _validate_hint(env_id, env_hint)
         safe_env = _safe(env_id)
-        for tree_type_raw in tree_types:
+        species_list = _species_for_environment(env, pack)
+        if not species_list:
+            raise SystemExit(
+                f"Environment {env_id!r} has no tree_species and the pack has no tree_types fallback."
+            )
+        for tree_type_raw in species_list:
             tree_type = str(tree_type_raw).strip()
             if not tree_type:
-                print(f"Skipping blank tree_type in env={env_id}.", file=sys.stderr)
+                print(f"Skipping blank tree species in env={env_id}.", file=sys.stderr)
                 continue
             safe_tree = _safe(tree_type)
             for seed_raw in seeds:
                 seed = int(seed_raw)
                 prompt = prompt_template.format(environment_hint=env_hint, tree_type=tree_type)
-                payload = {
+                payload: dict[str, object] = {
                     "model": model,
                     "prompt": prompt,
                     "negative_prompt": negative_prompt,
@@ -191,6 +244,12 @@ def main() -> int:
                     "seed": seed,
                     "transparent_background": transparent_background,
                 }
+                if sampler_opt is not None and str(sampler_opt).strip():
+                    payload["sampler"] = str(sampler_opt).strip()
+                if scheduler_opt is not None and str(scheduler_opt).strip():
+                    payload["scheduler"] = str(scheduler_opt).strip()
+                if loras_opt:
+                    payload["loras"] = loras_opt
                 total += 1
                 filename = f"{safe_tree}__s{seed}.png"
                 target = out_root / safe_env / filename
@@ -205,6 +264,23 @@ def main() -> int:
                             "seed": seed,
                             "status": "dry_run",
                             "payload": payload,
+                            "output_path": str(target.as_posix()),
+                        }
+                    )
+                    continue
+
+                if args.resume and target.is_file() and target.stat().st_size > 0:
+                    skipped_existing += 1
+                    print(
+                        f"[SKIP] {safe_env}/{safe_tree} seed={seed} existing -> {target.as_posix()}",
+                        flush=True,
+                    )
+                    run_log["runs"].append(
+                        {
+                            "environment_id": env_id,
+                            "tree_type": tree_type,
+                            "seed": seed,
+                            "status": "skipped_existing",
                             "output_path": str(target.as_posix()),
                         }
                     )
@@ -284,6 +360,7 @@ def main() -> int:
     log_path.write_text(json.dumps(run_log, indent=2) + "\n", encoding="utf-8")
     print(f"Run log: {log_path.as_posix()}")
     print(f"Total planned: {total}")
+    print(f"Skipped existing (resume): {skipped_existing}")
     print(f"Failures: {failures}")
     return 1 if failures else 0
 

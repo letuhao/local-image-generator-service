@@ -1,0 +1,132 @@
+{
+  "_readme": "Bush lane: biome × bush_entries × sizes × seeds. Isolated shrub sprites for HoMM readability; aligns biome IDs with homm3 terrain packs.",
+  "lane": "bush",
+  "model": "flux1-dev-q8-tree",
+  "size": "1024x1024",
+  "steps": 28,
+  "cfg": 1.0,
+  "sampler": "euler",
+  "scheduler": "simple",
+  "transparent_background": true,
+  "loras": [
+    {
+      "name": "flux/dark_fantasy_digital_v11",
+      "weight": 0.8
+    }
+  ],
+  "seeds": [101, 202, 303],
+  "prompt_template": "isometric 2.5D fantasy strategy map flora sprite, single centered shrub cluster {subject}, Heroes of Might and Magic III inspired hand-painted readability, isolated bush prop only no terrain tile panorama, white neutral backdrop for alpha extraction, biome foliage cue accents only not backdrop scenery: {biome_hint}",
+  "negative_prompt": "blurry, soft focus, oversharpen, noisy texture, seamless terrain tile panorama, aerial satellite, grass carpet floor patch only no shrub mass, tree taller than canvas, forest panorama, person, human, character, face, dragon, mounted unit, army, watermark, logo, text",
+  "biomes": [
+    {
+      "id": "grassland_temperate",
+      "hint": "temperate palette, healthy leafy bundle masses readable berry tint accents"
+    },
+    {
+      "id": "swamp_dark",
+      "hint": "dark swamp palette, damp wilted leaf curls mildew olives subdued moss stalk accents"
+    },
+    {
+      "id": "snow_frost",
+      "hint": "cold palette, frost rimmed dormant twig bundles pale blue needle accents"
+    },
+    {
+      "id": "glacier_alpine",
+      "hint": "high glacier palette, rime crusted dwarf needle clusters sparse silhouette accents"
+    },
+    {
+      "id": "desert_dry",
+      "hint": "arid palette, sun bleached sparse grey-green succulent scrub bundles ochre grit flecks"
+    },
+    {
+      "id": "volcanic_ash",
+      "hint": "volcanic palette, soot dusted stressed leaf charcoal vein accents rusty flecks"
+    },
+    {
+      "id": "infernal_wastes",
+      "hint": "infernal palette, ember rimlit thorn clusters muted hostile reds charcoal stems"
+    },
+    {
+      "id": "enchanted_arcane",
+      "hint": "enchanted palette, jewel toned fairy berry clusters faint sparkle dew accents readable"
+    },
+    {
+      "id": "coastal_water",
+      "hint": "coastal palette, salt spray succulent foliage teal kelp fringe accents damp stems"
+    },
+    {
+      "id": "spectral_ethereal",
+      "hint": "spectral palette, translucent veil leaf fragments chalk pale luminous vein accents"
+    },
+    {
+      "id": "necropolis_blight",
+      "hint": "necropolis palette, tomb lichen necrotic leaf curls bone ash vein bark accents"
+    },
+    {
+      "id": "ocean_abyssal",
+      "hint": "abyss palette, kelp ribbon frond bundles cold blue shadow biolum fleck accents"
+    },
+    {
+      "id": "drake_badlands",
+      "hint": "drake palette, wind torn charcoal leaf shards heat scored thorn bundles metallic pollen hints"
+    },
+    {
+      "id": "heaven_cloud",
+      "hint": "celestial palette, silver-green luminous leaf clusters pale gold berry flecks airy puff shrub accents readable fantasy"
+    },
+    {
+      "id": "abyss_chaos_rift",
+      "hint": "chaos cavern palette, bruised violet fungal shrub curls twisted charcoal stems angular thorn knots readable fantasy"
+    }
+  ],
+  "bush_entries": [
+    {
+      "id": "thorn_scrub_shrub_cluster",
+      "prompt_subject": "thorny temperate scrub shrub cluster rounded silhouette readable spikes isolated bush mass",
+      "asset_summary": "Thorny scrub shrub cluster sprite.",
+      "asset_tags": ["bush", "thorn", "temperate"],
+      "composition": "single_tile",
+      "category": "flora"
+    },
+    {
+      "id": "wild_briar_mound_bush",
+      "prompt_subject": "wild briar mound twisted vines berries fantasy bush readable briar silhouette isolated cluster",
+      "asset_summary": "Wild briar mound bush cluster.",
+      "asset_tags": ["bush", "briar", "vine"],
+      "composition": "single_tile",
+      "category": "flora"
+    },
+    {
+      "id": "alpine_dwarf_shrub_cluster",
+      "prompt_subject": "compact alpine dwarf evergreen shrub cluster wind hardy needles isolated bush silhouette fantasy",
+      "asset_summary": "Alpine dwarf evergreen shrub cluster.",
+      "asset_tags": ["bush", "alpine", "evergreen"],
+      "composition": "single_tile",
+      "category": "flora"
+    },
+    {
+      "id": "spectral_veil_shrub_fantasy",
+      "prompt_subject": "spectral translucent veil leaf shrub fantasy faint glow seams chalk bark isolated bush cluster readable silhouette",
+      "asset_summary": "Spectral veil shrub fantasy.",
+      "asset_tags": ["bush", "spectral", "fantasy"],
+      "composition": "single_tile",
+      "category": "flora"
+    },
+    {
+      "id": "necrotic_thorn_knot_bush",
+      "prompt_subject": "necrotic twisted thorn knot bush tomb moss curls fantasy gnarled silhouette isolated cluster readable",
+      "asset_summary": "Necrotic thorn knot bush.",
+      "asset_tags": ["bush", "necrotic", "thorn"],
+      "composition": "single_tile",
+      "category": "flora"
+    },
+    {
+      "id": "abyss_kelp_frond_bush_fantasy",
+      "prompt_subject": "fantasy abyss kelp frond shrub mimic underwater foliage silhouette bush isolated readable kelp ribbons clustered base",
+      "asset_summary": "Abyss kelp-frond shaped bush fantasy.",
+      "asset_tags": ["bush", "abyss", "kelp"],
+      "composition": "single_tile",
+      "category": "flora"
+    }
+  ]
+}

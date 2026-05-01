@@ -79,6 +79,8 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["S", "N"]
+# Batch helpers call loopback generation HTTP via urllib like sibling *_batch.py scripts.
+"scripts/homm3-biome-bundle-batch.py" = ["S310"]
 
 [tool.ruff.format]
 quote-style = "double"

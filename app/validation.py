@@ -318,7 +318,7 @@ def resolve_and_validate(
 
     # 7. LoRA resolution: realpath-contain each reference under LORAS_ROOT, then
     #    confirm the .safetensors exists on disk. Realpath resolution catches
-    #    symlink-escape attempts (e.g. a dev drops a symlink under ./loras/ that
+    #    symlink-escape attempts (e.g. a dev drops a symlink under LORAS_ROOT that
     #    points at /etc/passwd) — name-regex alone wouldn't catch that.
     resolved_loras: tuple[ResolvedLoraRef, ...] = ()
     if req.loras:

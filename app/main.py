@@ -103,7 +103,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     # re-resolve from CWD per-request (CWD can drift in tests). Startup is
     # allowed to block on disk; lifespan wraps everything.
         app.state.loras_root = Path(  # noqa: ASYNC240
-            os.environ.get("LORAS_ROOT", "./loras")
+            os.environ.get("LORAS_ROOT", "./models/loras")
         ).resolve()
 
     # Cycle 4: queue worker + orphan reaper + restart recovery.

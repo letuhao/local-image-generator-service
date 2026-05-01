@@ -9,16 +9,23 @@ COPY --from=ghcr.io/astral-sh/uv:0.9.11 /uv /uvx /bin/
 
 ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
+    UV_CACHE_DIR=/root/.cache/uv \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
 WORKDIR /app
 
-# `--no-install-project` skips building our local package (we import app/ from
-# WORKDIR at runtime — no hatchling/README round trip needed).
-COPY pyproject.toml .python-version ./
+# Dependency layer: copy lockfile so Docker invalidates this stage only when deps change,
+# and use `--frozen` so `uv` does not re-resolve (fast + reproducible).
+# BuildKit cache mount persists downloaded wheels (torch/CUDA/etc.) across rebuilds —
+# requires BuildKit (`DOCKER_BUILDKIT=1`, default on recent Docker Desktop).
+#
+# Persistent remote/local cache for CI or cold machines:
+#   docker buildx build --cache-to type=registry,ref=your/repo:uv-cache,mode=max \
+#     --cache-from type=registry,ref=your/repo:uv-cache .
+COPY pyproject.toml uv.lock .python-version ./
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --no-dev --no-install-project
+    uv sync --frozen --no-dev --no-install-project
 
 # ── Stage 2: runtime ─────────────────────────────────────────────────────────
 FROM python:3.12-slim AS runtime
@@ -27,20 +34,19 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PATH="/app/.venv/bin:$PATH"
 
+# Non-root user must exist before COPY --chown. Avoid `chown -R /app/.venv`:
+# torch/CUDA trees have massive file counts and look “stuck forever” on Docker Desktop (Windows).
+RUN useradd --uid 1000 --create-home --shell /usr/sbin/nologin appuser
+
 WORKDIR /app
 
-# Copy the pre-built virtualenv from the builder stage
-COPY --from=builder /app/.venv /app/.venv
-
-# Copy application code + entrypoint + migrations (SQLite schema applied on lifespan).
-COPY app/ ./app/
-COPY migrations/ ./migrations/
-COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+# Copy the pre-built virtualenv + app as appuser (no recursive chown pass).
+COPY --from=builder --chown=appuser:appuser /app/.venv /app/.venv
+COPY --chown=appuser:appuser app/ ./app/
+COPY --chown=appuser:appuser migrations/ ./migrations/
+COPY --chown=appuser:appuser docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Non-root user
-RUN useradd --uid 1000 --create-home --shell /usr/sbin/nologin appuser && \
-    chown -R appuser:appuser /app
 USER appuser
 
 EXPOSE 8000

@@ -1,0 +1,132 @@
+{
+  "_readme": "Mushroom lane: biome × mushroom_entries × sizes × seeds. Isolated fungal clusters for HoMM readability.",
+  "lane": "mushroom",
+  "model": "flux1-dev-q8-tree",
+  "size": "1024x1024",
+  "steps": 28,
+  "cfg": 1.0,
+  "sampler": "euler",
+  "scheduler": "simple",
+  "transparent_background": true,
+  "loras": [
+    {
+      "name": "flux/dark_fantasy_digital_v11",
+      "weight": 0.8
+    }
+  ],
+  "seeds": [101, 202, 303],
+  "prompt_template": "isometric 2.5D fantasy strategy map flora sprite, single centered fungal cluster {subject}, Heroes of Might and Magic III inspired hand-painted readability, isolated mushroom prop only no terrain panorama, white neutral backdrop for alpha extraction, biome cap stalk pigment cues only not backdrop scenery: {biome_hint}",
+  "negative_prompt": "blurry, soft focus, oversharpen, noisy texture, seamless terrain tile panorama, aerial satellite, giant monster fungal kaiju, swarm creatures, person, human, character, face, dragon, watermark, logo, text",
+  "biomes": [
+    {
+      "id": "grassland_temperate",
+      "hint": "temperate palette, earthy caps pale stalks muted greens readable fairy ring dots"
+    },
+    {
+      "id": "swamp_dark",
+      "hint": "swamp palette, slimy stalk sheen muted olives soggy bell caps dew drip accents"
+    },
+    {
+      "id": "snow_frost",
+      "hint": "cold palette, frost rimmed caps pale stalk ice glaze muted browns readable silhouettes"
+    },
+    {
+      "id": "glacier_alpine",
+      "hint": "glacier palette, chalk pale stalk rime crust caps sparse silhouette cyan shadow accents"
+    },
+    {
+      "id": "desert_dry",
+      "hint": "desert palette, sun bleached stalk sandy ochre caps cracked readable dryness accents"
+    },
+    {
+      "id": "volcanic_ash",
+      "hint": "volcanic palette, soot dusted stalk caps rusty flecks stressed fungal silhouette accents"
+    },
+    {
+      "id": "infernal_wastes",
+      "hint": "infernal palette, charcoal stalk faint crack glow rim caps hostile reds muted readable silhouette"
+    },
+    {
+      "id": "enchanted_arcane",
+      "hint": "enchanted palette, jewel toned caps faint sparkle veil stalk accents readable fairy fungal hints"
+    },
+    {
+      "id": "coastal_water",
+      "hint": "coastal palette, barnacle fleck stalk kelp tinted caps teal corrosion accents readable shell dots"
+    },
+    {
+      "id": "spectral_ethereal",
+      "hint": "spectral palette, translucent veil caps faint luminous gills stalk chalk pale bloom accents"
+    },
+    {
+      "id": "necropolis_blight",
+      "hint": "necropolis palette, tomb pallid stalk caps sick mint vein accents readable necrotic fungal curls"
+    },
+    {
+      "id": "ocean_abyssal",
+      "hint": "abyss palette, coral toned caps cold blue stalk biolum speck accents readable abyss fungal silhouette"
+    },
+    {
+      "id": "drake_badlands",
+      "hint": "drake palette, heat scored stalk metallic shimmer flecks on caps charcoal silhouette hoard pollen tones"
+    },
+    {
+      "id": "heaven_cloud",
+      "hint": "celestial palette, pearl pale caps faint gold rim stalk chalk luminescence dew bead accents readable fairy fungal hints fantasy"
+    },
+    {
+      "id": "abyss_chaos_rift",
+      "hint": "chaos cavern palette, bruised violet bell caps angular fracture stalk charcoal ooze drip accents readable abyss fungal silhouette fantasy"
+    }
+  ],
+  "mushroom_entries": [
+    {
+      "id": "toadstool_ring_cluster_fantasy",
+      "prompt_subject": "fantasy toadstool ring cluster varied cap heights readable mushroom circle isolated fungal mass",
+      "asset_summary": "Toadstool ring cluster sprite.",
+      "asset_tags": ["mushroom", "toadstool", "ring"],
+      "composition": "single_tile",
+      "category": "flora"
+    },
+    {
+      "id": "shelf_fungi_stack_cluster",
+      "prompt_subject": "stacked bracket shelf fungi layered clusters fantasy readable silhouette isolated fungal shelf prop",
+      "asset_summary": "Bracket fungi stacked cluster.",
+      "asset_tags": ["mushroom", "shelf", "bracket"],
+      "composition": "single_tile",
+      "category": "flora"
+    },
+    {
+      "id": "lantern_glow_mushroom_trio_fantasy",
+      "prompt_subject": "three lantern glow mushroom fantasy trio stalk caps faint inner luminescence readable isolated cluster no beams",
+      "asset_summary": "Glowing mushroom trio fantasy.",
+      "asset_tags": ["mushroom", "glow", "fantasy"],
+      "composition": "single_tile",
+      "category": "flora"
+    },
+    {
+      "id": "coral_cap_abyss_cluster_fantasy",
+      "prompt_subject": "abyss coral cap mushroom cluster fantasy branching stalk readable silhouette isolated fungal reef mimic cluster",
+      "asset_summary": "Coral-cap abyss mushroom cluster fantasy.",
+      "asset_tags": ["mushroom", "abyss", "coral"],
+      "composition": "single_tile",
+      "category": "flora"
+    },
+    {
+      "id": "ash_spore_puffball_cluster_fantasy",
+      "prompt_subject": "volcanic ash puffball cluster fantasy dusty sporulating spheres stalk stubs readable silhouette isolated fungal cloud hints contained",
+      "asset_summary": "Ash puffball fungal cluster fantasy.",
+      "asset_tags": ["mushroom", "ash", "spore"],
+      "composition": "single_tile",
+      "category": "flora"
+    },
+    {
+      "id": "brimstone_infernal_mushroom_cluster_fantasy",
+      "prompt_subject": "infernal brimstone mushroom cluster fantasy cracked caps faint magma vein stalk charcoal silhouette isolated fungal prop readable",
+      "asset_summary": "Brimstone infernal mushroom cluster fantasy.",
+      "asset_tags": ["mushroom", "infernal", "fantasy"],
+      "composition": "single_tile",
+      "category": "flora"
+    }
+  ]
+}
