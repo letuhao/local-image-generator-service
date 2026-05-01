@@ -2,6 +2,8 @@
 
 Self-hostable, OpenAI-compatible image-generation microservice that integrates with LoreWeave's provider-registry. Wraps one or more image-generation backends (ComfyUI first) behind a unified API; supports uncensored community models (NoobAI-XL, Chroma1-HD, Illustrious merges) without per-model server code.
 
+Batch tooling drives large sprite/tile matrices against the same HTTP API: **HoMM3-inspired biome bundles** (terrain through mushroom lanes), **tree-environment** Flux sprites, and **`scripts/run-homm3-tree-bundle.py`** to run everything under one folder tree. Use **`--resume`** on batch scripts to skip generations whose PNG already exists after an interrupted run.
+
 ## Architecture
 
 - **Spec:** [docs/architecture/image-gen-service.md](docs/architecture/image-gen-service.md) (v0.4)
@@ -196,6 +198,10 @@ python scripts/tree-environment-batch.py --api-key REPLACE_WITH_FIRST_API_KEY \
   --pack docs/architecture/tree-environment-batch-pack.json --dry-run
 ```
 
+**Resume:** append **`--resume`** to skip calls when the target PNG already exists (non-empty file).
+
+The **`run-homm3-tree-bundle`** orchestrator can omit **`--api-key`** when **`API_KEYS`** is set in your shell (comma-separated; **first** key is used — same variable name as Compose). **`tree-environment-batch.py`** invoked directly still requires **`--api-key`** (pass your key or a placeholder with **`--dry-run`**).
+
 ### HoMM3-inspired biome bundle (terrain + structures + flora)
 
 Matrix batches expand **biomes × entries × sizes × seeds** with Flux parity (`loras`, `sampler`, `scheduler`). Filenames embed **`WxH`** (e.g. `mine_gold_entrance__1024x1024__s101.png`). Optional per-entry **`sizes`** override the pack default (e.g. **`1024x1536`** tall sprites, **`1536x1024`** wide compositions within model **`size_max_pixels`**). Optional authoring metadata on entries is copied into **`*.prompt.json`** / **`asset-manifest.ndjson`**: **`footprint_tiles_w`**, **`footprint_tiles_h`**, **`composition`** (`single_tile` \| `tall_sprite` \| `wide_scene` \| `dense_tile`), **`category`**.
@@ -203,6 +209,30 @@ Matrix batches expand **biomes × entries × sizes × seeds** with Flux parity (
 Shared biome **`id`** keys across packs align with **`tree-environment-batch-pack.json`** `environments[].id`: **fifteen** regions total — the earlier nine (including **`coastal_water`**) plus **`spectral_ethereal`**, **`necropolis_blight`**, **`ocean_abyssal`**, **`drake_badlands`**, **`heaven_cloud`** (celestial cloud deck tiles / props), and **`abyss_chaos_rift`** (underground chaos cavern read distinct from **`ocean_abyssal`**). The terrain pack adds dedicated **`biomes_include`** rows for heaven and chaos cave floor/path tiles (see **`cloud_marble_mosaic_floor`**, **`chaos_rift_fractured_basalt_floor`**, etc.).
 
 Outputs under `--out-dir`: `<biome>/terrain/`, `<biome>/structures/`, `<biome>/misc/`, `<biome>/bush/`, or `<biome>/mushroom/`, plus sidecars and **`asset-manifest.ndjson`**.
+
+#### Full bundle orchestrator (HoMM lanes + trees)
+
+One command walks all five HoMM packs **then** the tree batch. HoMM lanes write under **`<bundle-root>/homm3/<lane>/`** so each lane keeps its own **`batch-run-log.json`** and **`asset-manifest.ndjson`**; trees write to **`<bundle-root>/trees/`**. With default packs this schedules on the order of **~2 445** PNG generations (~2 310 HoMM + ~135 trees); use **`--resume`** after stopping mid-run.
+
+```bash
+python scripts/run-homm3-tree-bundle.py \
+  --bundle-root outputs/homm3-bundle/pass-full-001 \
+  --base-url http://127.0.0.1:8700 \
+  --api-key REPLACE_WITH_FIRST_API_KEY
+
+# Same, but infer API key from the first entry in env API_KEYS:
+python scripts/run-homm3-tree-bundle.py \
+  --bundle-root outputs/homm3-bundle/pass-full-001 \
+  --base-url http://127.0.0.1:8700
+
+# Continue after Ctrl+C / disconnect (skip existing PNGs):
+python scripts/run-homm3-tree-bundle.py \
+  --bundle-root outputs/homm3-bundle/pass-full-001 \
+  --base-url http://127.0.0.1:8700 \
+  --resume
+```
+
+Orchestrator summary: **`<bundle-root>/bundle-orchestrator-summary.json`**. **`--skip-homm3`** / **`--skip-trees`** run only half the bundle.
 
 Packs:
 
@@ -231,6 +261,8 @@ python scripts/homm3-biome-bundle-batch.py --pack docs/architecture/homm3-flux-b
 python scripts/homm3-biome-bundle-batch.py --pack docs/architecture/homm3-flux-mushroom-biome-pack.json \
   --api-key REPLACE_WITH_FIRST_API_KEY --out-dir outputs/homm3-bundle/pass-mushroom-001
 ```
+
+**Resume:** **`--resume`** skips scenarios whose output PNG already exists (non-empty) and **does not delete** **`asset-manifest.ndjson`** at lane start so partial manifests remain.
 
 ### Transparent background option
 
@@ -266,7 +298,7 @@ app/           FastAPI application
 tests/         pytest suites
 docker/        Dockerfiles for sidecar containers (Cycle 2+)
 docs/          architecture, plans, session log, integration contract
-scripts/       workflow enforcement + dev helpers
+scripts/       workflow enforcement, HoMM/tree batch runners, orchestrator (`run-homm3-tree-bundle.py`)
 workflows/     ComfyUI workflow templates (Cycle 2+)
 config/        models.yaml registry (Cycle 3+)
 ```
@@ -277,7 +309,7 @@ This repo uses a 12-phase agentic workflow with state-machine enforcement. See [
 
 ## Current status
 
-**Sprint 3 / Cycle 0** — repo bootstrap. Service boots, `/health` returns 200, Compose topology (three services on private network) validated. Next: Cycle 1 (auth + SQLite + structured logging).
+**Under active development** — FastAPI generation surface over ComfyUI, SQLite job store, optional MinIO artifact storage, Civitai LoRA helpers, Flux GGUF workflows, monitoring endpoints, and CLI batch pipelines (HoMM biome bundles, tree sprites, orchestrator with **`--resume`**). Treat production rollout as gated on your own SLAs, secrets hygiene, GPU capacity, and model licensing — see architecture docs for operational detail.
 
 ## License
 
