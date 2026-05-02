@@ -15,6 +15,8 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "2x1",
+      "rotation": "forward_back",
       "prompt": "2.5D sprite angle, ornate golden palanquin carriage, crimson silk drapes, bronze fittings with taotie patterns, imperial transport, elegant design, clean cutout, isolated on white, game vehicle asset",
       "negative_prompt": "text, watermark, background scene, people",
       "color_palette": ["#D4AF37", "#DC143C", "#CD7F32", "#F5F5DC"],
@@ -32,6 +34,8 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "2x1",
+      "rotation": "forward_back",
       "prompt": "2.5D sprite angle, golden dragon-headed imperial boat, crimson sails with gold trim, bronze dragon details, elegant water transport, clean cutout, isolated on white, game vehicle asset",
       "negative_prompt": "text, watermark, background scene, people",
       "color_palette": ["#D4AF37", "#DC143C", "#2E8B57", "#CD7F32"],
@@ -49,6 +53,8 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "1x1",
+      "rotation": "cardinal",
       "prompt": "2.5D sprite angle, elegant flying sword with bronze hilt and golden energy trail, imperial cultivation tool, dynamic pose, mystical aura, clean cutout, isolated, game vehicle asset",
       "negative_prompt": "text, watermark, background scene, people",
       "color_palette": ["#D4AF37", "#CD7F32", "#00A86B", "#F5F5DC"],
@@ -66,6 +72,8 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "2x1",
+      "rotation": "cardinal",
       "prompt": "2.5D sprite angle, ancient Chinese war chariot, bronze weapons and fittings, crimson accent details, battle-worn appearance, Shang dynasty military vehicle, clean cutout, isolated",
       "negative_prompt": "text, watermark, background scene, people",
       "color_palette": ["#CD7F32", "#DC143C", "#4A3B2C", "#8B6914"],
@@ -83,6 +91,8 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "2x2",
+      "rotation": "free",
       "prompt": "2.5D sprite angle, floating cloud platform, ethereal luminescent glow, jade accent details, immortal transport, serene mystical presence, clean cutout, isolated, game vehicle asset",
       "negative_prompt": "text, watermark, background scene, people",
       "color_palette": ["#F5F5DC", "#00A86B", "#D4AF37", "#6A5ACD"],

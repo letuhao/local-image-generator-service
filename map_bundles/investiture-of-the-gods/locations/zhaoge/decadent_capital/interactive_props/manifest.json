@@ -1,0 +1,188 @@
+{
+  "_readme": "Interactive props and destructible items for Triều Ca (decadent_capital). Primary language: English (Flux AI prompts). Vietnamese: developer reference.",
+  "location": "zhaoge/decadent_capital",
+  "category": "interactive_props",
+  "biome_id": "shang_capital",
+  "assets": [
+    {
+      "id": "shang_taotie_pottery",
+      "name": "Bình Gốm Thao Thiết",
+      "description": "Ancient clay pottery with taotie motifs, can be broken for loot",
+      "description_vn": "Bình gốm cổ thời Thương với hoa văn thao thiết, có thể đập vỡ rớt đồ",
+      "format": "centered_composition",
+      "seamless": false,
+      "tile_size": "1x1",
+      "dimensions": {
+        "width": 512,
+        "height": 512
+      },
+      "prompt": "centered composition, ancient clay pottery vase, intricate taotie motif engravings, slightly worn texture, dark imperial aesthetic, loot container, isolated game prop",
+      "negative_prompt": "text, watermark, people, cartoon, flat 2D, background",
+      "color_palette": ["#8B4513", "#A0522D", "#2F4F4F", "#1A1A2E"],
+      "priority": "high",
+      "tags": ["prop", "pottery", "destructible", "taotie", "loot"]
+    },
+    {
+      "id": "shang_taotie_pottery_broken",
+      "name": "Bình Gốm Thao Thiết (Vỡ)",
+      "description": "Destroyed version of the taotie pottery, scattered ceramic shards",
+      "description_vn": "Phiên bản vỡ nát của bình gốm thao thiết, mảnh vỡ gốm rải rác trên đất",
+      "format": "centered_composition",
+      "seamless": false,
+      "tile_size": "1x1",
+      "dimensions": {
+        "width": 512,
+        "height": 512
+      },
+      "prompt": "centered composition, shattered ancient clay pottery vase, broken ceramic shards scattered on the ground, intricate taotie motif fragments, ruined, destroyed loot container, debris, isolated game prop",
+      "negative_prompt": "text, watermark, people, cartoon, flat 2D, background, intact vase",
+      "color_palette": ["#8B4513", "#A0522D", "#2F4F4F", "#1A1A2E"],
+      "priority": "high",
+      "tags": ["prop", "pottery", "broken", "ruin", "debris"]
+    },
+    {
+      "id": "bronze_execution_rack",
+      "name": "Giá Tra Khảo Bằng Đồng",
+      "description": "Bronze rack holding dark weapons and execution tools, interactive environment hazard",
+      "description_vn": "Giá đồng chứa vũ khí tối màu và dụng cụ tra khảo, vật thể cản trở hoặc bẫy tương tác",
+      "format": "centered_composition",
+      "seamless": false,
+      "tile_size": "1x1",
+      "dimensions": {
+        "width": 512,
+        "height": 512
+      },
+      "prompt": "centered composition, dark bronze weapon rack, hanging ancient execution tools, chains, dried blood stains, sinister torture device, oppressive imperial aesthetic, isolated game prop",
+      "negative_prompt": "text, watermark, people, cartoon, flat 2D, background",
+      "color_palette": ["#CD7F32", "#4A0E4E", "#1A1A1A", "#8B0000"],
+      "priority": "medium",
+      "tags": ["prop", "torture", "weapon_rack", "bronze", "dark"]
+    },
+    {
+      "id": "torn_silk_screen",
+      "name": "Bình Phong Lụa Rách",
+      "description": "Decadent imperial folding screen with torn red silk and dark wood frame",
+      "description_vn": "Bình phong hoàng gia sa đọa với lụa đỏ rách tơi tả và khung gỗ tối màu",
+      "format": "centered_composition",
+      "seamless": false,
+      "tile_size": "2x1",
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "centered composition, imperial folding screen room divider, dark carved wood frame, torn and ruined crimson silk fabric, signs of decay and decadence, abandoned palace furniture, isolated game prop",
+      "negative_prompt": "text, watermark, people, cartoon, flat 2D, background, intact, clean",
+      "color_palette": ["#3E1F1F", "#DC143C", "#1A1A1A", "#D4AF37"],
+      "priority": "low",
+      "tags": ["prop", "furniture", "screen", "torn", "decadent"]
+    },
+    {
+      "id": "blood_stained_barrel",
+      "name": "Thùng Gỗ Máu Xung Quanh",
+      "description": "Old wooden barrel with blood stains, common loot container in execution areas",
+      "description_vn": "Thùng gỗ cũ có vệt máu, thùng rớt đồ phổ biến trong khu vực hành hình",
+      "format": "centered_composition",
+      "seamless": false,
+      "tile_size": "1x1",
+      "dimensions": {
+        "width": 512,
+        "height": 512
+      },
+      "prompt": "centered composition, old bound wooden barrel, iron hoops, dark wood, sinister blood stains splashed on the side, loot container, execution area prop, isolated game prop",
+      "negative_prompt": "text, watermark, people, cartoon, flat 2D, background, clean",
+      "color_palette": ["#5C4033", "#2F2F2F", "#8B0000", "#1A1A1A"],
+      "priority": "medium",
+      "tags": ["prop", "barrel", "wood", "blood", "loot"]
+    },
+    {
+      "id": "bronze_brazier_overturned",
+      "name": "Lư Hương Đồng Lật Úp",
+      "description": "Overturned bronze brazier spilling glowing embers, creates a fire hazard",
+      "description_vn": "Lư hương đồng bị lật đổ, than hồng vương vãi, tạo bẫy cháy nhỏ",
+      "format": "centered_composition",
+      "seamless": false,
+      "tile_size": "1x1",
+      "dimensions": {
+        "width": 512,
+        "height": 512
+      },
+      "prompt": "centered composition, overturned heavy bronze brazier, glowing red hot coals spilling out onto the floor, smoke rising, fire hazard, chaos and destruction, dark imperial aesthetic, isolated game prop",
+      "negative_prompt": "text, watermark, people, cartoon, flat 2D, background, upright",
+      "color_palette": ["#CD7F32", "#FF4500", "#1A1A1A", "#8B0000"],
+      "priority": "medium",
+      "tags": ["prop", "brazier", "fire", "hazard", "bronze"]
+    },
+    {
+      "id": "wooden_prisoner_cage",
+      "name": "Lồng Giam Tù Nhân",
+      "description": "Small wooden and iron cage used for prisoners, can be broken",
+      "description_vn": "Lồng giam nhỏ bằng gỗ và sắt vụn, có thể đập vỡ để cứu người hoặc nhặt đồ",
+      "format": "centered_composition",
+      "seamless": false,
+      "tile_size": "2x2",
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "centered composition, small wooden prisoner cage, reinforced with rusted iron bands, dark decaying wood, sinister torture device, empty interior, execution square prop, isolated game prop",
+      "negative_prompt": "text, watermark, people, cartoon, flat 2D, background, clean",
+      "color_palette": ["#3E2723", "#4E342E", "#212121", "#8B0000"],
+      "priority": "high",
+      "tags": ["prop", "cage", "prison", "wood", "torture"]
+    },
+    {
+      "id": "scattered_bamboo_slips",
+      "name": "Thẻ Tre Ngổn Ngang",
+      "description": "Piles of unread or discarded bamboo slips, readable lore item",
+      "description_vn": "Các bó thẻ tre ghi tấu chương bị vứt lung tung, vật phẩm đọc lore",
+      "format": "centered_composition",
+      "seamless": false,
+      "tile_size": "1x1",
+      "dimensions": {
+        "width": 512,
+        "height": 512
+      },
+      "prompt": "centered composition, scattered ancient chinese bamboo slips on the ground, untied leather straps, discarded official documents, chaos and neglect, historical artifacts, isolated game prop",
+      "negative_prompt": "text, watermark, people, cartoon, flat 2D, background, neat stack",
+      "color_palette": ["#D2B48C", "#F5DEB3", "#8B4513", "#2F2F2F"],
+      "priority": "medium",
+      "tags": ["prop", "document", "lore", "bamboo", "scattered"]
+    },
+    {
+      "id": "jade_wine_jug",
+      "name": "Vò Rượu Ngọc Thạch",
+      "description": "Precious jade jug filled with wine, symbolizes decadence, heals when broken",
+      "description_vn": "Vò rượu quý bằng ngọc thạch, biểu tượng sa đọa, đập vỡ rớt vật phẩm hồi máu",
+      "format": "centered_composition",
+      "seamless": false,
+      "tile_size": "1x1",
+      "dimensions": {
+        "width": 512,
+        "height": 512
+      },
+      "prompt": "centered composition, precious carved jade wine jug, elegant imperial design, glowing slightly with mystical energy, spilled dark red wine at the base, symbol of royal decadence, isolated game prop",
+      "negative_prompt": "text, watermark, people, cartoon, flat 2D, background, rough",
+      "color_palette": ["#50C878", "#00A86B", "#8B0000", "#1A1A1A"],
+      "priority": "medium",
+      "tags": ["prop", "jug", "jade", "wine", "decadent"]
+    },
+    {
+      "id": "execution_block",
+      "name": "Thớt Gỗ Chém Đầu",
+      "description": "Large wooden block with an executioner's blade embedded in it",
+      "description_vn": "Thớt gỗ lớn cắm sẵn một thanh đại đao chém đầu rỉ sét",
+      "format": "centered_composition",
+      "seamless": false,
+      "tile_size": "1x1",
+      "dimensions": {
+        "width": 512,
+        "height": 512
+      },
+      "prompt": "centered composition, massive scarred wooden execution block, a large rusted guandao blade embedded deeply in the wood, dark dried blood stains, ominous atmosphere, punishment square prop, isolated game prop",
+      "negative_prompt": "text, watermark, people, cartoon, flat 2D, background, clean",
+      "color_palette": ["#4A3C31", "#2A2A2A", "#8B0000", "#708090"],
+      "priority": "high",
+      "tags": ["prop", "execution", "weapon", "wood", "blood"]
+    }
+  ]
+}

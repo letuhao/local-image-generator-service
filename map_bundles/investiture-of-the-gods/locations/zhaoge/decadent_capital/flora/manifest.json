@@ -15,6 +15,8 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "1x1",
+      "rotation": "cardinal",
       "prompt": "single sprite, ancient twisted pine tree, partially dead canopy with resilient green patches, dramatic shadows, gnarled bark texture, xianxia aesthetic, 2.5D orthographic view, clean alpha background, game foliage asset",
       "negative_prompt": "text, watermark, seamless tile, background",
       "color_palette": ["#2E8B57", "#4A3B2C", "#6B5B45", "#D4AF37"],
@@ -32,6 +34,8 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "1x1",
+      "rotation": "cardinal",
       "prompt": "single sprite, blood-red plum blossoms on dark sinuous branches, surreal elegance, moonlight glow from behind, petals falling, melancholic beauty, clean alpha background, game foliage asset style",
       "negative_prompt": "text, watermark, seamless tile, background",
       "color_palette": ["#DC143C", "#1A1A2E", "#F5F5DC", "#4A0E4E"],
@@ -49,6 +53,8 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "1x1",
+      "rotation": "cardinal",
       "prompt": "single sprite, wild grapevine with unnaturally deep purple clusters, creeping growth pattern, eerie luminescence from berries, sinister beauty, clean alpha background, game foliage asset",
       "negative_prompt": "text, watermark, seamless tile, background",
       "color_palette": ["#6A5ACD", "#4A0E4E", "#2F1B4E", "#6B8E23"],
@@ -66,6 +72,8 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "1x1",
+      "rotation": "free",
       "prompt": "single sprite, wilted lotus flowers with brown petals, decaying lily pads, murky water reflection below, melancholic beauty, opulent ruin aesthetic, clean alpha background, game foliage asset",
       "negative_prompt": "text, watermark, seamless tile, background",
       "color_palette": ["#8B7355", "#6B8E23", "#4A5D23", "#CD853F"],
@@ -83,6 +91,8 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "1x1",
+      "rotation": "cardinal",
       "prompt": "single sprite, black bamboo stalks with sharp angular growth, metallic sheen on culms, oppressive atmosphere, dense cluster against dark background, clean alpha, game foliage asset style",
       "negative_prompt": "text, watermark, seamless tile, background",
       "color_palette": ["#1A1A2E", "#2F2F2F", "#4A4A4A", "#6B4226"],

@@ -15,6 +15,8 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "1x1",
+      "rotation": "free",
       "prompt": "translucent overlay tile, golden divine radiance particles, imperial aura glow, soft luminous effect, seamless tiling, VFX sprite, alpha-ready, no solid geometry",
       "negative_prompt": "text, watermark, solid objects, people",
       "color_palette": ["#D4AF37", "#FFD700", "#FFF8DC", "#B8860B"],
@@ -32,6 +34,8 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "1x1",
+      "rotation": "free",
       "prompt": "translucent overlay tile, purple-red mist layer, oppressive atmosphere, subtle particle glow, eerie luminescence, seamless tiling, VFX sprite, alpha-ready, soft edges",
       "negative_prompt": "text, watermark, solid objects, people",
       "color_palette": ["#6A5ACD", "#8B008B", "#DC143C", "#2F1B4E"],
@@ -49,6 +53,8 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "1x1",
+      "rotation": "free",
       "prompt": "translucent overlay tile, warm red lantern light bloom, soft radial glow, floating warm light particles, festive yet eerie, seamless VFX tile, alpha-ready",
       "negative_prompt": "text, watermark, solid objects, people",
       "color_palette": ["#DC143C", "#FF6347", "#FFD700", "#FF4500"],
@@ -66,6 +72,8 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "1x1",
+      "rotation": "fixed",
       "prompt": "translucent overlay tile, blood-red moonlight cast across surface, angular shadow patterns, eerie crimson tone, ominous atmosphere, seamless tile, VFX sprite",
       "negative_prompt": "text, watermark, solid objects, people",
       "color_palette": ["#8B0000", "#6B1C1C", "#4A0E4E", "#2F1B4E"],
@@ -83,6 +91,8 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "1x1",
+      "rotation": "free",
       "prompt": "translucent overlay tile, swirling incense smoke patterns, golden particle traces, elegant curling motion, ritual atmosphere, seamless VFX tile, alpha-ready, soft edges",
       "negative_prompt": "text, watermark, solid objects, people",
       "color_palette": ["#D4AF37", "#CD7F32", "#F5F5DC", "#6A5ACD"],

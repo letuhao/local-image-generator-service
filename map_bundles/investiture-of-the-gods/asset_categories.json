@@ -137,6 +137,34 @@
       ],
       "prompt_keywords": "2.5D sprite angle, dynamic pose, flat shading, game vehicle asset, isolated, clean edges",
       "priority": "medium"
+    },
+    {
+      "id": "interactive_props",
+      "name": "Interactive Props / Cảnh cụ tương tác & Đồ vỡ",
+      "description": "Small environment objects that players can interact with, destroy for loot, or use as cover.",
+      "description_vn": "Vật thể nhỏ trên map người chơi có thể đánh vỡ (bình gốm, thùng), tương tác hoặc làm vật cản nhỏ.",
+      "asset_focus": [
+        "taotie_pottery",
+        "wooden_barrel",
+        "silk_screen",
+        "ruined_pillar_rubble"
+      ],
+      "prompt_keywords": "small game prop, destructible object, isolated on white background, 2.5D orthographic, clear silhouette",
+      "priority": "high"
+    },
+    {
+      "id": "level_utilities",
+      "name": "Level Design Utilities / Tài Nguyên Kỹ Thuật",
+      "description": "Essential components for game level design including walls, stairs, chests, and static lighting.",
+      "description_vn": "Thành phần cốt lõi để xây map như tường thành, cầu thang, rương báu, và đèn tĩnh.",
+      "asset_focus": [
+        "palace_wall_segment",
+        "stone_stairs",
+        "bronze_treasure_chest",
+        "wall_sconce"
+      ],
+      "prompt_keywords": "isometric level design asset, modular building block, game environment prop, seamless where applicable, clear orthographic perspective",
+      "priority": "high"
     }
   ]
 }

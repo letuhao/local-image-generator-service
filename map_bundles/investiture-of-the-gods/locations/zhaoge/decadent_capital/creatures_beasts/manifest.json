@@ -15,6 +15,8 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "1x1",
+      "rotation": "cardinal",
       "prompt": "2.5D sprite angle, nine-tailed spirit fox, pristine white fur with crimson tips on tails, glowing green eyes, mystical aura particles, elegant powerful stance, xianxia aesthetic, clean cutout, isolated on white, game creature base",
       "negative_prompt": "text, watermark, background scene, multiple creatures",
       "color_palette": ["#F5F5DC", "#DC143C", "#00A86B", "#D4AF37"],
@@ -32,6 +34,8 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "1x1",
+      "rotation": "cardinal",
       "prompt": "2.5D sprite, fox spirit in ornate palace dress, seductive sinister expression, crimson silk robes with gold embroidery, fox ears subtly visible, elegant pose, game character base, clean cutout, isolated",
       "negative_prompt": "text, watermark, background scene, multiple characters",
       "color_palette": ["#DC143C", "#D4AF37", "#F5F5DC", "#2F1B4E"],
@@ -49,6 +53,8 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "1x1",
+      "rotation": "cardinal",
       "prompt": "2.5D sprite angle, bronze qilin guardian statue, weathered green patina, battle damage and chipped surfaces, imposing defensive stance, Shang dynasty mythical creature, game creature base, clean cutout",
       "negative_prompt": "text, watermark, background scene, multiple creatures",
       "color_palette": ["#CD7F32", "#2E8B57", "#4A4A4A", "#8B6914"],
@@ -66,6 +72,8 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "1x1",
+      "rotation": "free",
       "prompt": "2.5D sprite, corrupted dark spirit kite, eerie green energy core, tattered wing membranes, ominous presence, floating posture, sinister elegance, clean cutout, isolated, game creature asset",
       "negative_prompt": "text, watermark, background scene, multiple creatures",
       "color_palette": ["#2F2F2F", "#00A86B", "#4A0E4E", "#1A1A2E"],
@@ -83,6 +91,8 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "1x1",
+      "rotation": "cardinal",
       "prompt": "2.5D sprite angle, elite palace guard warrior, Shang dynasty bronze lamellar armor, crimson plume helmet, stern determined expression, holding bronze weapon, game character base, clean cutout, isolated",
       "negative_prompt": "text, watermark, background scene, multiple characters",
       "color_palette": ["#CD7F32", "#DC143C", "#F5F5DC", "#4A3B2C"],

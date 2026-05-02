@@ -15,6 +15,8 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "2x2",
+      "rotation": "forward_back",
       "prompt": "centered composition, set of 8 bronze bianzhong bells hanging on carved wooden frame, intricate taotie thunder patterns on each bell, green patina oxidation, Shang dynasty royal music instrument, dramatic rim light, authoritative musical presence, game item sprite style, isolated on white, clean edges",
       "negative_prompt": "text, watermark, background scene, people",
       "color_palette": ["#CD7F32", "#2E8B57", "#4A4A4A", "#D4AF37"],
@@ -32,6 +34,8 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "1x1",
+      "rotation": "cardinal",
       "prompt": "centered composition, bell-shaped bronze incense burner on stone pedestal, fox spirit face carved on surface, ethereal green smoke curling upward from opening, ritual object, dramatic rim light, mystical atmosphere, game item sprite, isolated",
       "negative_prompt": "text, watermark, background scene, people",
       "color_palette": ["#CD7F32", "#00A86B", "#6A5ACD", "#2F2F2F"],
@@ -49,6 +53,8 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "1x1",
+      "rotation": "cardinal",
       "prompt": "centered prop, stone chime block (qing) for ritual court music, carved dragon patterns on surface, green jade stone, suspended by silk cord, ancient musical instrument, dramatic rim light, game item sprite, isolated",
       "negative_prompt": "text, watermark, background scene, people",
       "color_palette": ["#2E8B57", "#CD7F32", "#F5F5DC", "#8B7355"],
@@ -66,6 +72,8 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "1x1",
+      "rotation": "free",
       "prompt": "centered prop, circular jade disc with bell motif carvings around edge, translucent green jade, immortal realm gift, soft luminous glow, game item sprite style, isolated on white, clean edges",
       "negative_prompt": "text, watermark, background scene, people",
       "color_palette": ["#00A86B", "#F5F5DC", "#D4AF37", "#2E8B57"],
@@ -83,6 +91,8 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "1x1",
+      "rotation": "cardinal",
       "prompt": "centered prop, ancient Chinese bamboo mouth organ (xiangharmony), multiple bamboo pipes in curved frame, cultivator's musical instrument, weathered wood texture, xianxia aesthetic, dramatic rim light, game item sprite, isolated",
       "negative_prompt": "text, watermark, background scene, people",
       "color_palette": ["#8B7355", "#6B8E23", "#CD7F32", "#4A3B2C"],

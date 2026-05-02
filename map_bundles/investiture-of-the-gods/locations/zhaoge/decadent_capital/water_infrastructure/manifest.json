@@ -15,6 +15,8 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "1x1",
+      "rotation": "forward_back",
       "prompt": "centered composition, dragon-headed bronze spout protruding from palace wall, wine pouring from dragon's mouth in golden arc, taotie patterns on dragon body, opulent banquet atmosphere, dramatic lighting, game prop style, isolated",
       "negative_prompt": "text, watermark, background scene, people",
       "color_palette": ["#CD7F32", "#D4AF37", "#DC143C", "#8B6914"],
@@ -32,6 +34,8 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "3x3",
+      "rotation": "free",
       "prompt": "orthographic top-down tile, circular marble wine pool basin edge, golden wine surface with floating peach petals, seamless border, opulent decadence, flat lighting, game terrain base, isolated",
       "negative_prompt": "text, watermark, perspective, people",
       "color_palette": ["#F5F5DC", "#D4AF37", "#FFD700", "#DC143C"],
@@ -49,6 +53,8 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "1x1",
+      "rotation": "free",
       "prompt": "orthographic top-down tile, curved stone pond edge with lotus flower carvings, koi fish visible in dark water below, seamless border, imperial garden aesthetic, flat lighting, game terrain base",
       "negative_prompt": "text, watermark, perspective, people",
       "color_palette": ["#8B7355", "#2E8B57", "#CD853F", "#4A4A4A"],
@@ -66,6 +72,8 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "1x1",
+      "rotation": "free",
       "prompt": "orthographic top-down tile, circular elevated wooden water reservoir top, wooden plank construction, water surface with reflections, seamless border, palace infrastructure, flat lighting, game terrain base",
       "negative_prompt": "text, watermark, perspective, people",
       "color_palette": ["#6B4226", "#2E8B57", "#4A3B2C", "#8B7355"],
@@ -83,6 +91,8 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "1x2",
+      "rotation": "cardinal",
       "prompt": "orthographic top-down tile, carved stone water channel section, dragon scale pattern on channel walls, flowing water inside, seamless border, flat lighting, game terrain base",
       "negative_prompt": "text, watermark, perspective, people",
       "color_palette": ["#8B7355", "#2E8B57", "#6B8E23", "#4A4A4A"],

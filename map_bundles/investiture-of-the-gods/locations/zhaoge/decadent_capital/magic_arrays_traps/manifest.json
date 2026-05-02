@@ -15,6 +15,8 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "1x1",
+      "rotation": "free",
       "prompt": "top-down tile, carved stone disc disguised as street paving stone, hidden formation patterns barely visible, subtle energy glow, seamless border, game prop tile, clean geometry",
       "negative_prompt": "text, watermark, perspective, people",
       "color_palette": ["#8B7355", "#CD7F32", "#6B8E23", "#4A4A4A"],
@@ -32,6 +34,8 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "1x1",
+      "rotation": "radial",
       "prompt": "top-down tile, circular fox spirit warding formation, corrupted runic inscriptions, eerie green luminescence from channels, sinister energy patterns, seamless tiling, game UI tile",
       "negative_prompt": "text, watermark, perspective, people",
       "color_palette": ["#00A86B", "#6A5ACD", "#2F1B4E", "#2F2F2F"],
@@ -49,6 +53,8 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "1x1",
+      "rotation": "radial",
       "prompt": "top-down tile, bronze formation pillar base, taotie thunder patterns, energy flow channels radiating outward, imperial qi concentration, game prop tile, seamless border, clean geometry",
       "negative_prompt": "text, watermark, perspective, people",
       "color_palette": ["#CD7F32", "#D4AF37", "#8B6914", "#2F2F2F"],
@@ -66,6 +72,8 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "1x1",
+      "rotation": "radial",
       "prompt": "top-down tile, octagonal illusion trap node, crimson and gold inlay patterns, deceptive ornate design masking danger, subtle energy distortion, seamless game tile",
       "negative_prompt": "text, watermark, perspective, people",
       "color_palette": ["#DC143C", "#D4AF37", "#6A5ACD", "#2F1B4E"],
@@ -83,6 +91,8 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "1x1",
+      "rotation": "free",
       "prompt": "top-down tile,凝聚 death qi energy cluster, purple-black vortex center, ominous swirling patterns radiating outward, dark supernatural energy, seamless game UI tile",
       "negative_prompt": "text, watermark, perspective, people",
       "color_palette": ["#4A0E4E", "#2F2F2F", "#6B1C1C", "#1A1A2E"],

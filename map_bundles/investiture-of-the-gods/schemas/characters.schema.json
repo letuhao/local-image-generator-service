@@ -1,0 +1,142 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Character Manifest Schema",
+  "description": "Schema for defining characters in the game, supporting both Concept Art (portraits) and Game Sprites (2.5D/Isometric) from a single base appearance.",
+  "type": "object",
+  "properties": {
+    "_readme": {
+      "type": "string"
+    },
+    "faction": {
+      "type": "string",
+      "description": "The faction or group these characters belong to (e.g., Shang Dynasty, Zhou Dynasty, Jie Sect, Chan Sect)"
+    },
+    "characters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]+$",
+            "description": "Unique identifier for the character"
+          },
+          "name": {
+            "type": "string",
+            "description": "Human readable name (Vietnamese/English)"
+          },
+          "title": {
+            "type": "string",
+            "description": "Character's title or epithet (e.g., Vua Trụ, Cửu Vĩ Hồ)"
+          },
+          "description": {
+            "type": "string",
+            "description": "Lore description of the character"
+          },
+          "class": {
+            "type": "string",
+            "enum": ["unique_hero", "boss", "npc", "generic_enemy", "mount"],
+            "description": "The gameplay role of this character"
+          },
+          "appearance_prompt": {
+            "type": "string",
+            "description": "Core physical description: face, hair, clothing, armor, signature weapons. (DO NOT include camera angles or art styles here)"
+          },
+          "negative_prompt": {
+            "type": "string",
+            "description": "Things to strictly avoid for this character"
+          },
+          "color_palette": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^#[0-9A-Fa-f]{6}$"
+            },
+            "description": "Core Hex colors defining their aesthetic identity"
+          },
+          "outputs": {
+            "type": "object",
+            "description": "Defines what types of images to generate for this character",
+            "properties": {
+              "concept_art": {
+                "type": "object",
+                "properties": {
+                  "enabled": { "type": "boolean", "default": true },
+                  "dimensions": {
+                    "type": "object",
+                    "properties": {
+                      "width": { "type": "integer", "default": 1024 },
+                      "height": { "type": "integer", "default": 1024 }
+                    }
+                  },
+                  "style_prompt": {
+                    "type": "string",
+                    "description": "Camera and style modifiers for concept art. Example: 'highly detailed character concept art, upper body portrait, dramatic cinematic lighting, looking at viewer'"
+                  }
+                }
+              },
+              "sprite": {
+                "type": "object",
+                "properties": {
+                  "enabled": { "type": "boolean", "default": true },
+                  "format": {
+                    "type": "string",
+                    "enum": ["isometric", "orthographic_top_down", "side_scroller"]
+                  },
+                  "dimensions": {
+                    "type": "object",
+                    "properties": {
+                      "width": { "type": "integer", "default": 1024 },
+                      "height": { "type": "integer", "default": 1024 }
+                    }
+                  },
+                  "style_prompt": {
+                    "type": "string",
+                    "description": "Camera and style modifiers for sprites. Example: 'full body game sprite, isometric 2.5D angle, action pose, isolated on white background, clear silhouette'"
+                  }
+                }
+              },
+              "dialog_portrait": {
+                "type": "object",
+                "properties": {
+                  "enabled": { "type": "boolean", "default": true },
+                  "format": {
+                    "type": "string",
+                    "enum": ["half_body", "bust"]
+                  },
+                  "dimensions": {
+                    "type": "object",
+                    "properties": {
+                      "width": { "type": "integer", "default": 1024 },
+                      "height": { "type": "integer", "default": 1024 }
+                    }
+                  },
+                  "style_prompt": {
+                    "type": "string",
+                    "description": "Camera and style modifiers for visual novel dialog sprites. Example: 'visual novel character sprite, half-body portrait, looking at viewer, isolated on solid white background, clean edges'"
+                  }
+                }
+              }
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "class",
+          "appearance_prompt",
+          "outputs"
+        ]
+      }
+    }
+  },
+  "required": [
+    "characters"
+  ]
+}

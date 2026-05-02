@@ -15,11 +15,24 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "1x1",
+      "rotation": "free",
       "prompt": "orthographic top-down tile, cracked dry earth texture, dusty brown tones, sparse withered weeds growing from fissures, oppressive atmosphere, seamless border, flat lighting, clean edges, game terrain base, isolated prop",
       "negative_prompt": "perspective, gradient, background, people, text, watermark",
-      "color_palette": ["#8B7355", "#A0926D", "#6B5B45", "#4A3B2C"],
+      "color_palette": [
+        "#8B7355",
+        "#A0926D",
+        "#6B5B45",
+        "#4A3B2C"
+      ],
       "priority": "high",
-      "tags": ["mortal", "decay", "drought", "earth", "cracked"]
+      "tags": [
+        "mortal",
+        "decay",
+        "drought",
+        "earth",
+        "cracked"
+      ]
     },
     {
       "id": "imperial_brick_gold",
@@ -32,11 +45,24 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "1x1",
+      "rotation": "free",
       "prompt": "orthographic top-down tile, polished crimson brick pathway, gold dust inlay between bricks, imperial luxury, subtle reflective surface, seamless border, clean edges, game terrain, flat lighting",
       "negative_prompt": "perspective, gradient, background, people, text, watermark",
-      "color_palette": ["#DC143C", "#D4AF37", "#B8860B", "#8B0000"],
+      "color_palette": [
+        "#DC143C",
+        "#D4AF37",
+        "#B8860B",
+        "#8B0000"
+      ],
       "priority": "high",
-      "tags": ["imperial", "opulence", "gold", "brick", "crimson"]
+      "tags": [
+        "imperial",
+        "opulence",
+        "gold",
+        "brick",
+        "crimson"
+      ]
     },
     {
       "id": "bronze_pathway",
@@ -49,11 +75,24 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "1x1",
+      "rotation": "free",
       "prompt": "orthographic top-down tile, bronze plates with taotie thunder patterns, golden patina oxidation, Shang dynasty motifs, geometric seamless border, flat shading, game terrain base, isolated",
       "negative_prompt": "perspective, gradient, background, people, text, watermark",
-      "color_palette": ["#CD7F32", "#B8860B", "#8B6914", "#6B4226"],
+      "color_palette": [
+        "#CD7F32",
+        "#B8860B",
+        "#8B6914",
+        "#6B4226"
+      ],
       "priority": "high",
-      "tags": ["bronze", "taotie", "Shang", "pattern", "imperial"]
+      "tags": [
+        "bronze",
+        "taotie",
+        "Shang",
+        "pattern",
+        "imperial"
+      ]
     },
     {
       "id": "decadant_garden",
@@ -66,11 +105,24 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "2x2",
+      "rotation": "free",
       "prompt": "isometric tile, overgrown stone pathway, wilting lotus flowers in decaying pond, moss-covered stones, opulent ruin aesthetic, melancholic beauty, seamless border, game terrain",
       "negative_prompt": "perspective, gradient, background, people, text, watermark",
-      "color_palette": ["#2E8B57", "#6B8E23", "#8B7355", "#4A5D23"],
+      "color_palette": [
+        "#2E8B57",
+        "#6B8E23",
+        "#8B7355",
+        "#4A5D23"
+      ],
       "priority": "medium",
-      "tags": ["garden", "decay", "lotus", "overgrown", "melancholy"]
+      "tags": [
+        "garden",
+        "decay",
+        "lotus",
+        "overgrown",
+        "melancholy"
+      ]
     },
     {
       "id": "blood_stained_court",
@@ -83,11 +135,189 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "1x1",
+      "rotation": "free",
       "prompt": "orthographic top-down tile, stone courtyard with dark blood stains, crimson patina overlay, oppressive atmosphere, subtle crack patterns, seamless border, flat lighting, game terrain base",
       "negative_prompt": "perspective, gradient, background, people, text, watermark",
-      "color_palette": ["#8B0000", "#2F2F2F", "#4A4A4A", "#6B1C1C"],
+      "color_palette": [
+        "#8B0000",
+        "#2F2F2F",
+        "#4A4A4A",
+        "#6B1C1C"
+      ],
       "priority": "medium",
-      "tags": ["blood", "court", "dark", "stain", "oppressive"]
+      "tags": [
+        "blood",
+        "court",
+        "dark",
+        "stain",
+        "oppressive"
+      ]
+    },
+    {
+      "id": "wine_pool_basin",
+      "name": "Tửu Trì",
+      "format": "orthographic_top_down",
+      "description": "Marble wine pool basin seen from top, golden wine surface with floating petals",
+      "negative_prompt": "text, watermark, perspective, people",
+      "color_palette": [
+        "#F5F5DC",
+        "#D4AF37",
+        "#FFD700",
+        "#DC143C"
+      ],
+      "tags": [
+        "wine_pool",
+        "decadence",
+        "marble",
+        "petals",
+        "tửu_trì"
+      ],
+      "priority": "high",
+      "prompt": "orthographic top-down tile, circular marble wine pool basin edge, golden wine surface with floating peach petals, seamless border, opulent decadence, flat lighting, game terrain base, isolated",
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "tile_size": "2x2",
+      "seamless": false
+    },
+    {
+      "id": "decorative_pond_edge",
+      "name": "Hồ Biên Đá",
+      "format": "orthographic_top_down",
+      "description": "Decorative koi pond stone edge with lotus and dragon carvings",
+      "negative_prompt": "text, watermark, perspective, people",
+      "color_palette": [
+        "#8B7355",
+        "#2E8B57",
+        "#2E8B57",
+        "#CD853F"
+      ],
+      "tags": [
+        "pond",
+        "lotus",
+        "koi",
+        "garden",
+        "hồ_biên"
+      ],
+      "priority": "medium",
+      "prompt": "orthographic top-down tile, curved stone pond edge with lotus flower carvings, koi fish visible in dark water below, seamless border, imperial garden aesthetic, flat lighting, game terrain base",
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "tile_size": "2x2",
+      "seamless": false
+    },
+    {
+      "id": "imperial_water_tower",
+      "name": "Tháp Nước",
+      "format": "orthographic_top_down",
+      "description": "Top view of elevated wooden water reservoir structure for palace quarter",
+      "negative_prompt": "text, watermark, perspective, people",
+      "color_palette": [
+        "#6B4226",
+        "#2E8B57",
+        "#4A3B2C",
+        "#8B7355"
+      ],
+      "tags": [
+        "water_tower",
+        "reservoir",
+        "palace",
+        "infrastructure",
+        "tháp_nước"
+      ],
+      "priority": "low",
+      "prompt": "orthographic top-down tile, circular elevated wooden water reservoir top, wooden plank construction, water surface with reflections, seamless border, palace infrastructure, flat lighting, game terrain base",
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "tile_size": "2x2",
+      "seamless": false
+    },
+    {
+      "id": "stone_canal_section",
+      "name": "Kênh Đá",
+      "format": "orthographic_top_down",
+      "description": "Carved stone water channel section with dragon scale pattern",
+      "negative_prompt": "text, watermark, perspective, people",
+      "color_palette": [
+        "#8B7355",
+        "#2E8B57",
+        "#6B8E23",
+        "#4A4A4A"
+      ],
+      "tags": [
+        "stone_canal",
+        "dragon_scale",
+        "water",
+        "kênh_đá"
+      ],
+      "priority": "low",
+      "prompt": "orthographic top-down tile, carved stone water channel section, dragon scale pattern on channel walls, flowing water inside, seamless border, flat lighting, game terrain base",
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "tile_size": "2x2",
+      "seamless": false
+    },
+    {
+      "id": "imperial_spirit_way",
+      "name": "Thần Đạo",
+      "format": "orthographic_top_down",
+      "description": "Imperial processional path with stone animal alignments from top view",
+      "negative_prompt": "text, watermark, perspective, people",
+      "color_palette": [
+        "#8B7355",
+        "#6B8E23",
+        "#A0926D",
+        "#4A4A4A"
+      ],
+      "tags": [
+        "spirit_way",
+        "imperial",
+        "processional",
+        "thần_đạo"
+      ],
+      "priority": "medium",
+      "prompt": "orthographic top-down tile, imperial spirit way with stone animal alignments, carved stone path with paired guardian animals on both sides, seamless border, flat lighting, game terrain base",
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "tile_size": "2x2",
+      "seamless": false
+    },
+    {
+      "id": "imperial_water_tower_top",
+      "name": "Tháp Nước Đỉnh",
+      "format": "orthographic_top_down",
+      "description": "Top view of elevated wooden water reservoir with wooden cover",
+      "negative_prompt": "text, watermark, perspective, people",
+      "color_palette": [
+        "#6B4226",
+        "#4A4A4A",
+        "#2E8B57",
+        "#8B7355"
+      ],
+      "tags": [
+        "water_tower",
+        "wooden",
+        "reservoir",
+        "tháp_nước_đỉnh"
+      ],
+      "priority": "low",
+      "prompt": "orthographic top-down tile, top of elevated wooden water reservoir, wooden plank cover with iron bands, water surface visible through gap, seamless border, flat lighting, game terrain base",
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "tile_size": "2x2",
+      "seamless": false
     }
   ]
 }

@@ -15,11 +15,24 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "4x4",
+      "rotation": "fixed",
       "prompt": "2.5D sprite angle, massive tiered terrace platform structure, golden roof pavilions atop, crimson lacquer pillars, opulent yet decaying grandeur, bronze railings, atmospheric mist around base, clean cutout, isolated against white background, architectural detail",
       "negative_prompt": "text, watermark, people, cartoon, flat 2D",
-      "color_palette": ["#D4AF37", "#DC143C", "#CD7F32", "#8B6914"],
+      "color_palette": [
+        "#D4AF37",
+        "#DC143C",
+        "#CD7F32",
+        "#8B6914"
+      ],
       "priority": "high",
-      "tags": ["terrace", "platform", "golden_roof", "imperial", "Lộc_Đài"]
+      "tags": [
+        "terrace",
+        "platform",
+        "golden_roof",
+        "imperial",
+        "Lộc_Đài"
+      ]
     },
     {
       "id": "xuan_yuan_hall",
@@ -32,11 +45,24 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "3x3",
+      "rotation": "forward_back",
       "prompt": "2.5D sprite angle, grand imperial hall facade, massive bronze doors with taotie patterns, dark oppressive atmosphere, golden light leaking from cracks, towering scale, crimson columns, sinister elegance, clean cutout, isolated",
       "negative_prompt": "text, watermark, people, cartoon, flat 2D",
-      "color_palette": ["#1A1A2E", "#CD7F32", "#D4AF37", "#4A0E4E"],
+      "color_palette": [
+        "#1A1A2E",
+        "#CD7F32",
+        "#D4AF37",
+        "#4A0E4E"
+      ],
       "priority": "high",
-      "tags": ["hall", "bronze_door", "transformation", "oppressive", "Hiên_Viên"]
+      "tags": [
+        "hall",
+        "bronze_door",
+        "transformation",
+        "oppressive",
+        "Hiên_Viên"
+      ]
     },
     {
       "id": "daji_west_palace",
@@ -49,11 +75,24 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "3x3",
+      "rotation": "forward_back",
       "prompt": "2.5D sprite, elegant palace with fox spirit motifs carved into pillars, crimson and gold color scheme, sinister elegance, moonlight glow from within, ornate balconies, seductive beauty, clean architectural cutout, isolated",
       "negative_prompt": "text, watermark, people, cartoon, flat 2D",
-      "color_palette": ["#6A5ACD", "#DC143C", "#D4AF37", "#2F1B4E"],
+      "color_palette": [
+        "#6A5ACD",
+        "#DC143C",
+        "#D4AF37",
+        "#2F1B4E"
+      ],
       "priority": "high",
-      "tags": ["palace", "fox_spirit", "Daji", "elegant", "Tây_Cung"]
+      "tags": [
+        "palace",
+        "fox_spirit",
+        "Daji",
+        "elegant",
+        "Tây_Cung"
+      ]
     },
     {
       "id": "mortal_quarters",
@@ -66,11 +105,24 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "2x2",
+      "rotation": "cardinal",
       "prompt": "2.5D sprite, dilapidated mud-brick commoner huts, thatched roofs falling apart, crumbling walls, contrast to nearby imperial grandeur, desolate atmosphere, muted brown tones, isolated against white, game asset ready",
       "negative_prompt": "text, watermark, people, cartoon, flat 2D",
-      "color_palette": ["#8B7355", "#6B5B45", "#A0926D", "#4A3B2C"],
+      "color_palette": [
+        "#8B7355",
+        "#6B5B45",
+        "#A0926D",
+        "#4A3B2C"
+      ],
       "priority": "medium",
-      "tags": ["mortal", "hut", "poverty", "crumbling", "commoner"]
+      "tags": [
+        "mortal",
+        "hut",
+        "poverty",
+        "crumbling",
+        "commoner"
+      ]
     },
     {
       "id": "guard_tower",
@@ -83,11 +135,51 @@
         "width": 1024,
         "height": 1024
       },
+      "tile_size": "1x2",
+      "rotation": "cardinal",
       "prompt": "2.5D sprite angle, wooden watchtower with bronze bells, weathered wood texture, defensive battlements, battle-worn appearance, Shang dynasty military architecture, isolated prop, clean cutout, game asset style",
       "negative_prompt": "text, watermark, people, cartoon, flat 2D",
-      "color_palette": ["#6B4226", "#CD7F32", "#8B6914", "#4A3B2C"],
+      "color_palette": [
+        "#6B4226",
+        "#CD7F32",
+        "#8B6914",
+        "#4A3B2C"
+      ],
       "priority": "medium",
-      "tags": ["tower", "watch", "defense", "bronze_bell", "military"]
+      "tags": [
+        "tower",
+        "watch",
+        "defense",
+        "bronze_bell",
+        "military"
+      ]
+    },
+    {
+      "id": "messenger_pavilion",
+      "name": "Tin Quán",
+      "format": "2.5D_sprite",
+      "description": "Small pavilion for imperial messengers and news at city intersections",
+      "negative_prompt": "text, watermark, people, background",
+      "color_palette": [
+        "#6B4226",
+        "#DC143C",
+        "#CD7F32",
+        "#8B7355"
+      ],
+      "tags": [
+        "messenger",
+        "pavilion",
+        "civic",
+        "tin_quán"
+      ],
+      "priority": "low",
+      "prompt": "2.5D sprite, small pavilion for imperial messengers at city intersection, open-sided wooden structure with curved roof, message board inside, civic infrastructure, game asset style, clean cutout",
+      "dimensions": {
+        "width": 512,
+        "height": 512
+      },
+      "tile_size": "1x1",
+      "seamless": false
     }
   ]
 }

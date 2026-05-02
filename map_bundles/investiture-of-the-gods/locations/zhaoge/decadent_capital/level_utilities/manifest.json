@@ -1,0 +1,86 @@
+{
+  "_readme": "Level design utilities (walls, stairs, chests) for Triều Ca.",
+  "location": "zhaoge/decadent_capital",
+  "category": "level_utilities",
+  "biome_id": "shang_capital",
+  "assets": [
+    {
+      "id": "shang_palace_wall_straight",
+      "name": "Tường Thành Cung Điện (Thẳng)",
+      "description": "Straight modular wall segment for palace interiors/exteriors",
+      "format": "orthographic_top_down",
+      "seamless": true,
+      "tile_size": "2x1",
+      "dimensions": {"width": 1024, "height": 512},
+      "prompt": "orthographic top-down, straight palace wall segment, dark obsidian brick, golden trim, modular game asset, seamless tileable edge, imperial decadent aesthetic",
+      "negative_prompt": "text, watermark, people, background scene",
+      "priority": "high",
+      "tags": ["wall", "modular", "palace"]
+    },
+    {
+      "id": "shang_palace_wall_corner",
+      "name": "Tường Thành Cung Điện (Góc)",
+      "description": "Corner modular wall segment",
+      "format": "orthographic_top_down",
+      "seamless": false,
+      "tile_size": "1x1",
+      "dimensions": {"width": 512, "height": 512},
+      "prompt": "orthographic top-down, L-shaped corner palace wall segment, dark obsidian brick, golden trim, modular game asset, imperial decadent aesthetic",
+      "negative_prompt": "text, watermark, people, background scene",
+      "priority": "high",
+      "tags": ["wall", "corner", "modular", "palace"]
+    },
+    {
+      "id": "imperial_stone_stairs",
+      "name": "Cầu Thang Đá",
+      "description": "Stone stairs for elevation changes",
+      "format": "centered_composition",
+      "seamless": false,
+      "tile_size": "1x2",
+      "dimensions": {"width": 512, "height": 1024},
+      "prompt": "isometric view, wide stone staircase going up, dark marble steps with golden central dragon ramp, elevation change asset, game prop, clean edges",
+      "negative_prompt": "text, watermark, people, background scene",
+      "priority": "high",
+      "tags": ["stairs", "elevation", "stone"]
+    },
+    {
+      "id": "bronze_taotie_chest",
+      "name": "Rương Báu Thao Thiết",
+      "description": "Bronze treasure chest for high-tier loot",
+      "format": "centered_composition",
+      "seamless": false,
+      "tile_size": "1x1",
+      "dimensions": {"width": 512, "height": 512},
+      "prompt": "centered composition, heavy bronze treasure chest, intricate taotie thunder patterns, glowing lock, high tier loot container, game prop style, isolated",
+      "negative_prompt": "text, watermark, people, background scene, open",
+      "priority": "high",
+      "tags": ["chest", "loot", "bronze", "treasure"]
+    },
+    {
+      "id": "imperial_wall_sconce",
+      "name": "Đuốc Ốp Tường",
+      "description": "Bronze wall sconce with fire",
+      "format": "centered_composition",
+      "seamless": false,
+      "tile_size": "1x1",
+      "dimensions": {"width": 512, "height": 512},
+      "prompt": "centered composition, bronze wall sconce torch, roaring orange fire, dragon shaped holder, lighting fixture, game prop style, isolated",
+      "negative_prompt": "text, watermark, people, background scene, unlit",
+      "priority": "high",
+      "tags": ["light", "fire", "sconce", "bronze"]
+    },
+    {
+      "id": "shang_wooden_barricade",
+      "name": "Hàng Rào Gỗ Gai",
+      "description": "Spiked wooden barricade used by Shang military",
+      "format": "centered_composition",
+      "seamless": false,
+      "tile_size": "2x1",
+      "dimensions": {"width": 1024, "height": 512},
+      "prompt": "centered composition, spiked wooden barricade fence, tied with thick ropes, blood stains, Shang dynasty military camp defense, blocking obstacle, game prop style, isolated",
+      "negative_prompt": "text, watermark, people, background scene",
+      "priority": "medium",
+      "tags": ["barricade", "fence", "obstacle", "wood"]
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "_readme": "Unique characters for Triều Ca (Zhaoge). Includes Di Xin, Daji, and Bi Gan.",
+  "faction": "shang_dynasty",
+  "characters": [
+    {
+      "id": "di_xin",
+      "name": "Trụ Vương (Di Xin)",
+      "title": "Bạo Chúa Nhà Thương",
+      "description": "The last king of the Shang dynasty, corrupted by Daji. Tall, incredibly strong, but decadent and cruel.",
+      "class": "boss",
+      "appearance_prompt": "tall muscular ancient chinese emperor, extremely handsome but with a cruel sinister expression, wearing opulent dark red and gold imperial robes, heavy bronze and gold armor accents, twelve pearl crown, dark aura, holding a bronze sword",
+      "negative_prompt": "text, watermark, modern clothing, weak, old, beard",
+      "color_palette": ["#8B0000", "#D4AF37", "#1A1A1A", "#CD7F32"],
+      "outputs": {
+        "concept_art": {
+          "enabled": true,
+          "dimensions": {"width": 1024, "height": 1024},
+          "style_prompt": "highly detailed character concept art, upper body portrait, dramatic cinematic lighting, looking arrogantly down at viewer"
+        },
+        "sprite": {
+          "enabled": true,
+          "format": "isometric",
+          "dimensions": {"width": 1024, "height": 1024},
+          "style_prompt": "full body game character sprite, isometric 2.5D angle, standing tall combat idle pose, isolated on solid white background, clean clear silhouette, game asset"
+        },
+        "dialog_portrait": {
+          "enabled": true,
+          "format": "half_body",
+          "dimensions": {"width": 1024, "height": 1024},
+          "style_prompt": "visual novel character sprite, half-body portrait, standing posture, looking at viewer, isolated on solid white background, clean edges, game UI asset"
+        }
+      },
+      "tags": ["character", "boss", "emperor", "shang", "di_xin"]
+    },
+    {
+      "id": "daji",
+      "name": "Đát Kỷ (Daji)",
+      "title": "Cửu Vĩ Yêu Hồ",
+      "description": "The nine-tailed fox spirit possessing Su Daji, the primary antagonist manipulating Di Xin.",
+      "class": "boss",
+      "appearance_prompt": "breathtakingly beautiful ancient chinese empress, seductive but dangerous, long flowing black hair, wearing revealing luxurious silk robes in crimson and pale pink, subtle fox-like eyes, nine ethereal phantom fox tails behind her",
+      "negative_prompt": "text, watermark, ugly, modern clothing, warrior armor",
+      "color_palette": ["#DC143C", "#FFB6C1", "#FFD700", "#FFFFFF"],
+      "outputs": {
+        "concept_art": {
+          "enabled": true,
+          "dimensions": {"width": 1024, "height": 1024},
+          "style_prompt": "highly detailed character concept art, seductive portrait, dramatic cinematic lighting, ethereal glowing tails"
+        },
+        "sprite": {
+          "enabled": true,
+          "format": "isometric",
+          "dimensions": {"width": 1024, "height": 1024},
+          "style_prompt": "full body game character sprite, isometric 2.5D angle, elegant floating pose, isolated on solid white background, clean clear silhouette, game asset"
+        },
+        "dialog_portrait": {
+          "enabled": true,
+          "format": "half_body",
+          "dimensions": {"width": 1024, "height": 1024},
+          "style_prompt": "visual novel character sprite, half-body portrait, seductive posture, looking directly at viewer, isolated on solid white background, clean edges, game UI asset"
+        }
+      },
+      "tags": ["character", "boss", "fox_spirit", "shang", "daji"]
+    },
+    {
+      "id": "bi_gan",
+      "name": "Tỷ Can (Bi Gan)",
+      "title": "Trung Thần Thất Tâm",
+      "description": "The loyal uncle of Di Xin who possessed a 'Seven-Aperture Heart' and was executed by having it cut out.",
+      "class": "unique_hero",
+      "appearance_prompt": "righteous ancient chinese court official, middle-aged with a dignified scholar beard, wearing traditional green and black Shang dynasty official robes, holding a jade tablet, expression of profound sorrow and righteous anger",
+      "negative_prompt": "text, watermark, modern, armor, weapons, young",
+      "color_palette": ["#2E8B57", "#1A1A1A", "#F5F5DC", "#4A4A4A"],
+      "outputs": {
+        "concept_art": {
+          "enabled": true,
+          "dimensions": {"width": 1024, "height": 1024},
+          "style_prompt": "highly detailed character concept art, upper body portrait, dramatic cinematic lighting, somber mood"
+        },
+        "sprite": {
+          "enabled": true,
+          "format": "isometric",
+          "dimensions": {"width": 1024, "height": 1024},
+          "style_prompt": "full body game character sprite, isometric 2.5D angle, standing holding tablet pose, isolated on solid white background, clean clear silhouette, game asset"
+        },
+        "dialog_portrait": {
+          "enabled": true,
+          "format": "half_body",
+          "dimensions": {"width": 1024, "height": 1024},
+          "style_prompt": "visual novel character sprite, half-body portrait, respectful posture, holding jade tablet, looking at viewer, isolated on solid white background, clean edges, game UI asset"
+        }
+      },
+      "tags": ["character", "npc", "official", "shang", "bi_gan"]
+    }
+  ]
+}
