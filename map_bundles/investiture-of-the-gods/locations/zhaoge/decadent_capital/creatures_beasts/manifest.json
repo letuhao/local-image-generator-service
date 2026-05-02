@@ -1,0 +1,93 @@
+{
+  "_readme": "Creatures & Beasts assets for Triều Ca (decadent_capital). Primary language: English (Flux AI prompts). Vietnamese: developer reference.",
+  "location": "zhaoge/decadent_capital",
+  "category": "creatures_beasts",
+  "biome_id": "shang_capital",
+  "assets": [
+    {
+      "id": "nine_tailed_fox",
+      "name": "Cửu Vĩ Hồ",
+      "description": "Daji's true form - nine-tailed spirit fox with white fur, crimson tips, and glowing green eyes",
+      "description_vn": "Dạng thật của Địch Cơ - hồ yêu chín đuôi với lông trắng, đầu đỏ và mắt xanh phát sáng",
+      "format": "2.5D_sprite",
+      "seamless": false,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "2.5D sprite angle, nine-tailed spirit fox, pristine white fur with crimson tips on tails, glowing green eyes, mystical aura particles, elegant powerful stance, xianxia aesthetic, clean cutout, isolated on white, game creature base",
+      "negative_prompt": "text, watermark, background scene, multiple creatures",
+      "color_palette": ["#F5F5DC", "#DC143C", "#00A86B", "#D4AF37"],
+      "priority": "high",
+      "tags": ["fox", "nine_tailed", "Daji", "spirit", "cửu_vĩ"]
+    },
+    {
+      "id": "fox_maiden",
+      "name": "Tỳ Hồ Yêu Tinh",
+      "description": "Fox spirit in ornate palace dress disguise, seductive sinister expression, crimson robes",
+      "description_vn": "Hồ yêu trong trang phục cung điện giả trang, biểu cảm mê hoặc tà ác, áo crimson",
+      "format": "2.5D_sprite",
+      "seamless": false,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "2.5D sprite, fox spirit in ornate palace dress, seductive sinister expression, crimson silk robes with gold embroidery, fox ears subtly visible, elegant pose, game character base, clean cutout, isolated",
+      "negative_prompt": "text, watermark, background scene, multiple characters",
+      "color_palette": ["#DC143C", "#D4AF37", "#F5F5DC", "#2F1B4E"],
+      "priority": "high",
+      "tags": ["fox_maiden", "disguise", "seductive", "palace", "tỳ_hồ"]
+    },
+    {
+      "id": "bronze_qilin",
+      "name": "Đồng Kỳ",
+      "description": "Bronze qilin guardian statue with weathered patina, battle-damaged imposing presence",
+      "description_vn": "Tượng kỳ lân đồng phong sương, uy thế áp đặt bị hư hại chiến tranh",
+      "format": "2.5D_sprite",
+      "seamless": false,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "2.5D sprite angle, bronze qilin guardian statue, weathered green patina, battle damage and chipped surfaces, imposing defensive stance, Shang dynasty mythical creature, game creature base, clean cutout",
+      "negative_prompt": "text, watermark, background scene, multiple creatures",
+      "color_palette": ["#CD7F32", "#2E8B57", "#4A4A4A", "#8B6914"],
+      "priority": "medium",
+      "tags": ["qilin", "bronze", "guardian", "statue", "kỳ"]
+    },
+    {
+      "id": "dark_kite",
+      "name": "Ác Kỵ",
+      "description": "Corrupted spirit kite, omen of Shang's downfall with eerie green energy and tattered wings",
+      "description_vn": "Diều yêu tà khí tiên liệu sự sụp đổ nhà Thương với năng lượng xanh và cánh rách",
+      "format": "2.5D_sprite",
+      "seamless": false,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "2.5D sprite, corrupted dark spirit kite, eerie green energy core, tattered wing membranes, ominous presence, floating posture, sinister elegance, clean cutout, isolated, game creature asset",
+      "negative_prompt": "text, watermark, background scene, multiple creatures",
+      "color_palette": ["#2F2F2F", "#00A86B", "#4A0E4E", "#1A1A2E"],
+      "priority": "medium",
+      "tags": ["kite", "corrupted", "omen", "dark", "ác_kỵ"]
+    },
+    {
+      "id": "guardian_linshi",
+      "name": "Lâm Thị Vệ Binh",
+      "description": "Elite palace guard warrior with Shang dynasty bronze armor and crimson plume",
+      "description_vn": "Chiến binh vệ binh tinh nhuệ với giáp đồng đời Thương và lông đỏ",
+      "format": "2.5D_sprite",
+      "seamless": false,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "2.5D sprite angle, elite palace guard warrior, Shang dynasty bronze lamellar armor, crimson plume helmet, stern determined expression, holding bronze weapon, game character base, clean cutout, isolated",
+      "negative_prompt": "text, watermark, background scene, multiple characters",
+      "color_palette": ["#CD7F32", "#DC143C", "#F5F5DC", "#4A3B2C"],
+      "priority": "high",
+      "tags": ["guard", "warrior", "bronze_armor", "elite", "Vệ_Binh"]
+    }
+  ]
+}

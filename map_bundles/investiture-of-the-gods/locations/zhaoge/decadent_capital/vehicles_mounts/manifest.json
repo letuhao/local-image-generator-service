@@ -1,0 +1,93 @@
+{
+  "_readme": "Vehicles & Mounts assets for Triều Ca (decadent_capital). Primary language: English (Flux AI prompts). Vietnamese: developer reference.",
+  "location": "zhaoge/decadent_capital",
+  "category": "vehicles_mounts",
+  "biome_id": "shang_capital",
+  "assets": [
+    {
+      "id": "imperial_litter",
+      "name": "Đế Xa Kiệu",
+      "description": "Golden palanquin with crimson silk drapes and bronze fittings for imperial transport",
+      "description_vn": "Kiệu vàng với rèm crimson và phụ kiện đồng cho vận chuyển đế chế",
+      "format": "2.5D_sprite",
+      "seamless": false,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "2.5D sprite angle, ornate golden palanquin carriage, crimson silk drapes, bronze fittings with taotie patterns, imperial transport, elegant design, clean cutout, isolated on white, game vehicle asset",
+      "negative_prompt": "text, watermark, background scene, people",
+      "color_palette": ["#D4AF37", "#DC143C", "#CD7F32", "#F5F5DC"],
+      "priority": "high",
+      "tags": ["palanquin", "imperial", "golden", "transport", "xa_kiệu"]
+    },
+    {
+      "id": "dragon_junk",
+      "name": "Long Thuyền",
+      "description": "Imperial dragon-headed boat with crimson sails for moat and river transit",
+      "description_vn": "Thuyền đầu rồng mái crimson cho đi lại hào và sông",
+      "format": "2.5D_sprite",
+      "seamless": false,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "2.5D sprite angle, golden dragon-headed imperial boat, crimson sails with gold trim, bronze dragon details, elegant water transport, clean cutout, isolated on white, game vehicle asset",
+      "negative_prompt": "text, watermark, background scene, people",
+      "color_palette": ["#D4AF37", "#DC143C", "#2E8B57", "#CD7F32"],
+      "priority": "medium",
+      "tags": ["dragon", "boat", "imperial", "water", "long_thuyền"]
+    },
+    {
+      "id": "flying_sword_imperial",
+      "name": "Kiên Tiên",
+      "description": "Imperial cultivator's flying sword with bronze hilt and golden energy trail",
+      "description_vn": "Kiên tiên của nhà tu luyện đế chế với chuôi đồng và vệt năng lượng vàng",
+      "format": "2.5D_sprite",
+      "seamless": false,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "2.5D sprite angle, elegant flying sword with bronze hilt and golden energy trail, imperial cultivation tool, dynamic pose, mystical aura, clean cutout, isolated, game vehicle asset",
+      "negative_prompt": "text, watermark, background scene, people",
+      "color_palette": ["#D4AF37", "#CD7F32", "#00A86B", "#F5F5DC"],
+      "priority": "medium",
+      "tags": ["flying_sword", "cultivator", "golden", "immortal", "kiên_tiên"]
+    },
+    {
+      "id": "war_chariot",
+      "name": "Thương Chiến Xa",
+      "description": "Shang dynasty bronze war chariot with crimson accents and battle wear",
+      "description_vn": "Xe chiến đồng đời Thương với điểm crimson và dấu vết chiến tranh",
+      "format": "2.5D_sprite",
+      "seamless": false,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "2.5D sprite angle, ancient Chinese war chariot, bronze weapons and fittings, crimson accent details, battle-worn appearance, Shang dynasty military vehicle, clean cutout, isolated",
+      "negative_prompt": "text, watermark, background scene, people",
+      "color_palette": ["#CD7F32", "#DC143C", "#4A3B2C", "#8B6914"],
+      "priority": "high",
+      "tags": ["chariot", "war", "Shang", "military", "chiến_xa"]
+    },
+    {
+      "id": "cloud_platform",
+      "name": "Vân Đài",
+      "description": "Mystical floating cloud platform with ethereal glow and jade accents for immortal visitors",
+      "description_vn": "Đài mây bay huyền với ánh sáng tiên và điểm ngọc cho khách tiên",
+      "format": "2.5D_sprite",
+      "seamless": false,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "2.5D sprite angle, floating cloud platform, ethereal luminescent glow, jade accent details, immortal transport, serene mystical presence, clean cutout, isolated, game vehicle asset",
+      "negative_prompt": "text, watermark, background scene, people",
+      "color_palette": ["#F5F5DC", "#00A86B", "#D4AF37", "#6A5ACD"],
+      "priority": "medium",
+      "tags": ["cloud", "platform", "immortal", "mystical", "vân_đài"]
+    }
+  ]
+}

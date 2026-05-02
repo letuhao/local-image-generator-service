@@ -70,9 +70,9 @@ services:
     build:
       context: ./docker/comfyui
       args:
-        COMFYUI_REF: ${COMFYUI_REF:-v0.9.2}
+        COMFYUI_REF: ${COMFYUI_REF:-v0.20.1}
         COMFYUI_GGUF_REF: ${COMFYUI_GGUF_REF:-6ea2651e7df66d7585f6ffee804b20e92fb38b8a}
-    image: image-gen-comfyui:0.9.2
+    image: image-gen-comfyui:0.20.1
     # Local-only tag — suppress the failing registry pull attempt every `up` does.
     pull_policy: never
     deploy:

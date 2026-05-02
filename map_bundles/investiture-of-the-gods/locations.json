@@ -1,0 +1,168 @@
+{
+    "_readme": "Primary language: English (optimized for Flux prompt parsing). Vietnamese: developer reference only. Canon names corrected per Fengshen Yanyi (Phong Thần Diễn Nghĩa). Structure optimized for batch asset generation pipeline.",
+    "project": "Phong Thần Diễn Nghĩa - Biome & Location Planning",
+    "biomes": [
+        {
+            "id": "chan_school_mountains",
+            "name": "Xiển Giáo Thánh Địa (Chan School Mountains)",
+            "hint": "ethereal ancient chinese mountain peaks, sea of glowing clouds, ancient twisted pine trees, divine aura, misty, floating rocks, xianxia aesthetic",
+            "locations": [
+                "Côn Lôn Sơn (Ngọc Thanh Nguyên Thủy Thiên Tôn)",
+                "Quy Long Động (Na Tra tu luyện)",
+                "Thái Tử Chân Nhân Động",
+                "Linh Quan Sơn"
+            ],
+            "description": "Dành cho các đạo tràng, núi non tu tiên của Xiển Giáo. Mang sắc thái thần tiên, sáng sủa, mờ ảo.",
+            "description_vn": "Khu vực tu luyện của Xiển Giáo, khí thế thanh cao, mây linh, tùng cổ thụ, ánh sáng thần tiên.",
+            "asset_focus": "ancient_pine, spirit_cypress, jade_rock, floating_mist",
+            "priority": "high"
+        },
+        {
+            "id": "jie_school_mountains",
+            "name": "Triệt Giáo Thánh Địa (Jie School Mountains)",
+            "hint": "dark and ominous ancient chinese mystical landscape, corrupted glowing flora, strange jagged rock formations, eerie mist, dark purple and green sky, sinister aura",
+            "locations": [
+                "Kim Lăng Sơn (Triệt Giáo)",
+                "Đâu Lặc Sơn",
+                "Vĩ Lăng Sơn",
+                "Bồng Lai, Phương Trượng, Phương Hư"
+            ],
+            "description": "Nơi trú ngụ của Triệt Giáo hoặc các đại yêu. Mang màu sắc âm u, tà khí, cây cối kỳ dị.",
+            "description_vn": "Thánh địa Triệt Giáo & yêu giới, khí tức âm trầm, đá kỳ dị, thực vật phát quang tà khí.",
+            "asset_focus": "corrupted_pine, obsidian_rock, violet_mist, twisted_branch",
+            "priority": "high"
+        },
+        {
+            "id": "shang_capital",
+            "name": "Thương Đô (Shang Imperial Capital)",
+            "hint": "opulent ancient chinese shang dynasty city, grand massive architecture, bronze decorations, slightly dark and oppressive atmosphere, red lanterns, towering pillars",
+            "locations": [
+                "Triều Ca (Kinh đô nhà Thương)",
+                "Lộc Đài (Công trình xa hoa)",
+                "Hiên Viên Phần (Đát Kỷ hóa yêu)"
+            ],
+            "description": "Phồn hoa, tráng lệ nhưng ngột ngạt và mang cảm giác sa đọa của vương triều sắp tàn.",
+            "description_vn": "Kinh đô nhà Thương suy tàn, kiến trúc đồ sộ, đèn đỏ, khí tức thịnh suy giao thoa.",
+            "asset_focus": "bronze_pillar, red_lantern, decaying_wood, imperial_gate",
+            "priority": "high"
+        },
+        {
+            "id": "zhou_capital",
+            "name": "Chu Thành (Zhou Righteous Capital)",
+            "hint": "lush green fertile plains, ancient chinese zhou dynasty agriculture, bright hopeful sunlight, peaceful rivers, clear blue sky, majestic orderly city walls in distance",
+            "locations": [
+                "Tây Kỳ (Kinh đô nhà Chu)",
+                "Hà Dương",
+                "Vị Thủy hà vực (Khương Tử Nha câu cá)"
+            ],
+            "description": "Khung cảnh tươi sáng, trù phú, tràn đầy sức sống và hy vọng của phe chính nghĩa.",
+            "description_vn": "Kinh đô nhà Chu, đồng bằng trù phú, sông nước thanh bình, khí thế chính nghĩa.",
+            "asset_focus": "fertile_plant, clear_water, orderly_wall, bright_canopy",
+            "priority": "high"
+        },
+        {
+            "id": "strategic_passes",
+            "name": "Quan Ải Chiến Lược (Strategic Fortress Passes)",
+            "hint": "imposing ancient chinese fortress built into rugged mountains, massive stone walls, towering gatehouse, battle flags blowing in wind, strategic chokepoint, overcast sky",
+            "locations": [
+                "Trần Đường Quan (Lý Tịnh)",
+                "Giới Bài Quan (Tru Tiên Trận)",
+                "Đồng Quan",
+                "Tứ Thủy Quan",
+                "Tam Sơn Quan",
+                "Tử Nhật Quan",
+                "Vân Tiêu Quan",
+                "Quy Long Quan",
+                "Vân Trung Quan"
+            ],
+            "description": "Các pháo đài chốt chặn quân sự hiểm yếu. Rất nhiều trận đánh lớn trong Phong Thần diễn ra tại các quan ải này.",
+            "description_vn": "Hệ thống quan ải phòng thủ, kiến trúc quân sự cổ, cờ xí, địa hình hiểm trở.",
+            "asset_focus": "stone_wall, gatehouse, wind_flag, mountain_pass",
+            "priority": "medium"
+        },
+        {
+            "id": "barren_battlefield",
+            "name": "Chiến Trường Hoang Tàn (Barren Battlefield)",
+            "hint": "desolate battle-scarred wasteland, cratered earth, broken ancient weapons, dark ominous clouds, mystical energy residues, blood-stained soil",
+            "locations": [
+                "Khu vực Tru Tiên Trận",
+                "Khu vực Vạn Tiên Trận",
+                "Khu vực Cửu Khúc Hoàng Hà Trận"
+            ],
+            "description": "Vùng đất bị tàn phá bởi các đại trận pháp uy lực của thần tiên, không còn sự sống.",
+            "description_vn": "Địa hình trận pháp tàn phá, đất nứt, khí tức ma trận, không gian chết.",
+            "asset_focus": "cracked_earth, broken_weapon, energy_residue, dark_cloud",
+            "priority": "medium"
+        },
+        {
+            "id": "jagged_ridge",
+            "name": "Tuyệt Lĩnh (Jagged Dead Ridge)",
+            "hint": "steep rocky cliffs, bottomless chasm, jagged dead rocks, ominous shadows, withered trees, narrow dangerous path, dramatic lighting",
+            "locations": [
+                "Tuyệt Long Lĩnh (Văn Thái Sư tử trận)",
+                "Núi Kỳ Sơn"
+            ],
+            "description": "Địa hình cực kỳ hiểm trở, dốc đứng, thường là nơi phục kích hoặc tử địa của các danh tướng.",
+            "description_vn": "Địa hình vực sâu, đá sắc, cây khô, ánh sáng kịch tính, nơi tử địa.",
+            "asset_focus": "sharp_cliff, dead_tree, narrow_path, dramatic_shadow",
+            "priority": "medium"
+        },
+        {
+            "id": "underworld_realm",
+            "name": "Âm Ty Minh Giới (Underworld Realm)",
+            "hint": "ethereal chinese underworld landscape, pale blue mist, bone-white bark, ghostly willow trees, cold luminescence, silent solemn atmosphere",
+            "locations": [
+                "Minh Giới",
+                "Âm Ty",
+                "Tuyền Động",
+                "Địa Ngục"
+            ],
+            "description": "Thế giới âm ty, nơi Khương Tử Nha xuống phong thần, địa ngục, âm đồ. Mang sắc thái tĩnh lặng, huyền bí.",
+            "description_vn": "Thế giới âm phủ, sương lạnh, cây liễu âm ty, ánh sáng mờ, không gian tĩnh mịch.",
+            "asset_focus": "ghost_willow, pale_mist, bone_rock, cold_luminescence",
+            "priority": "high"
+        },
+        {
+            "id": "jiuxiao_palace",
+            "name": "Cửu Tiêu Cung (Nine Heavens Palace)",
+            "hint": "elegant ancient chinese celestial architecture, floating jade platforms, intricate lattice windows, soft golden light, mystical arrays, serene yet powerful aura",
+            "locations": [
+                "Cửu Tiêu Cung",
+                "Vân Tiêu Các",
+                "Âm Dương 11 Tinh Trận khu vực"
+            ],
+            "description": "Cung điện tiên giới, nơi Tam Tú Nương Nương bố trí trận pháp. Kiến trúc tinh xảo, khí tức huyền ảo.",
+            "description_vn": "Cung điện tiên giới, nền ngọc, kiến trúc tinh xảo, trận pháp huyền ảo.",
+            "asset_focus": "jade_platform, lattice_window, array_stone, golden_light",
+            "priority": "medium"
+        },
+        {
+            "id": "eastern_dragon_sea",
+            "name": "Đông Hải Long Cung (Eastern Dragon Sea)",
+            "hint": "ancient chinese underwater realm, coral reefs, kelp forests, bioluminescent flora, stone dragon motifs, deep blue water, marine energy",
+            "locations": [
+                "Đông Hải Long Cung",
+                "Quy Long Sơn thủy vực",
+                "Hải Ngoại đảo quần"
+            ],
+            "description": "Thủy cung long vương, cảnh biển tiên giới, san hô, tảo biển, kiến trúc rồng đá.",
+            "description_vn": "Thủy cung long vương, san hô, tảo phát quang, kiến trúc rồng biển.",
+            "asset_focus": "coral_rock, kelp_plant, dragon_stone, deep_blue_water",
+            "priority": "low"
+        },
+        {
+            "id": "celestial_court",
+            "name": "Thiên Đình (Celestial Court)",
+            "hint": "majestic ancient chinese heavenly palace, golden clouds, white jade pillars, starlight reflections, divine geometry, solemn authoritative atmosphere",
+            "locations": [
+                "Thiên Đình",
+                "Ngọc Hư Cung",
+                "Nam Thiên Môn"
+            ],
+            "description": "Nơi phán quyết thiên mệnh, phong thần, kiến trúc thần giới trang nghiêm, ánh sáng vàng bạc.",
+            "description_vn": "Thiên đình phán quyết, kiến trúc thần giới, ánh sáng vàng bạc, khí thế trang nghiêm.",
+            "asset_focus": "golden_cloud, jade_pillar, starlight_reflect, divine_gate",
+            "priority": "low"
+        }
+    ]
+}

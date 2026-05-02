@@ -1,0 +1,93 @@
+{
+  "_readme": "Water Infrastructure assets for Triều Ca (decadent_capital). Primary language: English (Flux AI prompts). Vietnamese: developer reference. The famous 酒池肉林 (Wine Pool and Meat Forest) of Di Xin requires water/wine management infrastructure.",
+  "location": "zhaoge/decadent_capital",
+  "category": "water_infrastructure",
+  "biome_id": "shang_capital",
+  "assets": [
+    {
+      "id": "bronze_dragon_spout",
+      "name": "Đồng Long Tẩu",
+      "description": "Dragon-headed bronze water/wine spout from banquet halls, liquid pouring from dragon's mouth",
+      "description_vn": "Đầu phun đồng hình rồng từ cung điện, chất lỏng phun từ miệng rồng",
+      "format": "centered_composition",
+      "seamless": false,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "centered composition, dragon-headed bronze spout protruding from palace wall, wine pouring from dragon's mouth in golden arc, taotie patterns on dragon body, opulent banquet atmosphere, dramatic lighting, game prop style, isolated",
+      "negative_prompt": "text, watermark, background scene, people",
+      "color_palette": ["#CD7F32", "#D4AF37", "#DC143C", "#8B6914"],
+      "priority": "high",
+      "tags": ["dragon", "spout", "wine", "banquet", "long_tẩu"]
+    },
+    {
+      "id": "wine_pool_basin",
+      "name": "Tửu Trì",
+      "description": "Marble wine pool basin seen from top, golden wine surface with floating petals",
+      "description_vn": "Ao rượu đá nhìn từ trên, mặt rượu vàng với cánh hoa nổi",
+      "format": "orthographic_top_down",
+      "seamless": true,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "orthographic top-down tile, circular marble wine pool basin edge, golden wine surface with floating peach petals, seamless border, opulent decadence, flat lighting, game terrain base, isolated",
+      "negative_prompt": "text, watermark, perspective, people",
+      "color_palette": ["#F5F5DC", "#D4AF37", "#FFD700", "#DC143C"],
+      "priority": "high",
+      "tags": ["wine_pool", "decadence", "marble", "petals", "tửu_trì"]
+    },
+    {
+      "id": "decorative_pond_edge",
+      "name": "Hồ Biên Đá",
+      "description": "Decorative koi pond stone edge with lotus and dragon carvings",
+      "description_vn": "Viền đá ao cá trang trí với hoa sen và rồng",
+      "format": "orthographic_top_down",
+      "seamless": true,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "orthographic top-down tile, curved stone pond edge with lotus flower carvings, koi fish visible in dark water below, seamless border, imperial garden aesthetic, flat lighting, game terrain base",
+      "negative_prompt": "text, watermark, perspective, people",
+      "color_palette": ["#8B7355", "#2E8B57", "#CD853F", "#4A4A4A"],
+      "priority": "medium",
+      "tags": ["pond", "lotus", "koi", "garden", "hồ_biên"]
+    },
+    {
+      "id": "imperial_water_tower",
+      "name": "Tháp Nước",
+      "description": "Top view of elevated wooden water reservoir structure for palace quarter",
+      "description_vn": "Nhìn từ trên của tháp nước gỗ cao cho khu cung điện",
+      "format": "orthographic_top_down",
+      "seamless": true,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "orthographic top-down tile, circular elevated wooden water reservoir top, wooden plank construction, water surface with reflections, seamless border, palace infrastructure, flat lighting, game terrain base",
+      "negative_prompt": "text, watermark, perspective, people",
+      "color_palette": ["#6B4226", "#2E8B57", "#4A3B2C", "#8B7355"],
+      "priority": "low",
+      "tags": ["water_tower", "reservoir", "palace", "infrastructure", "tháp_nước"]
+    },
+    {
+      "id": "stone_canal_section",
+      "name": "Kênh Đá",
+      "description": "Carved stone water channel section with dragon scale pattern",
+      "description_vn": "Đoạn mương đá khắc hoa văn vảy rồng",
+      "format": "orthographic_top_down",
+      "seamless": true,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "orthographic top-down tile, carved stone water channel section, dragon scale pattern on channel walls, flowing water inside, seamless border, flat lighting, game terrain base",
+      "negative_prompt": "text, watermark, perspective, people",
+      "color_palette": ["#8B7355", "#2E8B57", "#6B8E23", "#4A4A4A"],
+      "priority": "low",
+      "tags": ["stone_canal", "dragon_scale", "water", "kênh_đá"]
+    }
+  ]
+}

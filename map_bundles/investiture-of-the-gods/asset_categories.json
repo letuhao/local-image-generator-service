@@ -1,0 +1,142 @@
+{
+  "_readme": "Primary language: English (optimized for Flux AI & pipeline routing). Vietnamese: developer reference. Structured to match locations.json schema. Add new categories as biome/lore expands.",
+  "project": "Phong Thần Diễn Nghĩa",
+  "theme": "Giao thoa Tiên - Phàm (Intersection of Immortal and Mortal)",
+  "categories": [
+    {
+      "id": "terrain",
+      "name": "Terrain / Địa hình",
+      "description": "Ground tiles, pathways, and environmental bases. Contrast between mortal barren lands and immortal jade/cloud paths.",
+      "description_vn": "Nền đất, đường đi, tile môi trường. Đối lập giữa đất cằn nhân gian và lối ngọc mây phủ tiên giới.",
+      "asset_focus": [
+        "mortal_dirt",
+        "imperial_brick",
+        "divine_cloud_path",
+        "mystic_water",
+        "corrupted_earth"
+      ],
+      "prompt_keywords": "orthographic tile, seamless border, flat top-down or isometric view, game terrain base, no heightmap, clean edges, isolated prop",
+      "priority": "high"
+    },
+    {
+      "id": "dwellings",
+      "name": "Dwellings / Nơi cư ngụ",
+      "description": "Structures reflecting class divide: mortal huts, cultivator caves, floating pavilions, jade palaces.",
+      "description_vn": "Kiến trúc phân tầng: nhà tranh dân gian, động tu tiên, đình nổi, cung ngọc. Thể hiện rõ khoảng cách tiên-phàm.",
+      "asset_focus": [
+        "mortal_hut",
+        "village_house",
+        "cultivator_cave",
+        "floating_pavilion",
+        "jade_palace"
+      ],
+      "prompt_keywords": "2.5D sprite angle, subtle depth tilt, clean cutout, architectural detail, no background, game asset ready",
+      "priority": "high"
+    },
+    {
+      "id": "structures",
+      "name": "Iconic Structures / Công trình biểu tượng",
+      "description": "Fortress gates, divine altars, memorial archways, pagodas, and array pillars. Strategic or ritual focal points.",
+      "description_vn": "Quan ải, đàn tế, bia đá, lầu các, trụ trận pháp. Điểm nhấn chiến thuật hoặc tâm linh.",
+      "asset_focus": [
+        "fortress_gate",
+        "divine_altar",
+        "memorial_archway",
+        "pagoda",
+        "array_pillar"
+      ],
+      "prompt_keywords": "centered composition, readable silhouette, flat shading, game prop style, isolated, white background",
+      "priority": "high"
+    },
+    {
+      "id": "flora",
+      "name": "Flora / Thảm thực vật",
+      "description": "Natural trees and mystical herbs with glowing or corrupted auras. Key environmental storytelling elements.",
+      "description_vn": "Cây tự nhiên và linh ma thảo phát quang/tà khí. Yếu tố kể chuyện môi trường quan trọng.",
+      "asset_focus": [
+        "common_tree",
+        "divine_pine",
+        "glowing_herb",
+        "corrupted_thorn",
+        "celestial_lotus"
+      ],
+      "prompt_keywords": "single sprite, 2.5D orthographic, shallow tilt, clean alpha, game foliage asset, no terrain",
+      "priority": "high"
+    },
+    {
+      "id": "artifacts",
+      "name": "Spiritual Artifacts / Pháp Bảo & Linh Vật",
+      "description": "Mystical items with power emphasis: cauldrons, weapon relics, magic mirrors, floating scrolls, spirit statues.",
+      "description_vn": "Pháp bảo, di vật vũ khí, gương pháp, trục sách bay, tượng linh. Điểm nhấn sức mạnh huyền bí.",
+      "asset_focus": [
+        "bronze_cauldron",
+        "giant_weapon_relic",
+        "magic_mirror_pillar",
+        "floating_scroll",
+        "spirit_statue"
+      ],
+      "prompt_keywords": "centered prop, dramatic rim light, flat color blocking, game item sprite, isolated, clean edges",
+      "priority": "medium"
+    },
+    {
+      "id": "vfx_atmosphere",
+      "name": "Atmospheric Effects / Khí Quyển & Hiệu Ứng",
+      "description": "Overlay layers for 'Tiên khí' or 'Sát khí': radiance, fog, petals, lightning residue, sandstorms.",
+      "description_vn": "Lớp phủ khí chất: thần quang, sương tà, cánh tiên, vết sét, bão cát. Dùng làm VFX overlay.",
+      "asset_focus": [
+        "divine_radiance",
+        "ominous_fog",
+        "celestial_petals",
+        "lightning_residue",
+        "sandstorm"
+      ],
+      "prompt_keywords": "translucent overlay, seamless tile, soft edges, game VFX sprite, no solid geometry, alpha-ready",
+      "priority": "medium"
+    },
+    {
+      "id": "creatures_beasts",
+      "name": "Creatures & Beasts / Yêu Thú & Tiên Thú",
+      "description": "Yao, demons, divine beasts, dragons, and mythical companions. Critical for Fengshen lore and combat.",
+      "description_vn": "Yêu ma, tiên thú, rồng, linh vật đồng hành. Yếu tố sống còn cho lore và combat Phong Thần.",
+      "asset_focus": [
+        "yaoguai_minion",
+        "divine_beast",
+        "dragon_whelp",
+        "spirit_fox",
+        "demon_general"
+      ],
+      "prompt_keywords": "2.5D sprite angle, readable silhouette, flat shading, game character base, isolated, clean cutout",
+      "priority": "high"
+    },
+    {
+      "id": "magic_arrays_traps",
+      "name": "Magic Arrays & Traps / Trận Pháp & Bẫy",
+      "description": "Formation stones, barrier nodes, trap mechanisms, and ritual circles. Core to Fengshen's battle system.",
+      "description_vn": "Đá trận, nút rào, cơ chế bẫy, vòng tế. Cốt lõi hệ thống trận pháp Phong Thần.",
+      "asset_focus": [
+        "array_stone",
+        "barrier_node",
+        "trap_mechanism",
+        "ritual_circle",
+        "formation_marker"
+      ],
+      "prompt_keywords": "top-down or isometric tile, seamless border, game UI/prop hybrid, clean geometry, isolated",
+      "priority": "high"
+    },
+    {
+      "id": "vehicles_mounts",
+      "name": "Vehicles & Mounts / Phi Cơ & Thú Cưỡi",
+      "description": "Flying swords, lotus floats, dragon boats, celestial chariots, and spirit mounts for traversal/combat.",
+      "description_vn": "Phi kiếm, sen nổi, thuyền rồng, xa thiên, thú cưỡi linh. Dùng cho di chuyển và chiến đấu.",
+      "asset_focus": [
+        "flying_sword",
+        "lotus_float",
+        "dragon_boat",
+        "celestial_chariot",
+        "spirit_mount"
+      ],
+      "prompt_keywords": "2.5D sprite angle, dynamic pose, flat shading, game vehicle asset, isolated, clean edges",
+      "priority": "medium"
+    }
+  ]
+}

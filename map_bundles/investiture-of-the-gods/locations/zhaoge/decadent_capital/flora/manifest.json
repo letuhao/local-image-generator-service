@@ -1,0 +1,93 @@
+{
+  "_readme": "Flora assets for Triều Ca (decadent_capital). Primary language: English (Flux AI prompts). Vietnamese: developer reference.",
+  "location": "zhaoge/decadent_capital",
+  "category": "flora",
+  "biome_id": "shang_capital",
+  "assets": [
+    {
+      "id": "decadent_pine",
+      "name": "Sa Đọa Tùng",
+      "description": "Ancient twisted pine tree, partially dead canopy but resilient green patches, symbolizing the dynasty's decline",
+      "description_vn": "Cây tùng cổ扭曲 partially dead canopy nhưng xanh resilient, tượng trưng cho sự suy tàn của đế chế",
+      "format": "single_sprite",
+      "seamless": false,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "single sprite, ancient twisted pine tree, partially dead canopy with resilient green patches, dramatic shadows, gnarled bark texture, xianxia aesthetic, 2.5D orthographic view, clean alpha background, game foliage asset",
+      "negative_prompt": "text, watermark, seamless tile, background",
+      "color_palette": ["#2E8B57", "#4A3B2C", "#6B5B45", "#D4AF37"],
+      "priority": "high",
+      "tags": ["pine", "ancient", "twisted", "resilient", "tùng"]
+    },
+    {
+      "id": "blood_plum",
+      "name": "Huyết Mai",
+      "description": "Crimson blossoming plum tree with surreal beauty, dark branches against moonlight",
+      "description_vn": "Cây mai crimson nở hoa với vẻ đẹp siêu nhiên, cành tối đối diện ánh trăng",
+      "format": "single_sprite",
+      "seamless": false,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "single sprite, blood-red plum blossoms on dark sinuous branches, surreal elegance, moonlight glow from behind, petals falling, melancholic beauty, clean alpha background, game foliage asset style",
+      "negative_prompt": "text, watermark, seamless tile, background",
+      "color_palette": ["#DC143C", "#1A1A2E", "#F5F5DC", "#4A0E4E"],
+      "priority": "high",
+      "tags": ["plum", "blossom", "crimson", "moonlight", "mai"]
+    },
+    {
+      "id": "fox_grape",
+      "name": "Yêu Nho",
+      "description": "Wild grapevine with unnaturally deep purple clusters, creeping growth with eerie luminescence",
+      "description_vn": "Nho hoang với chùm tím sâu không tự nhiên, mọc leo với ánh sáng tà",
+      "format": "single_sprite",
+      "seamless": false,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "single sprite, wild grapevine with unnaturally deep purple clusters, creeping growth pattern, eerie luminescence from berries, sinister beauty, clean alpha background, game foliage asset",
+      "negative_prompt": "text, watermark, seamless tile, background",
+      "color_palette": ["#6A5ACD", "#4A0E4E", "#2F1B4E", "#6B8E23"],
+      "priority": "medium",
+      "tags": ["grape", "vine", "purple", "luminescent", "yêu"]
+    },
+    {
+      "id": "wilted_lotus",
+      "name": "Liên Tàn",
+      "description": "Withered lotus in decaying pond, melancholic beauty representing fallen glory",
+      "description_vn": "Sen tàn trong ao hoang, vẻ đẹp buồn thể hiện vinh quang đã sụp",
+      "format": "single_sprite",
+      "seamless": false,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "single sprite, wilted lotus flowers with brown petals, decaying lily pads, murky water reflection below, melancholic beauty, opulent ruin aesthetic, clean alpha background, game foliage asset",
+      "negative_prompt": "text, watermark, seamless tile, background",
+      "color_palette": ["#8B7355", "#6B8E23", "#4A5D23", "#CD853F"],
+      "priority": "medium",
+      "tags": ["lotus", "wilted", "decaying", "pond", "liên"]
+    },
+    {
+      "id": "iron_bamboo",
+      "name": "Thiết Trúc",
+      "description": "Black bamboo stalks near palace walls, sharp angular growth with metallic sheen, oppressive atmosphere",
+      "description_vn": "Cây trúc đen gần tường cung, mọc góc sắc với ánh kim, khí tức áp bức",
+      "format": "single_sprite",
+      "seamless": false,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "single sprite, black bamboo stalks with sharp angular growth, metallic sheen on culms, oppressive atmosphere, dense cluster against dark background, clean alpha, game foliage asset style",
+      "negative_prompt": "text, watermark, seamless tile, background",
+      "color_palette": ["#1A1A2E", "#2F2F2F", "#4A4A4A", "#6B4226"],
+      "priority": "high",
+      "tags": ["bamboo", "black", "metallic", "oppressive", "trúc"]
+    }
+  ]
+}

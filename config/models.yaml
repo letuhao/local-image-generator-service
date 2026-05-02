@@ -292,3 +292,28 @@ models:
       n_max: 2
       size_max_pixels: 2621440
     vram_estimate_gb: 12
+
+  - name: flux2-klein-9b-q8-gguf
+    backend: comfyui
+    family: flux
+    workflow: workflows/flux2_dev_gguf.json
+    checkpoint: unet/flux-2-klein-9b-Q8_0.gguf
+    prediction: eps
+    vae: vae/flux2-vae.safetensors
+    clip_l: text_encoders/qwen_3_8b_fp4mixed.safetensors
+    clip_loader_type: flux2
+    capabilities:
+      image_gen: true
+      skip_startup_smoke: true
+    defaults:
+      size: "1024x1024"
+      steps: 16
+      cfg: 1.0
+      sampler: euler
+      scheduler: simple
+      negative_prompt: ""
+    limits:
+      steps_max: 40
+      n_max: 1
+      size_max_pixels: 1572864
+    vram_estimate_gb: 12

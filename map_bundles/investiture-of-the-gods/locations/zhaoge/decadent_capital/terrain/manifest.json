@@ -1,0 +1,93 @@
+{
+  "_readme": "Terrain assets for Triều Ca (decadent_capital). Primary language: English (Flux AI prompts). Vietnamese: developer reference.",
+  "location": "zhaoge/decadent_capital",
+  "category": "terrain",
+  "biome_id": "shang_capital",
+  "assets": [
+    {
+      "id": "mortal_dirt_cracked",
+      "name": "Nền Đất Nứt Nho",
+      "description": "Cracked dry earth with sparse weeds, dusty brown tones representing mortal suffering under decadent rule",
+      "description_vn": "Đất nứt khô với cỏ dại thưa thớt, nâu bụi đại diện cho nỗi khổ nhân dân dưới chế độ sa đọa",
+      "format": "orthographic_top_down",
+      "seamless": true,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "orthographic top-down tile, cracked dry earth texture, dusty brown tones, sparse withered weeds growing from fissures, oppressive atmosphere, seamless border, flat lighting, clean edges, game terrain base, isolated prop",
+      "negative_prompt": "perspective, gradient, background, people, text, watermark",
+      "color_palette": ["#8B7355", "#A0926D", "#6B5B45", "#4A3B2C"],
+      "priority": "high",
+      "tags": ["mortal", "decay", "drought", "earth", "cracked"]
+    },
+    {
+      "id": "imperial_brick_gold",
+      "name": "Gạch Đế Chế Vàng",
+      "description": "Polished crimson brick pathway with gold dust inlay representing imperial opulence",
+      "description_vn": "Lối gạch crimson đánh bóng với điểm学金 đại diện cho sự xa hoa đế chế",
+      "format": "orthographic_top_down",
+      "seamless": true,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "orthographic top-down tile, polished crimson brick pathway, gold dust inlay between bricks, imperial luxury, subtle reflective surface, seamless border, clean edges, game terrain, flat lighting",
+      "negative_prompt": "perspective, gradient, background, people, text, watermark",
+      "color_palette": ["#DC143C", "#D4AF37", "#B8860B", "#8B0000"],
+      "priority": "high",
+      "tags": ["imperial", "opulence", "gold", "brick", "crimson"]
+    },
+    {
+      "id": "bronze_pathway",
+      "name": "Lối Đồng Hoàng Kim",
+      "description": "Bronze plate pathway with Shang dynasty taotie patterns and golden patina",
+      "description_vn": "Lối tấm đồng với hoa văn đời Thương và patina vàng",
+      "format": "orthographic_top_down",
+      "seamless": true,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "orthographic top-down tile, bronze plates with taotie thunder patterns, golden patina oxidation, Shang dynasty motifs, geometric seamless border, flat shading, game terrain base, isolated",
+      "negative_prompt": "perspective, gradient, background, people, text, watermark",
+      "color_palette": ["#CD7F32", "#B8860B", "#8B6914", "#6B4226"],
+      "priority": "high",
+      "tags": ["bronze", "taotie", "Shang", "pattern", "imperial"]
+    },
+    {
+      "id": "decadant_garden",
+      "name": "Vườn Sa Đọa",
+      "description": "Overgrown stone path with wilting lotus pond showing opulent ruin aesthetic",
+      "description_vn": "Lối đá mọc hoang với ao sen tàn thể hiện vẻ đẹp tàn phá xa hoa",
+      "format": "isometric",
+      "seamless": true,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "isometric tile, overgrown stone pathway, wilting lotus flowers in decaying pond, moss-covered stones, opulent ruin aesthetic, melancholic beauty, seamless border, game terrain",
+      "negative_prompt": "perspective, gradient, background, people, text, watermark",
+      "color_palette": ["#2E8B57", "#6B8E23", "#8B7355", "#4A5D23"],
+      "priority": "medium",
+      "tags": ["garden", "decay", "lotus", "overgrown", "melancholy"]
+    },
+    {
+      "id": "blood_stained_court",
+      "name": "Sân Đổ Máu",
+      "description": "Crimson-stained stone courtyard with dark patches showing the cost of divine conflict",
+      "description_vn": "Sân đá nhuộm crimson với vệt đen thể hiện giá tranh của xung đột thần tiên",
+      "format": "orthographic_top_down",
+      "seamless": true,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "orthographic top-down tile, stone courtyard with dark blood stains, crimson patina overlay, oppressive atmosphere, subtle crack patterns, seamless border, flat lighting, game terrain base",
+      "negative_prompt": "perspective, gradient, background, people, text, watermark",
+      "color_palette": ["#8B0000", "#2F2F2F", "#4A4A4A", "#6B1C1C"],
+      "priority": "medium",
+      "tags": ["blood", "court", "dark", "stain", "oppressive"]
+    }
+  ]
+}

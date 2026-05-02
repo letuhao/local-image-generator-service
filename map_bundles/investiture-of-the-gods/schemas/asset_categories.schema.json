@@ -1,0 +1,82 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Phong Thần Diễn Nghĩa - Asset Categories Schema",
+    "description": "Schema for asset categorization data. English is primary (optimized for AI/pipeline routing). Vietnamese fields are developer reference only. Structured for batch generation consistency.",
+    "type": "object",
+    "properties": {
+        "_readme": {
+            "type": "string",
+            "description": "Notes on language priority, AI optimization, and pipeline usage."
+        },
+        "project": {
+            "type": "string",
+            "description": "Project title."
+        },
+        "theme": {
+            "type": "string",
+            "description": "Core thematic focus of the asset set."
+        },
+        "categories": {
+            "type": "array",
+            "description": "List of asset categories with AI routing and metadata.",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "Unique machine-readable identifier (snake_case)."
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "Human-readable name (bilingual: English/Vietnamese)."
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Primary description (English) explaining category lore and visual direction."
+                    },
+                    "description_vn": {
+                        "type": "string",
+                        "description": "Vietnamese translation for developer reference."
+                    },
+                    "asset_focus": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Keywords/tags for specific assets within this category."
+                    },
+                    "prompt_keywords": {
+                        "type": "string",
+                        "description": "AI generation directives (gaze, scale, cutout, tileability, style)."
+                    },
+                    "priority": {
+                        "type": "string",
+                        "enum": [
+                            "high",
+                            "medium",
+                            "low"
+                        ],
+                        "description": "Development priority for batch generation and pipeline integration."
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "description",
+                    "description_vn",
+                    "asset_focus",
+                    "prompt_keywords",
+                    "priority"
+                ],
+                "additionalProperties": false
+            }
+        }
+    },
+    "required": [
+        "_readme",
+        "project",
+        "theme",
+        "categories"
+    ],
+    "additionalProperties": false
+}

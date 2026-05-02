@@ -1,0 +1,93 @@
+{
+  "_readme": "Atmospheric VFX assets for Triều Ca (decadent_capital). Primary language: English (Flux AI prompts). Vietnamese: developer reference. All assets are translucent overlay tiles for VFX compositing.",
+  "location": "zhaoge/decadent_capital",
+  "category": "vfx_atmosphere",
+  "biome_id": "shang_capital",
+  "assets": [
+    {
+      "id": "imperial_aura",
+      "name": "Đế Khí",
+      "description": "Golden divine radiance overlay with imperial aura particles",
+      "description_vn": "Lớp phủ hoàng kim thần quang với hạt khí đế chế",
+      "format": "translucent_overlay",
+      "seamless": true,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "translucent overlay tile, golden divine radiance particles, imperial aura glow, soft luminous effect, seamless tiling, VFX sprite, alpha-ready, no solid geometry",
+      "negative_prompt": "text, watermark, solid objects, people",
+      "color_palette": ["#D4AF37", "#FFD700", "#FFF8DC", "#B8860B"],
+      "priority": "high",
+      "tags": ["golden", "divine", "aura", "imperial", "đế_khí"]
+    },
+    {
+      "id": "decadent_mist",
+      "name": "Sa Khí",
+      "description": "Purple-red decadent mist layer with oppressive atmosphere",
+      "description_vn": "Lớp sương tím-đỏ sa đọa với khí tức áp bức",
+      "format": "translucent_overlay",
+      "seamless": true,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "translucent overlay tile, purple-red mist layer, oppressive atmosphere, subtle particle glow, eerie luminescence, seamless tiling, VFX sprite, alpha-ready, soft edges",
+      "negative_prompt": "text, watermark, solid objects, people",
+      "color_palette": ["#6A5ACD", "#8B008B", "#DC143C", "#2F1B4E"],
+      "priority": "high",
+      "tags": ["mist", "purple", "oppressive", "decadent", "sa_khí"]
+    },
+    {
+      "id": "lantern_glow",
+      "name": "Đăng Quang",
+      "description": "Warm red lantern light bloom with floating light particles",
+      "description_vn": "Ánh sáng đèn đỏ ấm với hạt ánh sáng bay",
+      "format": "translucent_overlay",
+      "seamless": true,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "translucent overlay tile, warm red lantern light bloom, soft radial glow, floating warm light particles, festive yet eerie, seamless VFX tile, alpha-ready",
+      "negative_prompt": "text, watermark, solid objects, people",
+      "color_palette": ["#DC143C", "#FF6347", "#FFD700", "#FF4500"],
+      "priority": "medium",
+      "tags": ["lantern", "warm", "glow", "red", "đăng_quang"]
+    },
+    {
+      "id": "blood_moon_shadow",
+      "name": "Huyết Nguyệt",
+      "description": "Blood-red moonlight cast with angular shadow patterns",
+      "description_vn": "Ánh trăng đỏ máu với bóng góc",
+      "format": "translucent_overlay",
+      "seamless": true,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "translucent overlay tile, blood-red moonlight cast across surface, angular shadow patterns, eerie crimson tone, ominous atmosphere, seamless tile, VFX sprite",
+      "negative_prompt": "text, watermark, solid objects, people",
+      "color_palette": ["#8B0000", "#6B1C1C", "#4A0E4E", "#2F1B4E"],
+      "priority": "medium",
+      "tags": ["blood_moon", "crimson", "shadow", "ominous", "huyết_nguyệt"]
+    },
+    {
+      "id": "bronze_smoke",
+      "name": "Đồng Yên",
+      "description": "Swirling incense smoke from bronze burner with golden particle traces",
+      "description_vn": "Khói hương xoáy từ lò đồng với vết hạt vàng",
+      "format": "translucent_overlay",
+      "seamless": true,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "translucent overlay tile, swirling incense smoke patterns, golden particle traces, elegant curling motion, ritual atmosphere, seamless VFX tile, alpha-ready, soft edges",
+      "negative_prompt": "text, watermark, solid objects, people",
+      "color_palette": ["#D4AF37", "#CD7F32", "#F5F5DC", "#6A5ACD"],
+      "priority": "medium",
+      "tags": ["smoke", "incense", "golden", "ritual", "Đồng_Yên"]
+    }
+  ]
+}

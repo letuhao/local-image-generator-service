@@ -1,0 +1,85 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Phong Thần Diễn Nghĩa - Biome & Location Planning",
+    "description": "Schema for biome and location data. English is primary (optimized for Flux AI). Vietnamese fields are developer reference only.",
+    "type": "object",
+    "properties": {
+        "_readme": {
+            "type": "string",
+            "description": "Notes on language priority, AI optimization, and pipeline usage."
+        },
+        "project": {
+            "type": "string",
+            "description": "Project title."
+        },
+        "biomes": {
+            "type": "array",
+            "description": "List of biomes/regions for asset generation.",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "Unique machine-readable identifier (snake_case)."
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "Human-readable name (Vietnamese + English if applicable)."
+                    },
+                    "hint": {
+                        "type": "string",
+                        "description": "AI prompt hint (English). Visual style, palette, atmosphere, and key features for generation."
+                    },
+                    "locations": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Canonical locations/factions within this biome."
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Primary description (English) explaining biome lore and visual direction."
+                    },
+                    "description_vn": {
+                        "type": "string",
+                        "description": "Vietnamese translation for developer reference."
+                    },
+                    "asset_focus": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Keywords for asset generation (e.g., plant types, architectural elements, environmental motifs)."
+                    },
+                    "priority": {
+                        "type": "string",
+                        "enum": [
+                            "high",
+                            "medium",
+                            "low"
+                        ],
+                        "description": "Development priority for batch generation and pipeline integration."
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "hint",
+                    "locations",
+                    "description",
+                    "description_vn",
+                    "asset_focus",
+                    "priority"
+                ],
+                "additionalProperties": false
+            }
+        }
+    },
+    "required": [
+        "_readme",
+        "project",
+        "biomes"
+    ],
+    "additionalProperties": false
+}

@@ -1,0 +1,93 @@
+{
+  "_readme": "Spiritual Artifact assets for Triều Ca (decadent_capital). Primary language: English (Flux AI prompts). Vietnamese: developer reference.",
+  "location": "zhaoge/decadent_capital",
+  "category": "artifacts",
+  "biome_id": "shang_capital",
+  "assets": [
+    {
+      "id": "fox_spirit_artifact",
+      "name": "Tỳ Hồ Pháp Bảo",
+      "description": "Ancient jade fox artifact with glowing green eye, powerful fox spirit energy source",
+      "description_vn": "Tượng hồ yêu ngọc cổ với mắt xanh phát sáng, nguồn năng lượng hồ yêu mạnh mẽ",
+      "format": "centered_prop",
+      "seamless": false,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "centered prop, ancient jade fox spirit artifact, glowing green eye, mystical aura particles, dramatic rim light, fox spirit energy visible, game item sprite style, isolated on white background, clean edges",
+      "negative_prompt": "text, watermark, background scene, people",
+      "color_palette": ["#00A86B", "#D4AF37", "#2F1B4E", "#F5F5DC"],
+      "priority": "high",
+      "tags": ["fox", "jade", "artifact", "spirit", "tỳ_hồ"]
+    },
+    {
+      "id": "bronze_divination",
+      "name": "Đồng Kiển Bói",
+      "description": "Shang dynasty bronze divination plate with oracle bone crack patterns from burning",
+      "description_vn": "Đĩa bói đồng đời Thương với hoa văn xương oracle từ lửa",
+      "format": "centered_prop",
+      "seamless": false,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "centered prop, Shang dynasty bronze divination plate, oracle bone crack patterns from burning, ancient ritual object, patina oxidation, dramatic rim light, authoritative presence, game item sprite, isolated",
+      "negative_prompt": "text, watermark, background scene, people",
+      "color_palette": ["#CD7F32", "#8B6914", "#2F2F2F", "#4A3B2C"],
+      "priority": "high",
+      "tags": ["bronze", "divination", "oracle", "Shang", "ritual"]
+    },
+    {
+      "id": "pearl_of_daji",
+      "name": "Địch Cơ Bảo Ngọc",
+      "description": "Daji's spirit pearl with crimson and gold energy, fox spirit core",
+      "description_vn": "Hồn ngọc của Địch Cơ với năng lượng crimson và vàng, lõi hồ yêu",
+      "format": "centered_prop",
+      "seamless": false,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "centered prop, luminous crimson spirit pearl with golden vein patterns, fox spirit energy core, mystical glow radiating outward, seductive beauty, game item sprite style, isolated on white, clean edges",
+      "negative_prompt": "text, watermark, background scene, people",
+      "color_palette": ["#DC143C", "#D4AF37", "#6A5ACD", "#2F1B4E"],
+      "priority": "high",
+      "tags": ["pearl", "Daji", "spirit", "crimson", "Địch_Cơ"]
+    },
+    {
+      "id": "king_zhou_seal",
+      "name": "Thương Châu Ngọc Tỷ",
+      "description": "Imperial jade seal of King Zhou with dragon motif, symbol of heavenly mandate",
+      "description_vn": "Ấu ngọc đế chế của vua Thương với motif rồng, biểu tượng thiên mệnh",
+      "format": "centered_prop",
+      "seamless": false,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "centered prop, imperial jade seal with dragon motif carving, crimson cord tassel, authoritative presence, smooth jade surface with subtle green translucence, game item sprite, isolated on white",
+      "negative_prompt": "text, watermark, background scene, people",
+      "color_palette": ["#00A86B", "#F5F5DC", "#DC143C", "#D4AF37"],
+      "priority": "high",
+      "tags": ["seal", "jade", "imperial", "dragon", "Thương_Châu"]
+    },
+    {
+      "id": "ancient_mirror",
+      "name": "Cổ Kính Ma",
+      "description": "Magic bronze mirror with mystical engravings that reveals true forms and hidden truths",
+      "description_vn": "Gương đồng pháp với khắc bí ẩn tiết lộ dạng thật và sự thật ẩn",
+      "format": "centered_prop",
+      "seamless": false,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "centered prop, ancient bronze mirror with mystical taotie engravings on back, eerie reflective surface showing distorted true form, supernatural aura, dramatic lighting, game item sprite style, isolated",
+      "negative_prompt": "text, watermark, background scene, people",
+      "color_palette": ["#CD7F32", "#6A5ACD", "#2F2F2F", "#00A86B"],
+      "priority": "medium",
+      "tags": ["mirror", "magic", "truth", "bronze", "cổ_kính"]
+    }
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "_readme": "Iconic Structure assets for Triều Ca (decadent_capital). Primary language: English (Flux AI prompts). Vietnamese: developer reference.",
+  "location": "zhaoge/decadent_capital",
+  "category": "structures",
+  "biome_id": "shang_capital",
+  "assets": [
+    {
+      "id": "zhaoge_main_gate",
+      "name": "Triều Ca Cửa Chính",
+      "description": "Massive imperial gatehouse with bronze door studs, crimson pillars, golden roof representing oppressive grandeur",
+      "description_vn": "Cửa thành đế chế Massive với đinh đồng, cột crimson, mái vàng thể hiện sự grandeur áp bức",
+      "format": "centered_composition",
+      "seamless": false,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "centered composition, towering imperial gatehouse, massive bronze door studs in grid pattern, crimson lacquer pillars, golden tiled roof with dragon ridge ends, oppressive grandeur, atmospheric mist at base, dramatic low angle, isolated against white, game prop style",
+      "negative_prompt": "text, watermark, people, cartoon, flat 2D",
+      "color_palette": ["#D4AF37", "#DC143C", "#CD7F32", "#1A1A2E"],
+      "priority": "high",
+      "tags": ["gate", "imperial", "bronze", "entrance", "Triều_Ca"]
+    },
+    {
+      "id": "bronze_zun_altar",
+      "name": "Đồng Zun Đàn",
+      "description": "Bronze ritual cauldron altar with intricate taotie patterns, central ritual object in imperial court",
+      "description_vn": "Đàn đỉnh đồng với hoa văn taotie tinh tế, vật phẩm tế trung tâm trong triều đình",
+      "format": "centered_composition",
+      "seamless": false,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "centered composition, bronze zun ritual cauldron on carved stone altar, intricate taotie thunder patterns covering surface, ancient ritual object, dramatic rim light, incense smoke rising, authoritative presence, isolated prop, game item sprite style",
+      "negative_prompt": "text, watermark, people, cartoon, flat 2D",
+      "color_palette": ["#CD7F32", "#8B6914", "#2F2F2F", "#D4AF37"],
+      "priority": "high",
+      "tags": ["altar", "bronze", "ritual", "zun", "taotie"]
+    },
+    {
+      "id": "fox_spirit_archway",
+      "name": "Yêu Thú Bia",
+      "description": "Stone paifang archway with fox spirit reliefs, weathered stone with eerie green glow from corrupted carvings",
+      "description_vn": "Bía đá牌坊 với phù điêu hồ yêu, đá phong sương với ánh xanh tà từ khắc bị nhiễm",
+      "format": "centered_composition",
+      "seamless": false,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "centered composition, stone paifang archway with fox spirit relief carvings, weathered and eroded stone surface, eerie green luminescence from corrupted carvings, sinister elegance, isolated against white, game prop style",
+      "negative_prompt": "text, watermark, people, cartoon, flat 2D",
+      "color_palette": ["#6B8E23", "#4A4A4A", "#6A5ACD", "#2F1B4E"],
+      "priority": "medium",
+      "tags": ["archway", "fox_spirit", "stone", "corrupted", "paifang"]
+    },
+    {
+      "id": "sign_of_doom",
+      "name": "Vong Quốc石柱",
+      "description": "Tall stone pillar with cryptic inscriptions prophesying the downfall of Shang, dark aura and ominous lighting",
+      "description_vn": "Cột đá cao với khắc bí ẩn tiên liệu sự sụp đổ của nhà Thương, aura tối và ánh sáng bất lành",
+      "format": "centered_composition",
+      "seamless": false,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "centered composition, tall monolithic stone pillar with cryptic oracle bone inscriptions, dark ominous aura, foreboding atmosphere, dramatic sidelight, prophetic weight, isolated prop, game asset style",
+      "negative_prompt": "text, watermark, people, cartoon, flat 2D",
+      "color_palette": ["#2F2F2F", "#4A0E4E", "#1A1A2E", "#6B1C1C"],
+      "priority": "medium",
+      "tags": ["pillar", "prophecy", "doom", "oracle", "Vong_Quốc"]
+    },
+    {
+      "id": "imperial_bridge",
+      "name": "Hoàng Gia Cầu",
+      "description": "Crimson arched stone bridge over imperial moat with golden railings, elegant imperial design",
+      "description_vn": "Cầu vòm đá crimson qua hào đế chế với lan can vàng, thiết kế đế chế thanh lịch",
+      "format": "centered_composition",
+      "seamless": false,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "centered composition, crimson arched stone bridge over calm moat water, golden dragon-pattern railings, elegant imperial design, reflections in water below, graceful curve, isolated prop, game asset style",
+      "negative_prompt": "text, watermark, people, cartoon, flat 2D",
+      "color_palette": ["#DC143C", "#D4AF37", "#2E8B57", "#CD7F32"],
+      "priority": "medium",
+      "tags": ["bridge", "arch", "moat", "imperial", "Hoàng_Gia"]
+    }
+  ]
+}

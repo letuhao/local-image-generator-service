@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Map Bundle Schema (Zhaoge)",
+  "description": "Schema chuẩn hóa cho các file bundle asset. Tối ưu cho pipeline Flux AI và world-building Phong Thần.",
+  "type": "object",
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "description": "Thông tin nhận diện bundle và ngữ cảnh địa điểm.",
+      "properties": {
+        "project": { "type": "string", "description": "Tên dự án." },
+        "location": { "type": "string", "description": "Mã địa điểm (ví dụ: zhaoge)." },
+        "biome": { "type": "string", "description": "Mã biome liên kết (ví dụ: decadent_capital)." },
+        "asset_type": { "type": "string", "description": "Loại asset chính của bundle (ví dụ: dwellings, structures, terrain...)." },
+        "version": { "type": "string", "description": "Phiên bản bundle." }
+      },
+      "required": ["project", "location", "biome", "asset_type"]
+    },
+    "global_settings": {
+      "type": "object",
+      "description": "Cài đặt mặc định áp dụng cho toàn bộ entries trong bundle.",
+      "properties": {
+        "model": { "type": "string", "default": "flux-dev", "description": "Mã model AI sử dụng." },
+        "size": { "type": "string", "default": "1024x1024", "description": "Kích thước output ảnh." },
+        "prompt_template": { "type": "string", "description": "Cấu trúc prompt gốc, dùng placeholder {subject}, {keywords}, {modifiers}." },
+        "negative_prompt": { "type": "string", "description": "Negative prompt mặc định." }
+      },
+      "required": ["model", "size", "prompt_template"]
+    },
+    "entries": {
+      "type": "array",
+      "description": "Danh sách các asset cụ thể cần generate.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "description": "Mã định danh duy nhất (snake_case)." },
+          "prompt_subject": { "type": "string", "description": "Mô tả chủ thể chính cho AI." },
+          "prompt_keywords": { "type": "string", "description": "Từ khóa kỹ thuật chuyên biệt cho loại asset này (tileable, orthographic, isolated, v.v.)." },
+          "style_modifiers": { "type": "string", "description": "Từ khóa phong cách, ánh sáng, không khí (opulent, decaying, sinister, cinematic)." },
+          "biomes_include": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Danh sách biome ID có thể đặt asset này vào."
+          },
+          "tags": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Tags phục vụ tìm kiếm, filter và phân loại."
+          },
+          "description": { "type": "string", "description": "Mô tả ngắn bằng tiếng Việt cho developer reference." }
+        },
+        "required": ["id", "prompt_subject", "style_modifiers", "description"]
+      }
+    }
+  },
+  "required": ["metadata", "global_settings", "entries"],
+  "additionalProperties": false
+}

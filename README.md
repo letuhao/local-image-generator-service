@@ -133,6 +133,11 @@ Registry model **`flux2-dev-q4-gguf`** uses **`workflows/flux2_dev_gguf.json`**:
 | Text encoder **`mistral_3_small_flux2_fp8.safetensors`** ([Comfy-Org bundle](https://huggingface.co/Comfy-Org/flux2-dev/tree/main/split_files/text_encoders)) | **`text_encoders/`** |
 | **`flux2-vae.safetensors`** ([same bundle, `split_files/vae`](https://huggingface.co/Comfy-Org/flux2-dev/tree/main/split_files/vae)) | **`vae/`** |
 
+> **Operational warning (important):**
+> On typical local GPUs this combo has very high cold-load latency (often **3-5+ minutes**
+> before first image). In this repo, treat FLUX.2 Dev as a **compatibility/test lane only**.
+> It is **not recommended** for day-to-day game-asset production loops.
+
 Requires **recent ComfyUI** (CLIP `flux2` type) and **[ComfyUI-GGUF](https://github.com/city96/ComfyUI-GGUF)** in the sidecar. **`capabilities.skip_startup_smoke`** is set so boot does not run a GPU smoke on this lane.
 
 The registry snippet lives in **`docs/snippets/models-flux2-dev.fragment.yaml`**. Append it under **`models:`** in **`config/models.yaml`** once the files exist (keeping YAML indentation). Leaving it unmerged avoids failing startup validation when weights are absent.

@@ -1,0 +1,93 @@
+{
+  "_readme": "Musical Instrument assets for Triều Ca (decadent_capital). Primary language: English (Flux AI prompts). Vietnamese: developer reference. Shang court music was central to royal ceremonies.",
+  "location": "zhaoge/decadent_capital",
+  "category": "musical_instruments",
+  "biome_id": "shang_capital",
+  "assets": [
+    {
+      "id": "bronze_bianzhong",
+      "name": "Đồng Biên Chung",
+      "description": "Set of 8 hanging bronze bells with taotie patterns, royal court music instrument",
+      "description_vn": "Bộ 8 chuông đồng treo trên khung với hoa văn taotie, nhạc cụ cung đình nhà Thương",
+      "format": "centered_prop",
+      "seamless": false,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "centered composition, set of 8 bronze bianzhong bells hanging on carved wooden frame, intricate taotie thunder patterns on each bell, green patina oxidation, Shang dynasty royal music instrument, dramatic rim light, authoritative musical presence, game item sprite style, isolated on white, clean edges",
+      "negative_prompt": "text, watermark, background scene, people",
+      "color_palette": ["#CD7F32", "#2E8B57", "#4A4A4A", "#D4AF37"],
+      "priority": "high",
+      "tags": ["bronze", "bells", "music", "Shang", "court", "bianzhong", "đồng_biên_chung"]
+    },
+    {
+      "id": "bronze_incense_burner_bell",
+      "name": "Đồng Hương Chung",
+      "description": "Bell-shaped bronze incense burner with fox spirit smoke emerging",
+      "description_vn": "Lồng hương đồng hình chuông với khói hồ yêu thoát ra",
+      "format": "centered_prop",
+      "seamless": false,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "centered composition, bell-shaped bronze incense burner on stone pedestal, fox spirit face carved on surface, ethereal green smoke curling upward from opening, ritual object, dramatic rim light, mystical atmosphere, game item sprite, isolated",
+      "negative_prompt": "text, watermark, background scene, people",
+      "color_palette": ["#CD7F32", "#00A86B", "#6A5ACD", "#2F2F2F"],
+      "priority": "high",
+      "tags": ["incense", "burner", "fox_smoke", "ritual", "đồng_hương_chung"]
+    },
+    {
+      "id": "stone_chime_block",
+      "name": "Thạch Bích",
+      "description": "Stone chime block (磬), ritual court music, carved dragon patterns",
+      "description_vn": "Đá khánh nhạc cung đình, khắc hoa văn rồng",
+      "format": "centered_prop",
+      "seamless": false,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "centered prop, stone chime block (qing) for ritual court music, carved dragon patterns on surface, green jade stone, suspended by silk cord, ancient musical instrument, dramatic rim light, game item sprite, isolated",
+      "negative_prompt": "text, watermark, background scene, people",
+      "color_palette": ["#2E8B57", "#CD7F32", "#F5F5DC", "#8B7355"],
+      "priority": "medium",
+      "tags": ["stone_chime", "qing", "ritual", "music", "thạch_bích"]
+    },
+    {
+      "id": "jade_disc_pianzhong",
+      "name": "Ngọc Phiến Chung",
+      "description": "Jade disc with bell motifs, gift from immortal realm",
+      "description_vn": "Điếu ngọc với motif chuông, quà từ tiên giới",
+      "format": "centered_prop",
+      "seamless": false,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "centered prop, circular jade disc with bell motif carvings around edge, translucent green jade, immortal realm gift, soft luminous glow, game item sprite style, isolated on white, clean edges",
+      "negative_prompt": "text, watermark, background scene, people",
+      "color_palette": ["#00A86B", "#F5F5DC", "#D4AF37", "#2E8B57"],
+      "priority": "medium",
+      "tags": ["jade_disc", "bell_motif", "immortal", "ngọc_phiến_chung"]
+    },
+    {
+      "id": "se_xiang_huy",
+      "name": "Sáp Tường Hồ",
+      "description": "Bamboo mouth organ, cultivator's instrument for xianxia aesthetic",
+      "description_vn": "Đàn môi tre, nhạc cụ tu tiên cho phong cách tiên hiệp",
+      "format": "centered_prop",
+      "seamless": false,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "centered prop, ancient Chinese bamboo mouth organ (xiangharmony), multiple bamboo pipes in curved frame, cultivator's musical instrument, weathered wood texture, xianxia aesthetic, dramatic rim light, game item sprite, isolated",
+      "negative_prompt": "text, watermark, background scene, people",
+      "color_palette": ["#8B7355", "#6B8E23", "#CD7F32", "#4A3B2C"],
+      "priority": "low",
+      "tags": ["bamboo_organ", "cultivator", "xianxia", "sáp_tường_hồ"]
+    }
+  ]
+}

@@ -9,7 +9,7 @@
 # Base image: nvidia/cuda runtime (not devel) — we install Python + torch wheels,
 # not nvcc-compiled extensions. Size target: 4-5 GB.
 
-ARG COMFYUI_REF=v0.9.2
+ARG COMFYUI_REF=v0.20.1
 ARG COMFYUI_GGUF_REF=6ea2651e7df66d7585f6ffee804b20e92fb38b8a
 
 FROM nvidia/cuda:12.4.1-runtime-ubuntu22.04 AS base

@@ -1,0 +1,93 @@
+{
+  "_readme": "Magic Arrays & Traps assets for Triều Ca (decadent_capital). Primary language: English (Flux AI prompts). Vietnamese: developer reference. All assets are top-down/isometric tiles for formation system.",
+  "location": "zhaoge/decadent_capital",
+  "category": "magic_arrays_traps",
+  "biome_id": "shang_capital",
+  "assets": [
+    {
+      "id": "city_barrier_stone",
+      "name": "Thành Rào Đá",
+      "description": "Hidden barrier node disguised as ordinary street stone with subtle formation patterns",
+      "description_vn": "Nút rào ẩn giả trang là đá đường thường với hoa văn trận pháp tinh tế",
+      "format": "top_down_tile",
+      "seamless": true,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "top-down tile, carved stone disc disguised as street paving stone, hidden formation patterns barely visible, subtle energy glow, seamless border, game prop tile, clean geometry",
+      "negative_prompt": "text, watermark, perspective, people",
+      "color_palette": ["#8B7355", "#CD7F32", "#6B8E23", "#4A4A4A"],
+      "priority": "high",
+      "tags": ["barrier", "stone", "hidden", "formation", "thành_rào"]
+    },
+    {
+      "id": "fox_ward_circle",
+      "name": "Yêu Phù Vòng",
+      "description": "Fox spirit warding circle with corrupted runes and eerie green glow",
+      "description_vn": "Vòng phù yêu hồ với rune bị nhiễm và ánh sáng xanh tà",
+      "format": "top_down_tile",
+      "seamless": true,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "top-down tile, circular fox spirit warding formation, corrupted runic inscriptions, eerie green luminescence from channels, sinister energy patterns, seamless tiling, game UI tile",
+      "negative_prompt": "text, watermark, perspective, people",
+      "color_palette": ["#00A86B", "#6A5ACD", "#2F1B4E", "#2F2F2F"],
+      "priority": "high",
+      "tags": ["ward", "fox_spirit", "rune", "corrupted", "yêu_phù"]
+    },
+    {
+      "id": "bronze_array_pillar",
+      "name": "Đồng Trận Trụ",
+      "description": "Bronze pillar base channeling imperial qi with taotie patterns and energy flow lines",
+      "description_vn": "Đế trụ đồng dẫn khí đế chế với hoa văn taotie và đường dòng năng lượng",
+      "format": "top_down_tile",
+      "seamless": true,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "top-down tile, bronze formation pillar base, taotie thunder patterns, energy flow channels radiating outward, imperial qi concentration, game prop tile, seamless border, clean geometry",
+      "negative_prompt": "text, watermark, perspective, people",
+      "color_palette": ["#CD7F32", "#D4AF37", "#8B6914", "#2F2F2F"],
+      "priority": "high",
+      "tags": ["pillar", "bronze", "qi", "channel", "trụ_trận"]
+    },
+    {
+      "id": "illusion_trap_node",
+      "name": "Ma Trận Mồi",
+      "description": "Illusion trap node with deceptive ornate crimson and gold design",
+      "description_vn": "Nút bẫy ảo với thiết kế crimson và vàng giả trang tinh tế",
+      "format": "top_down_tile",
+      "seamless": true,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "top-down tile, octagonal illusion trap node, crimson and gold inlay patterns, deceptive ornate design masking danger, subtle energy distortion, seamless game tile",
+      "negative_prompt": "text, watermark, perspective, people",
+      "color_palette": ["#DC143C", "#D4AF37", "#6A5ACD", "#2F1B4E"],
+      "priority": "medium",
+      "tags": ["illusion", "trap", "deceptive", "node", "ma_trận"]
+    },
+    {
+      "id": "death_qi_cluster",
+      "name": "Tử Khí Đoàn",
+      "description": "Cluster of凝聚 death qi with purple-black vortex and ominous swirling patterns",
+      "description_vn": "Cụm tử khí xoáy tím-đen với hoa văn bất lành",
+      "format": "top_down_tile",
+      "seamless": true,
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "prompt": "top-down tile,凝聚 death qi energy cluster, purple-black vortex center, ominous swirling patterns radiating outward, dark supernatural energy, seamless game UI tile",
+      "negative_prompt": "text, watermark, perspective, people",
+      "color_palette": ["#4A0E4E", "#2F2F2F", "#6B1C1C", "#1A1A2E"],
+      "priority": "medium",
+      "tags": ["death_qi", "vortex", "dark", "ominous", "tử_khí"]
+    }
+  ]
+}
