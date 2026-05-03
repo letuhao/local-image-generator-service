@@ -36,32 +36,30 @@ def apply_wan_advanced_patches(
                 "apply_wan_advanced_patches: %WAN_DIMS% anchor missing"
             ) from None
         node = graph.get(dims_id) or {}
-        if node.get("class_type") != "WanVideoImageToVideoEncode":
-            raise WorkflowValidationError(
-                "apply_wan_advanced_patches: wan_advanced.encode requires "
-                "WanVideoImageToVideoEncode at %WAN_DIMS%"
-            )
-        inputs = node.get("inputs")
-        if not isinstance(inputs, dict):
-            raise WorkflowValidationError(
-                f"apply_wan_advanced_patches: node {dims_id} has invalid inputs"
-            )
-        _merge_non_none(inputs, opts.encode.model_dump(exclude_none=True))
+        if node.get("class_type") == "WanVideoImageToVideoEncode":
+            # Kijai workflow — encode options apply directly.
+            inputs = node.get("inputs")
+            if not isinstance(inputs, dict):
+                raise WorkflowValidationError(
+                    f"apply_wan_advanced_patches: node {dims_id} has invalid inputs"
+                )
+            _merge_non_none(inputs, opts.encode.model_dump(exclude_none=True))
+        # Core workflow uses WanImageToVideo — encode options are silently skipped.
 
     if opts.clip_encode is not None and video_task == "i2v":
         try:
             clip_id = find_anchor(graph, "%WAN_CLIP_ENCODE%")
         except KeyError:
-            raise WorkflowValidationError(
-                "apply_wan_advanced_patches: %WAN_CLIP_ENCODE% anchor missing"
-            ) from None
-        node = graph.get(clip_id) or {}
-        inputs = node.get("inputs")
-        if not isinstance(inputs, dict):
-            raise WorkflowValidationError(
-                f"apply_wan_advanced_patches: node {clip_id} has invalid inputs"
-            )
-        _merge_non_none(inputs, opts.clip_encode.model_dump(exclude_none=True))
+            # Core workflow has no %WAN_CLIP_ENCODE%; skip silently.
+            pass
+        else:
+            node = graph.get(clip_id) or {}
+            inputs = node.get("inputs")
+            if not isinstance(inputs, dict):
+                raise WorkflowValidationError(
+                    f"apply_wan_advanced_patches: node {clip_id} has invalid inputs"
+                )
+            _merge_non_none(inputs, opts.clip_encode.model_dump(exclude_none=True))
 
     if opts.decode is not None:
         try:
@@ -71,27 +69,30 @@ def apply_wan_advanced_patches(
                 "apply_wan_advanced_patches: %WAN_DECODE% anchor missing"
             ) from None
         node = graph.get(dec_id) or {}
-        inputs = node.get("inputs")
-        if not isinstance(inputs, dict):
-            raise WorkflowValidationError(
-                f"apply_wan_advanced_patches: node {dec_id} has invalid inputs"
-            )
-        _merge_non_none(inputs, opts.decode.model_dump(exclude_none=True))
+        if node.get("class_type") == "WanVideoDecode":
+            # Kijai workflow — tiling options apply.
+            inputs = node.get("inputs")
+            if not isinstance(inputs, dict):
+                raise WorkflowValidationError(
+                    f"apply_wan_advanced_patches: node {dec_id} has invalid inputs"
+                )
+            _merge_non_none(inputs, opts.decode.model_dump(exclude_none=True))
+        # Core VAEDecode has no tiling knobs; skip silently.
 
     if opts.block_swap is not None:
         try:
             bs_id = find_anchor(graph, "%WAN_BLOCK_SWAP%")
         except KeyError:
-            raise WorkflowValidationError(
-                "apply_wan_advanced_patches: %WAN_BLOCK_SWAP% anchor missing"
-            ) from None
-        node = graph.get(bs_id) or {}
-        inputs = node.get("inputs")
-        if not isinstance(inputs, dict):
-            raise WorkflowValidationError(
-                f"apply_wan_advanced_patches: node {bs_id} has invalid inputs"
-            )
-        _merge_non_none(inputs, opts.block_swap.model_dump(exclude_none=True))
+            # Core workflow has no block-swap node; skip silently.
+            pass
+        else:
+            node = graph.get(bs_id) or {}
+            inputs = node.get("inputs")
+            if not isinstance(inputs, dict):
+                raise WorkflowValidationError(
+                    f"apply_wan_advanced_patches: node {bs_id} has invalid inputs"
+                )
+            _merge_non_none(inputs, opts.block_swap.model_dump(exclude_none=True))
 
     if opts.export is not None:
         try:

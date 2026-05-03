@@ -236,10 +236,10 @@ class VideoGenerateRequest(BaseModel):
     frames: int = Field(ge=5, le=10000, default=81)
     fps: float = Field(ge=1.0, le=120.0, default=16.0)
     steps: int | None = Field(default=None, ge=1)
-    cfg: float = Field(ge=0.0, le=30.0, default=5.0)
-    shift: float = Field(ge=0.0, le=1000.0, default=5.0)
+    cfg: float | None = Field(default=None, ge=0.0, le=30.0)
+    shift: float | None = Field(default=None, ge=0.0, le=1000.0)
     seed: int = Field(ge=-1, le=(2**53), default=-1)
-    scheduler: str = Field(default="unipc", min_length=1, max_length=64)
+    scheduler: str | None = Field(default=None, min_length=1, max_length=64)
     riflex_freq_index: int = Field(ge=0, le=1000, default=0)
     force_offload: bool = True
     generate_audio: bool = Field(
@@ -624,7 +624,10 @@ def resolve_and_validate_video(
             message=f"steps={steps} exceeds model.limits.steps_max={steps_max}",
         )
 
-    scheduler = req.scheduler.strip()
+    cfg = req.cfg if req.cfg is not None else float(defaults.get("cfg", 6.0))
+    shift = req.shift if req.shift is not None else float(defaults.get("shift", 8.0))
+    scheduler_raw = req.scheduler or str(defaults.get("scheduler", "simple"))
+    scheduler = scheduler_raw.strip()
     if not _WAN_SCHEDULER_RE.fullmatch(scheduler):
         raise ValidationFailureError(
             error_code="validation_error",
@@ -774,8 +777,8 @@ def resolve_and_validate_video(
         frames=frames,
         fps=req.fps,
         steps=steps,
-        cfg=req.cfg,
-        shift=req.shift,
+        cfg=cfg,
+        shift=shift,
         seed=req.seed,
         scheduler=scheduler,
         riflex_freq_index=req.riflex_freq_index,

@@ -40,6 +40,7 @@ from app.registry.workflows import (
     inject_mmaudio_weights,
     inject_model_source,
     inject_video_weights,
+    inject_wan_core_loras,
     inject_wan_lora_multi,
     inject_vpred,
     load_workflow,
@@ -57,6 +58,14 @@ from app.validation import (
 log = structlog.get_logger(__name__)
 
 _PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
+
+# Map WAN-wrapper-specific scheduler names to core KSampler equivalents.
+# Requests that pre-date Hướng B may send "unipc"; map it gracefully.
+_CORE_WAN_SCHEDULER_MAP: dict[str, str] = {
+    "unipc": "simple",
+    "dpm++": "dpm_fast",
+    "flow_dpm": "simple",
+}
 
 _MEDIA_CONTENT_TYPES: dict[str, str] = {
     "mp4": "video/mp4",
@@ -574,16 +583,24 @@ class QueueWorker:
         graph_template = load_workflow(validated.resolved_workflow_path)
         graph = copy.deepcopy(graph_template)
 
+        # Detect workflow backend: core ComfyUI nodes vs legacy Kijai WanVideoWrapper.
+        _is_core = any(
+            n.get("class_type") == "UNETLoader" for n in graph.values()
+        )
+
         try:
             inject_video_weights(graph, model_cfg=validated.model)
             inject_mmaudio_weights(graph, model_cfg=validated.model)
             adv = validated.wan_advanced
-            inject_wan_lora_multi(
-                graph,
-                validated.loras,
-                merge_loras=adv.merge_loras if adv else None,
-                low_mem_load=adv.low_mem_load if adv else None,
-            )
+            if _is_core:
+                inject_wan_core_loras(graph, validated.loras)
+            else:
+                inject_wan_lora_multi(
+                    graph,
+                    validated.loras,
+                    merge_loras=adv.merge_loras if adv else None,
+                    low_mem_load=adv.low_mem_load if adv else None,
+                )
             apply_wan_advanced_patches(
                 graph,
                 validated.wan_advanced,
@@ -595,26 +612,56 @@ class QueueWorker:
                 self._metrics.record_job_event(status="failed", error_code="comfy_error")
             raise ComfyNodeError(str(exc)) from exc
 
-        prompts_id = find_anchor(graph, "%WAN_PROMPTS%")
-        graph[prompts_id]["inputs"]["positive_prompt"] = validated.prompt
-        graph[prompts_id]["inputs"]["negative_prompt"] = validated.negative_prompt
+        # --- Prompt injection ---
+        if _is_core:
+            # Core workflow: separate positive / negative CLIPTextEncode nodes.
+            pos_id = find_anchor(graph, "%WAN_POSITIVE%")
+            neg_id = find_anchor(graph, "%WAN_NEGATIVE%")
+            graph[pos_id]["inputs"]["text"] = validated.prompt
+            graph[neg_id]["inputs"]["text"] = validated.negative_prompt
+        else:
+            # Legacy Kijai workflow: single WanVideoTextEncode node.
+            prompts_id = find_anchor(graph, "%WAN_PROMPTS%")
+            graph[prompts_id]["inputs"]["positive_prompt"] = validated.prompt
+            graph[prompts_id]["inputs"]["negative_prompt"] = validated.negative_prompt
 
+        # --- Dims injection ---
         dims_id = find_anchor(graph, "%WAN_DIMS%")
         dim_inputs = graph[dims_id]["inputs"]
         dim_inputs["width"] = validated.width
         dim_inputs["height"] = validated.height
-        dim_inputs["num_frames"] = validated.frames
+        dims_node_class = (graph.get(dims_id) or {}).get("class_type")
+        if dims_node_class == "WanImageToVideo":
+            dim_inputs["length"] = validated.frames
+        else:
+            dim_inputs["num_frames"] = validated.frames
 
+        # --- Sampler injection ---
         sampler_id = find_anchor(graph, "%WAN_SAMPLER%")
         s_in = graph[sampler_id]["inputs"]
         actual_seed = validated.seed if validated.seed >= 0 else secrets.randbelow(2**53)
-        s_in["seed"] = actual_seed
-        s_in["steps"] = validated.steps
-        s_in["cfg"] = validated.cfg
-        s_in["shift"] = validated.shift
-        s_in["scheduler"] = validated.scheduler
-        s_in["riflex_freq_index"] = validated.riflex_freq_index
-        s_in["force_offload"] = validated.force_offload
+        sampler_class = (graph.get(sampler_id) or {}).get("class_type")
+        if sampler_class == "KSamplerAdvanced":
+            s_in["noise_seed"] = actual_seed
+            s_in["steps"] = validated.steps
+            s_in["cfg"] = validated.cfg
+            scheduler = _CORE_WAN_SCHEDULER_MAP.get(validated.scheduler, validated.scheduler)
+            s_in["scheduler"] = scheduler
+            # Shift lives on ModelSamplingSD3 (%WAN_SHIFT%) in core workflows.
+            try:
+                shift_id = find_anchor(graph, "%WAN_SHIFT%")
+                graph[shift_id]["inputs"]["shift"] = validated.shift
+            except KeyError:
+                pass
+        else:
+            # Legacy WanVideoSampler (Kijai).
+            s_in["seed"] = actual_seed
+            s_in["steps"] = validated.steps
+            s_in["cfg"] = validated.cfg
+            s_in["shift"] = validated.shift
+            s_in["scheduler"] = validated.scheduler
+            s_in["riflex_freq_index"] = validated.riflex_freq_index
+            s_in["force_offload"] = validated.force_offload
 
         try:
             out_id = find_anchor(graph, "%VIDEO_OUTPUT%")

@@ -1,142 +1,109 @@
 {
   "1": {
-    "class_type": "LoadWanVideoT5TextEncoder",
+    "class_type": "CLIPLoader",
     "inputs": {
-      "model_name": "umt5-xxl-enc-bf16.safetensors",
-      "precision": "bf16",
-      "load_device": "offload_device",
-      "quantization": "disabled"
+      "clip_name": "umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+      "type": "wan",
+      "device": "cpu"
     },
     "_meta": {
       "title": "%WAN_T5%"
     }
   },
   "2": {
-    "class_type": "WanVideoTextEncode",
+    "class_type": "CLIPTextEncode",
     "inputs": {
-      "positive_prompt": "",
-      "negative_prompt": "",
-      "t5": ["1", 0],
-      "force_offload": true,
-      "use_disk_cache": false,
-      "device": "gpu"
+      "text": "",
+      "clip": ["1", 0]
     },
     "_meta": {
-      "title": "%WAN_PROMPTS%"
+      "title": "%WAN_POSITIVE%"
     }
   },
   "3": {
-    "class_type": "WanVideoEmptyEmbeds",
+    "class_type": "CLIPTextEncode",
     "inputs": {
-      "width": 832,
-      "height": 480,
-      "num_frames": 81
+      "text": "",
+      "clip": ["1", 0]
     },
     "_meta": {
-      "title": "%WAN_DIMS%"
-    }
-  },
-  "90": {
-    "class_type": "WanVideoLoraSelectMulti",
-    "inputs": {
-      "lora_0": "none",
-      "strength_0": 1.0,
-      "lora_1": "none",
-      "strength_1": 1.0,
-      "lora_2": "none",
-      "strength_2": 1.0,
-      "lora_3": "none",
-      "strength_3": 1.0,
-      "lora_4": "none",
-      "strength_4": 1.0,
-      "merge_loras": true,
-      "low_mem_load": false
-    },
-    "_meta": {
-      "title": "%WAN_LORA_MULTI%"
+      "title": "%WAN_NEGATIVE%"
     }
   },
   "4": {
-    "class_type": "WanVideoModelLoader",
+    "class_type": "UNETLoader",
     "inputs": {
-      "model": "placeholder_t2v.safetensors",
-      "base_precision": "bf16",
-      "quantization": "fp8_e4m3fn_scaled",
-      "load_device": "offload_device",
-      "attention_mode": "sdpa",
-      "lora": ["90", 0]
+      "unet_name": "SmoothMix_T2V_High_v3.safetensors",
+      "weight_dtype": "fp8_e4m3fn"
     },
     "_meta": {
       "title": "%WAN_MODEL%"
     }
   },
   "5": {
-    "class_type": "WanVideoVAELoader",
+    "class_type": "ModelSamplingSD3",
     "inputs": {
-      "model_name": "Wan2_1_VAE_bf16.safetensors",
-      "precision": "bf16"
+      "model": ["4", 0],
+      "shift": 8.0
+    },
+    "_meta": {
+      "title": "%WAN_SHIFT%"
+    }
+  },
+  "6": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "Wan2_1_VAE_fp32.safetensors"
     },
     "_meta": {
       "title": "%WAN_VAE%"
     }
   },
-  "6": {
-    "class_type": "WanVideoBlockSwap",
-    "inputs": {
-      "blocks_to_swap": 20,
-      "offload_img_emb": false,
-      "offload_txt_emb": false,
-      "use_non_blocking": false,
-      "vace_blocks_to_swap": 0,
-      "prefetch_blocks": 0,
-      "block_swap_debug": false
-    },
-    "_meta": {
-      "title": "%WAN_BLOCK_SWAP%,wan:block_swap_args"
-    }
-  },
   "7": {
-    "class_type": "WanVideoSetBlockSwap",
+    "class_type": "WanImageToVideo",
     "inputs": {
-      "model": ["4", 0],
-      "block_swap_args": ["6", 0]
+      "positive": ["2", 0],
+      "negative": ["3", 0],
+      "vae": ["6", 0],
+      "width": 832,
+      "height": 480,
+      "length": 81,
+      "batch_size": 1
     },
     "_meta": {
-      "title": "wan:set_block_swap"
+      "title": "%WAN_DIMS%"
     }
   },
   "8": {
-    "class_type": "WanVideoSampler",
+    "class_type": "KSamplerAdvanced",
     "inputs": {
-      "model": ["7", 0],
-      "image_embeds": ["3", 0],
-      "text_embeds": ["2", 0],
-      "steps": 30,
+      "model": ["5", 0],
+      "add_noise": "enable",
+      "noise_seed": 0,
+      "control_after_generate": "fixed",
+      "steps": 20,
       "cfg": 5.0,
-      "shift": 5.0,
-      "seed": 0,
-      "force_offload": true,
-      "scheduler": "unipc",
-      "riflex_freq_index": 0
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "positive": ["7", 0],
+      "negative": ["7", 1],
+      "latent_image": ["7", 2],
+      "start_at_step": 0,
+      "end_at_step": 10000,
+      "return_with_leftover_noise": "disable"
     },
     "_meta": {
       "title": "%WAN_SAMPLER%"
     }
   },
   "9": {
-    "class_type": "WanVideoDecode",
+    "class_type": "VAEDecode",
     "inputs": {
-      "vae": ["5", 0],
       "samples": ["8", 0],
-      "enable_vae_tiling": false,
-      "tile_x": 272,
-      "tile_y": 272,
-      "tile_stride_x": 144,
-      "tile_stride_y": 128,
-      "normalization": "default"
+      "vae": ["6", 0]
     },
     "_meta": {
-      "title": "%WAN_DECODE%,wan:decode"
+      "title": "%WAN_DECODE%"
     }
   },
   "10": {

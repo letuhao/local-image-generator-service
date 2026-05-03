@@ -533,7 +533,7 @@ models:
     mmaudio_diffusion: mmaudio/mmaudio_large_44k_v2_fp16.safetensors
     checkpoint: diffusion_models/SmoothMix_T2V_High_v3.safetensors
     vae: vae/Wan2_1_VAE_fp32.safetensors
-    wan_t5_encoder: text_encoders/umt5-xxl-enc-bf16.safetensors
+    wan_t5_encoder: text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors
     skip_asset_validation: true
     capabilities:
       video_gen: true
@@ -541,10 +541,10 @@ models:
       skip_startup_smoke: true
     defaults:
       size: "832x480"
-      steps: 30
-      cfg: 5.0
-      shift: 5.0
-      scheduler: unipc
+      steps: 20
+      cfg: 6.0
+      shift: 8.0
+      scheduler: simple
       negative_prompt: ""
       job_timeout_s: 3600
       mmaudio_steps: 25
@@ -567,7 +567,7 @@ models:
     mmaudio_diffusion: mmaudio/mmaudio_large_44k_v2_fp16.safetensors
     checkpoint: diffusion_models/SmoothMix_I2V_v2_High.safetensors
     vae: vae/Wan2_1_VAE_fp32.safetensors
-    wan_t5_encoder: text_encoders/umt5-xxl-enc-bf16.safetensors
+    wan_t5_encoder: text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors
     wan_clip_vision: clip_vision/clip_vision_h.safetensors
     skip_asset_validation: true
     capabilities:
@@ -576,10 +576,10 @@ models:
       skip_startup_smoke: true
     defaults:
       size: "832x480"
-      steps: 30
-      cfg: 5.0
-      shift: 5.0
-      scheduler: unipc
+      steps: 20
+      cfg: 6.0
+      shift: 8.0
+      scheduler: simple
       negative_prompt: ""
       job_timeout_s: 3600
       mmaudio_steps: 25

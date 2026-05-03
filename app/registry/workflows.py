@@ -32,24 +32,31 @@ REQUIRED_ANCHORS_FLUX: tuple[str, ...] = (
     "%OUTPUT%",
 )
 
-# ComfyUI-WanVideoWrapper API workflows (see workflows/wan22_*_api.json).
+# Core ComfyUI node API workflows (see workflows/wan22_*_api.json).
+# Replaces the former ComfyUI-WanVideoWrapper anchor set (Hướng B rebuild).
 BASE_ANCHORS_WAN22: tuple[str, ...] = (
     "%WAN_T5%",
-    "%WAN_PROMPTS%",
+    "%WAN_POSITIVE%",
+    "%WAN_NEGATIVE%",
     "%WAN_DIMS%",
     "%WAN_MODEL%",
+    "%WAN_SHIFT%",
     "%WAN_VAE%",
     "%WAN_SAMPLER%",
+    "%WAN_DECODE%",
     "%VIDEO_OUTPUT%",
-    "%WAN_LORA_MULTI%",
 )
 
-WAN_LORA_MULTI_SLOTS: int = 5
+# Maximum LoRAs injected via LoraLoaderModelOnly chain in core workflows.
+WAN_MAX_LORAS: int = 5
+
+# Keep for backward-compat in tests / external code that may import it.
+WAN_LORA_MULTI_SLOTS: int = WAN_MAX_LORAS
 
 
 def required_anchors_for_video_task(task: str) -> tuple[str, ...]:
     if task == "i2v":
-        return BASE_ANCHORS_WAN22 + ("%INIT_IMAGE%", "%WAN_CLIP_VISION%")
+        return BASE_ANCHORS_WAN22 + ("%INIT_IMAGE%",)
     if task == "t2v":
         return BASE_ANCHORS_WAN22
     raise WorkflowValidationError(f"unknown video_task for anchor validation: {task!r}")
@@ -397,7 +404,12 @@ def inject_vpred(graph: dict[str, dict], *, model_cfg) -> None:
         )
 
 def inject_video_weights(graph: dict[str, dict], *, model_cfg) -> None:
-    """Fill WAN diffusion / VAE / T5 / CLIP filenames from registry paths."""
+    """Fill WAN diffusion / VAE / T5 filenames from registry paths.
+
+    Handles both core ComfyUI nodes (UNETLoader / VAELoader / CLIPLoader) and
+    legacy Kijai WanVideoWrapper nodes (WanVideoModelLoader / WanVideoVAELoader /
+    LoadWanVideoT5TextEncoder) by checking ``class_type`` at runtime.
+    """
     try:
         model_id = find_anchor(graph, "%WAN_MODEL%")
         vae_id = find_anchor(graph, "%WAN_VAE%")
@@ -405,12 +417,19 @@ def inject_video_weights(graph: dict[str, dict], *, model_cfg) -> None:
     except KeyError as exc:
         raise WorkflowValidationError(f"inject_video_weights: {exc}") from exc
 
+    # --- diffusion model ---
     model_node = graph.get(model_id) or {}
     model_inputs = model_node.get("inputs")
     if not isinstance(model_inputs, dict):
         raise WorkflowValidationError(f"inject_video_weights: node {model_id} has invalid inputs")
-    model_inputs["model"] = _basename(model_cfg.checkpoint)
+    ckpt_basename = _basename(model_cfg.checkpoint)
+    if model_node.get("class_type") == "UNETLoader":
+        model_inputs["unet_name"] = ckpt_basename
+    else:
+        # Legacy WanVideoModelLoader or any other class with a "model" key.
+        model_inputs["model"] = ckpt_basename
 
+    # --- VAE ---
     vae_node = graph.get(vae_id) or {}
     vae_inputs = vae_node.get("inputs")
     if not isinstance(vae_inputs, dict) or not model_cfg.vae:
@@ -418,20 +437,32 @@ def inject_video_weights(graph: dict[str, dict], *, model_cfg) -> None:
             f"inject_video_weights: node {vae_id} missing inputs or model_cfg.vae"
         )
     vae_basename = _basename(model_cfg.vae)
-    vae_inputs["model_name"] = vae_basename
-    if vae_node.get("class_type") == "WanVideoVAELoader":
-        vae_precision = _infer_wan_video_vae_precision(vae_basename)
-        if vae_precision is not None:
-            vae_inputs["precision"] = vae_precision
+    if vae_node.get("class_type") == "VAELoader":
+        vae_inputs["vae_name"] = vae_basename
+        # Core VAELoader auto-detects dtype from file; no precision override needed.
+    else:
+        # Legacy WanVideoVAELoader — inject model_name and infer precision.
+        vae_inputs["model_name"] = vae_basename
+        if vae_node.get("class_type") == "WanVideoVAELoader":
+            vae_precision = _infer_wan_video_vae_precision(vae_basename)
+            if vae_precision is not None:
+                vae_inputs["precision"] = vae_precision
 
+    # --- T5 text encoder ---
     t5_node = graph.get(t5_id) or {}
     t5_inputs = t5_node.get("inputs")
     if not isinstance(t5_inputs, dict) or not model_cfg.wan_t5_encoder:
         raise WorkflowValidationError(
             f"inject_video_weights: node {t5_id} missing inputs or model_cfg.wan_t5_encoder"
         )
-    t5_inputs["model_name"] = _basename(model_cfg.wan_t5_encoder)
+    t5_basename = _basename(model_cfg.wan_t5_encoder)
+    if t5_node.get("class_type") == "CLIPLoader":
+        t5_inputs["clip_name"] = t5_basename
+    else:
+        # Legacy LoadWanVideoT5TextEncoder.
+        t5_inputs["model_name"] = t5_basename
 
+    # --- optional CLIP Vision (legacy Kijai workflows only) ---
     try:
         clip_id = find_anchor(graph, "%WAN_CLIP_VISION%")
     except KeyError:
@@ -553,6 +584,58 @@ def inject_wan_lora_multi(
 
     if not loras:
         _disconnect_wan_model_loader_lora_from_multi(graph, node_id)
+
+
+def inject_wan_core_loras(
+    graph: dict[str, dict],
+    loras: Sequence[ResolvedLoraRef],
+) -> None:
+    """Insert ``LoraLoaderModelOnly`` chain between ``%WAN_MODEL%`` and ``%WAN_SHIFT%``.
+
+    Core ComfyUI workflow LoRA injection (replaces ``inject_wan_lora_multi`` for
+    workflows using ``UNETLoader`` + ``WanImageToVideo``).
+
+    Strategy:
+    - When ``loras`` is empty: no-op — the UNETLoader → ModelSamplingSD3 wire
+      in the template stays intact.
+    - When LoRAs are provided: dynamically insert ``LoraLoaderModelOnly`` nodes
+      in sequence between the two anchor nodes. Each node takes the MODEL output
+      of the previous node. The last node's MODEL output feeds ``%WAN_SHIFT%``.
+    """
+    if not loras:
+        return
+
+    try:
+        model_id = find_anchor(graph, "%WAN_MODEL%")
+        shift_id = find_anchor(graph, "%WAN_SHIFT%")
+    except KeyError as exc:
+        raise WorkflowValidationError(f"inject_wan_core_loras: {exc}") from exc
+
+    int_keys = [int(k) for k in graph.keys() if k.isdigit()]
+    next_id = max(int_keys) + 1 if int_keys else 100
+
+    prev_model_ref: list = [model_id, 0]
+    chain_ids: list[str] = []
+    for lora in loras[:WAN_MAX_LORAS]:
+        node_id = str(next_id)
+        next_id += 1
+        graph[node_id] = {
+            "class_type": "LoraLoaderModelOnly",
+            "inputs": {
+                "model": list(prev_model_ref),
+                "lora_name": f"{lora.name}.safetensors",
+                "strength_model": float(lora.weight),
+            },
+            "_meta": {"title": f"wan_lora:{lora.name}"},
+        }
+        chain_ids.append(node_id)
+        prev_model_ref = [node_id, 0]
+
+    # Rewire ModelSamplingSD3's "model" input to the tail of the chain.
+    shift_node = graph.get(shift_id) or {}
+    shift_inputs = shift_node.get("inputs")
+    if isinstance(shift_inputs, dict):
+        shift_inputs["model"] = prev_model_ref
 
 
 def inject_init_image(graph: dict[str, dict], filename: str) -> None:
