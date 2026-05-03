@@ -32,6 +32,41 @@ REQUIRED_ANCHORS_FLUX: tuple[str, ...] = (
     "%OUTPUT%",
 )
 
+# ComfyUI-WanVideoWrapper API workflows (see workflows/wan22_*_api.json).
+BASE_ANCHORS_WAN22: tuple[str, ...] = (
+    "%WAN_T5%",
+    "%WAN_PROMPTS%",
+    "%WAN_DIMS%",
+    "%WAN_MODEL%",
+    "%WAN_VAE%",
+    "%WAN_SAMPLER%",
+    "%VIDEO_OUTPUT%",
+    "%WAN_LORA_MULTI%",
+)
+
+WAN_LORA_MULTI_SLOTS: int = 5
+
+
+def required_anchors_for_video_task(task: str) -> tuple[str, ...]:
+    if task == "i2v":
+        return BASE_ANCHORS_WAN22 + ("%INIT_IMAGE%", "%WAN_CLIP_VISION%")
+    if task == "t2v":
+        return BASE_ANCHORS_WAN22
+    raise WorkflowValidationError(f"unknown video_task for anchor validation: {task!r}")
+
+
+# ComfyUI-MMAudio nodes in workflows/wan22_*_audio_api.json (with WAN anchors).
+MMAUDIO_ANCHORS_WAN22: tuple[str, ...] = (
+    "%MMAUDIO_FEATURE_UTILS%",
+    "%MMAUDIO_DIFFUSION%",
+    "%MMAUDIO_SAMPLER%",
+)
+
+
+def required_anchors_for_wan22_audio_task(task: str) -> tuple[str, ...]:
+    """Anchors for optional-audio WAN API graphs (silent path does not include these)."""
+    return required_anchors_for_video_task(task) + MMAUDIO_ANCHORS_WAN22
+
 
 def required_anchors_for_family(family: str) -> tuple[str, ...]:
     if family == "flux":
@@ -127,6 +162,23 @@ def find_anchor(graph: dict[str, dict], anchor: str) -> str:
 def _basename(models_ref: str) -> str:
     """Return ComfyUI-facing filename from a `models/...` relative config ref."""
     return Path(models_ref).name
+
+
+def _infer_wan_video_vae_precision(vae_basename: str) -> str | None:
+    """Map VAE filename hints to ``WanVideoVAELoader`` ``precision`` choices.
+
+    Loading e.g. ``Wan2_1_VAE_fp32.safetensors`` while leaving the graph at
+    ``precision: bf16`` runs the decoder in bf16 and can yield NaNs → black
+    video and VideoHelperSuite cast warnings.
+    """
+    n = vae_basename.lower()
+    if "fp32" in n:
+        return "fp32"
+    if "bf16" in n:
+        return "bf16"
+    if "fp16" in n:
+        return "fp16"
+    return None
 
 
 def inject_model_source(graph: dict[str, dict], *, model_cfg) -> None:
@@ -343,6 +395,165 @@ def inject_vpred(graph: dict[str, dict], *, model_cfg) -> None:
             "vpred injection deferred per arch v0.5; "
             "re-enable when a vpred model is added to config/models.yaml"
         )
+
+def inject_video_weights(graph: dict[str, dict], *, model_cfg) -> None:
+    """Fill WAN diffusion / VAE / T5 / CLIP filenames from registry paths."""
+    try:
+        model_id = find_anchor(graph, "%WAN_MODEL%")
+        vae_id = find_anchor(graph, "%WAN_VAE%")
+        t5_id = find_anchor(graph, "%WAN_T5%")
+    except KeyError as exc:
+        raise WorkflowValidationError(f"inject_video_weights: {exc}") from exc
+
+    model_node = graph.get(model_id) or {}
+    model_inputs = model_node.get("inputs")
+    if not isinstance(model_inputs, dict):
+        raise WorkflowValidationError(f"inject_video_weights: node {model_id} has invalid inputs")
+    model_inputs["model"] = _basename(model_cfg.checkpoint)
+
+    vae_node = graph.get(vae_id) or {}
+    vae_inputs = vae_node.get("inputs")
+    if not isinstance(vae_inputs, dict) or not model_cfg.vae:
+        raise WorkflowValidationError(
+            f"inject_video_weights: node {vae_id} missing inputs or model_cfg.vae"
+        )
+    vae_basename = _basename(model_cfg.vae)
+    vae_inputs["model_name"] = vae_basename
+    if vae_node.get("class_type") == "WanVideoVAELoader":
+        vae_precision = _infer_wan_video_vae_precision(vae_basename)
+        if vae_precision is not None:
+            vae_inputs["precision"] = vae_precision
+
+    t5_node = graph.get(t5_id) or {}
+    t5_inputs = t5_node.get("inputs")
+    if not isinstance(t5_inputs, dict) or not model_cfg.wan_t5_encoder:
+        raise WorkflowValidationError(
+            f"inject_video_weights: node {t5_id} missing inputs or model_cfg.wan_t5_encoder"
+        )
+    t5_inputs["model_name"] = _basename(model_cfg.wan_t5_encoder)
+
+    try:
+        clip_id = find_anchor(graph, "%WAN_CLIP_VISION%")
+    except KeyError:
+        return
+
+    clip_node = graph.get(clip_id) or {}
+    clip_inputs = clip_node.get("inputs")
+    if not isinstance(clip_inputs, dict):
+        raise WorkflowValidationError(f"inject_video_weights: node {clip_id} has invalid inputs")
+    if model_cfg.wan_clip_vision:
+        clip_inputs["clip_name"] = _basename(model_cfg.wan_clip_vision)
+
+
+def inject_mmaudio_weights(graph: dict[str, dict], *, model_cfg) -> None:
+    """Patch MMAudio loader filenames when audio workflow anchors are present."""
+    try:
+        find_anchor(graph, "%MMAUDIO_FEATURE_UTILS%")
+    except KeyError:
+        return
+
+    if not (
+        model_cfg.mmaudio_vae
+        and model_cfg.mmaudio_synchformer
+        and model_cfg.mmaudio_clip
+        and model_cfg.mmaudio_diffusion
+    ):
+        raise WorkflowValidationError(
+            "inject_mmaudio_weights: model_cfg missing mmaudio_* asset paths"
+        )
+
+    try:
+        fu_id = find_anchor(graph, "%MMAUDIO_FEATURE_UTILS%")
+        md_id = find_anchor(graph, "%MMAUDIO_DIFFUSION%")
+    except KeyError as exc:
+        raise WorkflowValidationError(f"inject_mmaudio_weights: {exc}") from exc
+
+    fu_node = graph.get(fu_id) or {}
+    fu_in = fu_node.get("inputs")
+    if not isinstance(fu_in, dict):
+        raise WorkflowValidationError(f"inject_mmaudio_weights: node {fu_id} has invalid inputs")
+    fu_in["vae_model"] = _basename(model_cfg.mmaudio_vae)
+    fu_in["synchformer_model"] = _basename(model_cfg.mmaudio_synchformer)
+    fu_in["clip_model"] = _basename(model_cfg.mmaudio_clip)
+
+    md_node = graph.get(md_id) or {}
+    md_in = md_node.get("inputs")
+    if not isinstance(md_in, dict):
+        raise WorkflowValidationError(f"inject_mmaudio_weights: node {md_id} has invalid inputs")
+    md_in["mmaudio_model"] = _basename(model_cfg.mmaudio_diffusion)
+
+
+def _disconnect_wan_model_loader_lora_from_multi(graph: dict[str, dict], wan_lora_multi_id: str) -> None:
+    """Drop ``lora`` input on loaders fed by ``WanVideoLoraSelectMulti`` when idle.
+
+    The multi-slot node emits an empty WANVID list when every slot is ``none``.
+    An empty WANVID list is ``[]``: ``bool([])`` is false but ``[] is not None``
+    is true, so WanVideoWrapper's ``loadmodel`` uses
+    ``if lora is not None`` and older builds then call ``add_lora_weights`` with no
+    loop iterations yet return ``control_lora`` (UnboundLocalError).
+
+    Omitting optional ``lora`` yields Python ``None`` and skips LoRA patching.
+    """
+    for nid, nd in graph.items():
+        if nd.get("class_type") != "WanVideoModelLoader":
+            continue
+        node_in = nd.get("inputs")
+        if not isinstance(node_in, dict):
+            continue
+        wire = node_in.get("lora")
+        if not isinstance(wire, list) or len(wire) < 2:
+            continue
+        src = wire[0]
+        if isinstance(src, (str, int)) and str(src) == str(wan_lora_multi_id):
+            del node_in["lora"]
+
+
+def inject_wan_lora_multi(
+    graph: dict[str, dict],
+    loras: Sequence[ResolvedLoraRef],
+    *,
+    merge_loras: bool | None = None,
+    low_mem_load: bool | None = None,
+) -> None:
+    """Patch ``WanVideoLoraSelectMulti`` at ``%WAN_LORA_MULTI%``.
+
+    Request order maps to ``lora_0`` … ``lora_{n-1}`` (max ``WAN_LORA_MULTI_SLOTS``).
+    Unused slots stay ``none``. When ``loras`` is empty and the anchor exists,
+    slots remain at template defaults (all ``none``).
+
+    Optional ``merge_loras`` / ``low_mem_load`` override node inputs when not ``None``.
+    """
+    try:
+        node_id = find_anchor(graph, "%WAN_LORA_MULTI%")
+    except KeyError:
+        if loras:
+            raise WorkflowValidationError(
+                "inject_wan_lora_multi: %WAN_LORA_MULTI% anchor missing"
+            )
+        return
+
+    node = graph.get(node_id) or {}
+    inputs = node.get("inputs")
+    if not isinstance(inputs, dict):
+        raise WorkflowValidationError(f"inject_wan_lora_multi: node {node_id} has invalid inputs")
+
+    slots = WAN_LORA_MULTI_SLOTS
+    for i in range(slots):
+        inputs[f"lora_{i}"] = "none"
+        inputs[f"strength_{i}"] = 1.0
+
+    for idx, ref in enumerate(loras[:slots]):
+        inputs[f"lora_{idx}"] = f"{ref.name}.safetensors"
+        inputs[f"strength_{idx}"] = float(ref.weight)
+
+    if merge_loras is not None:
+        inputs["merge_loras"] = merge_loras
+    if low_mem_load is not None:
+        inputs["low_mem_load"] = low_mem_load
+
+    if not loras:
+        _disconnect_wan_model_loader_lora_from_multi(graph, node_id)
+
 
 def inject_init_image(graph: dict[str, dict], filename: str) -> None:
     """Inject the uploaded init_image filename into the graph.

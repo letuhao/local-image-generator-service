@@ -21,9 +21,10 @@ async def test_list_models_happy_path(client: AsyncClient) -> None:
         assert entry["object"] == "model"
         assert "created" in entry
         assert entry["owned_by"] == "local"
-        assert entry["capabilities"].get("image_gen") is True
+        caps = entry["capabilities"]
+        assert caps.get("image_gen") or caps.get("video_gen")
         assert entry["backend"] == "comfyui"
-        assert entry["family"] in {"sdxl", "flux", "qwen"}
+        assert entry["family"] in {"sdxl", "flux", "qwen", "wan22"}
         assert "description" in entry
         assert "supported_asset_types" in entry
         assert "has_confirmed_combo" in entry

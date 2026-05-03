@@ -44,12 +44,22 @@ class ModelConfig:
     clip_loader_type: str | None = None  # CLIPLoader type (e.g. "flux2") when workflow uses CLIPLoader
     # Runtime family marker used for workflow/validation branching while keeping
     # a universal client payload contract.
-    family: Literal["sdxl", "flux", "qwen"] = "sdxl"
+    family: Literal["sdxl", "flux", "qwen", "wan22"] = "sdxl"
     # "eps" | "vpred" — informational in Cycle 3; Cycle 5+ uses it for graph injection.
     prediction: Literal["eps", "vpred"] = "eps"
     capabilities: dict[str, Any] = field(default_factory=dict)  # e.g. {"image_gen": True}
     defaults: dict[str, Any] = field(default_factory=dict)  # size/steps/cfg/sampler/scheduler
     limits: dict[str, Any] = field(default_factory=dict)  # steps_max/n_max/size_max_pixels
+    # WAN / ComfyUI-WanVideoWrapper (API workflows with %WAN_*% anchors).
+    wan_t5_encoder: str | None = None  # models/text_encoders relative path
+    wan_clip_vision: str | None = None  # models/clip_vision (I2V)
+    skip_asset_validation: bool = False  # skip on-disk checks (dev/CI without weights)
+    # Optional ComfyUI-MMAudio companion workflow (WAN graphs with %MMAUDIO_*% anchors).
+    workflow_with_audio: str | None = None  # relative to repo root
+    mmaudio_vae: str | None = None  # relative to models/ (mmaudio subfolder weights)
+    mmaudio_synchformer: str | None = None
+    mmaudio_clip: str | None = None
+    mmaudio_diffusion: str | None = None  # MMAudio main checkpoint filename/path under models/
 
 
 @dataclass(frozen=True, slots=True)

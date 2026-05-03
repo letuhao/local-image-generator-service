@@ -68,15 +68,15 @@ services:
     restart: unless-stopped
 
   comfyui:
-    # Real sidecar landed in Cycle 2 — pinned ComfyUI + city96/ComfyUI-GGUF custom nodes.
-    # Pin source of truth: docker/comfyui/custom-nodes.txt. The three pin locations
-    # (custom-nodes.txt, Dockerfile ARG, compose args) must stay in sync on bumps.
+    # Real sidecar — pinned ComfyUI + GGUF + WAN 2.2 Smooth workflow custom nodes.
+    # Pin source of truth: docker/comfyui/custom-nodes.txt (WAN SHAs + Dockerfile ARG defaults).
+    # Override only COMFYUI_REF / COMFYUI_GGUF_REF here unless you fork the Dockerfile ARG set.
     build:
       context: ./docker/comfyui
       args:
         COMFYUI_REF: ${COMFYUI_REF:-v0.20.1}
         COMFYUI_GGUF_REF: ${COMFYUI_GGUF_REF:-6ea2651e7df66d7585f6ffee804b20e92fb38b8a}
-    image: image-gen-comfyui:0.20.1
+    image: image-gen-comfyui:0.20.1-wan22
     # Local-only tag — suppress the failing registry pull attempt every `up` does.
     pull_policy: never
     deploy:

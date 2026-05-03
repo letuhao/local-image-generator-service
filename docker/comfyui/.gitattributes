@@ -1,0 +1,2 @@
+# Shell used by Linux containers must stay LF (Windows checkouts break shebangs).
+*.sh text eol=lf

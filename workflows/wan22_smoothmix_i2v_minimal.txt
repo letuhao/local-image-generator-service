@@ -1,0 +1,44 @@
+WAN 2.2 SmoothMix -- minimal I2V-only workflow (not the 14k-line "v5" all-in-one)
+================================================================================
+
+Terminology
+-----------
+- This is **I2V** (image -> short video), not "I2I" (single still image). WAN SmoothMix
+  is a **video** stack; for static I2I use an image model (SDXL/Flux/Qwen) instead.
+
+What this file is
+-----------------
+- `wan22_smoothmix_i2v_minimal.json` is derived from Comfy's **official** 14B I2V
+  template (comfy-core nodes only, ~3k lines vs ~14.5k for "WAN 2.2 Smooth v5.0").
+- The **v5.0** workflow bundles T2V, I2V, first/last frame, MMAudio, VHS, many custom
+  nodes. This minimal file keeps **I2V + optional Lightx2v LoRAs** as in the official
+  template.
+- **No** ComfyUI-WanVideoWrapper / MMAudio / rgthree / etc. required — matches a stock
+  ComfyUI 0.20+ install (same idea as your docker sidecar: core + optional GGUF).
+
+Model files (place under ComfyUI models/; you said you will download)
+-----------------------------------------------------------------------
+Diffusion (diffusion_models/):
+  SmoothMix_I2V_v2_High.safetensors
+  SmoothMix_I2V_v2_Low.safetensors
+
+VAE (vae/):
+  Wan2_1_VAE_fp32.safetensors   (same basename as in your v5 workflow)
+
+Text encoder (text_encoders/):
+  umt5_xxl_fp8_e4m3fn_scaled.safetensors   (unchanged from official; not replaced in JSON)
+
+Optional speed LoRAs (loras/) — still the **official** Comfy repack names in the graph:
+  wan2.2_i2v_lightx2v_4steps_lora_v1_high_noise.safetensors
+  wan2.2_i2v_lightx2v_4steps_lora_v1_low_noise.safetensors
+Disable or bypass the "4steps Light LoRA" group in the UI if you skip these.
+
+CLIP Vision
+-----------
+The official I2V template expects `clip_vision_h.safetensors` where the loader node
+points (check the graph after load). Download if Comfy reports missing vision weights.
+
+Upstream template (unchanged filenames)
+---------------------------------------
+If you prefer stock WAN weights instead of SmoothMix:
+  workflows/wan22_i2v_14b_official_template.json

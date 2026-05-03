@@ -14,6 +14,7 @@ from app import __version__
 from app.api.admin import router as admin_router
 from app.api.health import router as health_router
 from app.api.images import router as images_router
+from app.api.videos import router as videos_router
 from app.api.loras import router as loras_router
 from app.api.models import router as models_router
 from app.api.monitoring import router as monitoring_router
@@ -273,6 +274,7 @@ app = FastAPI(
 install_error_envelope(app)
 app.include_router(health_router)
 app.include_router(images_router)
+app.include_router(videos_router)
 app.include_router(models_router)
 app.include_router(loras_router)
 app.include_router(admin_router)

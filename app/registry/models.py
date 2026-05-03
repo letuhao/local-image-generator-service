@@ -10,12 +10,14 @@ from app.registry.workflows import (
     WorkflowValidationError,
     load_workflow,
     required_anchors_for_family,
+    required_anchors_for_video_task,
+    required_anchors_for_wan22_audio_task,
     validate_anchors,
 )
 
 _ALLOWED_BACKENDS: frozenset[str] = frozenset({"comfyui"})
 _ALLOWED_PREDICTIONS: frozenset[str] = frozenset({"eps", "vpred"})
-_ALLOWED_FAMILIES: frozenset[str] = frozenset({"sdxl", "flux", "qwen"})
+_ALLOWED_FAMILIES: frozenset[str] = frozenset({"sdxl", "flux", "qwen", "wan22"})
 
 log = structlog.get_logger(__name__)
 
@@ -64,6 +66,14 @@ def _parse_entry(raw: dict) -> ModelConfig:
         capabilities=raw.get("capabilities") or {},
         defaults=raw.get("defaults") or {},
         limits=raw.get("limits") or {},
+        wan_t5_encoder=raw.get("wan_t5_encoder"),
+        wan_clip_vision=raw.get("wan_clip_vision"),
+        skip_asset_validation=bool(raw.get("skip_asset_validation", False)),
+        workflow_with_audio=raw.get("workflow_with_audio"),
+        mmaudio_vae=raw.get("mmaudio_vae"),
+        mmaudio_synchformer=raw.get("mmaudio_synchformer"),
+        mmaudio_clip=raw.get("mmaudio_clip"),
+        mmaudio_diffusion=raw.get("mmaudio_diffusion"),
     )
 
 
@@ -128,7 +138,11 @@ def load_registry(
             )
         default_sampler = (cfg.defaults or {}).get("sampler")
         allowed_samplers = ALLOWED_SAMPLERS_BY_FAMILY.get(cfg.family, frozenset())
-        if default_sampler is not None and default_sampler not in allowed_samplers:
+        if (
+            cfg.family != "wan22"
+            and default_sampler is not None
+            and default_sampler not in allowed_samplers
+        ):
             raise RegistryValidationError(
                 "unknown_sampler",
                 (
@@ -138,7 +152,11 @@ def load_registry(
             )
         default_scheduler = (cfg.defaults or {}).get("scheduler")
         allowed_schedulers = ALLOWED_SCHEDULERS_BY_FAMILY.get(cfg.family, frozenset())
-        if default_scheduler is not None and default_scheduler not in allowed_schedulers:
+        if (
+            cfg.family != "wan22"
+            and default_scheduler is not None
+            and default_scheduler not in allowed_schedulers
+        ):
             raise RegistryValidationError(
                 "unknown_scheduler",
                 (
@@ -147,9 +165,33 @@ def load_registry(
                 ),
             )
 
+        if cfg.family == "wan22":
+            caps = cfg.capabilities or {}
+            video_task = caps.get("video_task")
+            if video_task not in ("t2v", "i2v"):
+                raise RegistryValidationError(
+                    "wan22_video_task",
+                    f"{cfg.name}: capabilities.video_task must be 't2v' or 'i2v' for family=wan22",
+                )
+            if not cfg.wan_t5_encoder:
+                raise RegistryValidationError(
+                    "wan22_t5_missing", f"{cfg.name}: wan_t5_encoder is required for family=wan22"
+                )
+            if video_task == "i2v" and not cfg.wan_clip_vision:
+                raise RegistryValidationError(
+                    "wan22_clip_missing",
+                    f"{cfg.name}: wan_clip_vision is required for video_task=i2v",
+                )
+            if not cfg.vae:
+                raise RegistryValidationError(
+                    "wan22_vae_missing", f"{cfg.name}: vae path is required for family=wan22"
+                )
+
+        skip_assets = cfg.skip_asset_validation
+
         # Checkpoint must exist under models_root.
         ckpt_path = models_root / cfg.checkpoint
-        if not ckpt_path.exists():
+        if not skip_assets and not ckpt_path.exists():
             raise RegistryValidationError(
                 "checkpoint_missing", f"{cfg.name}: {ckpt_path} not found"
             )
@@ -157,20 +199,50 @@ def load_registry(
         # VAE (optional — None means baked-in).
         if cfg.vae is not None:
             vae_path = models_root / cfg.vae
-            if not vae_path.exists():
+            if not skip_assets and not vae_path.exists():
                 raise RegistryValidationError("vae_missing", f"{cfg.name}: {vae_path} not found")
         if cfg.clip_l is not None:
             clip_l_path = models_root / cfg.clip_l
-            if not clip_l_path.exists():
+            if not skip_assets and not clip_l_path.exists():
                 raise RegistryValidationError(
                     "clip_l_missing", f"{cfg.name}: {clip_l_path} not found"
                 )
         if cfg.t5xxl is not None:
             t5xxl_path = models_root / cfg.t5xxl
-            if not t5xxl_path.exists():
+            if not skip_assets and not t5xxl_path.exists():
                 raise RegistryValidationError(
                     "t5xxl_missing", f"{cfg.name}: {t5xxl_path} not found"
                 )
+        if cfg.wan_t5_encoder is not None:
+            te_path = models_root / cfg.wan_t5_encoder
+            if not skip_assets and not te_path.exists():
+                raise RegistryValidationError(
+                    "wan_t5_missing", f"{cfg.name}: {te_path} not found"
+                )
+        if cfg.wan_clip_vision is not None:
+            cv_path = models_root / cfg.wan_clip_vision
+            if not skip_assets and not cv_path.exists():
+                raise RegistryValidationError(
+                    "wan_clip_missing", f"{cfg.name}: {cv_path} not found"
+                )
+
+        if cfg.workflow_with_audio is not None:
+            for field_name, path in (
+                ("mmaudio_vae", cfg.mmaudio_vae),
+                ("mmaudio_synchformer", cfg.mmaudio_synchformer),
+                ("mmaudio_clip", cfg.mmaudio_clip),
+                ("mmaudio_diffusion", cfg.mmaudio_diffusion),
+            ):
+                if not path:
+                    raise RegistryValidationError(
+                        "mmaudio_config_incomplete",
+                        f"{cfg.name}: workflow_with_audio requires {field_name}",
+                    )
+                mpath = models_root / path
+                if not skip_assets and not mpath.exists():
+                    raise RegistryValidationError(
+                        "mmaudio_asset_missing", f"{cfg.name}: {mpath} not found"
+                    )
 
         # Workflow file must exist and have required family-specific anchors.
         wf_path = workflows_root / cfg.workflow_path
@@ -178,9 +250,29 @@ def load_registry(
             raise RegistryValidationError("workflow_missing", f"{cfg.name}: {wf_path} not found")
         try:
             graph = load_workflow(wf_path)
-            validate_anchors(graph, required_anchors_for_family(cfg.family))
+            if cfg.family == "wan22":
+                vt = (cfg.capabilities or {}).get("video_task")
+                validate_anchors(graph, required_anchors_for_video_task(str(vt)))
+            else:
+                validate_anchors(graph, required_anchors_for_family(cfg.family))
         except WorkflowValidationError as exc:
             raise RegistryValidationError("anchors_missing", f"{cfg.name}: {exc}") from exc
+
+        if cfg.workflow_with_audio:
+            wf_audio_path = workflows_root / cfg.workflow_with_audio
+            if not wf_audio_path.is_file():
+                raise RegistryValidationError(
+                    "workflow_audio_missing",
+                    f"{cfg.name}: {wf_audio_path} not found",
+                )
+            try:
+                ag = load_workflow(wf_audio_path)
+                vt = (cfg.capabilities or {}).get("video_task")
+                validate_anchors(ag, required_anchors_for_wan22_audio_task(str(vt)))
+            except WorkflowValidationError as exc:
+                raise RegistryValidationError(
+                    "anchors_audio_missing", f"{cfg.name}: {exc}"
+                ) from exc
 
         # VRAM budget.
         if cfg.vram_estimate_gb > vram_budget_gb:

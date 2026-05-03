@@ -71,13 +71,16 @@ class S3Config:
         )
 
 
-def object_key_for(job_id: str, index: int, *, now: datetime | None = None) -> str:
-    """Return `generations/YYYY/MM/DD/<job_id>/<index>.png`.
+def object_key_for(
+    job_id: str, index: int, *, ext: str = "png", now: datetime | None = None
+) -> str:
+    """Return `generations/YYYY/MM/DD/<job_id>/<index>.<ext>`.
 
     Pure helper — no I/O. Testable without moto or boto3.
     """
+    ext = ext.lstrip(".").lower() or "png"
     n = now or datetime.now(UTC)
-    return f"generations/{n.year:04d}/{n.month:02d}/{n.day:02d}/{job_id}/{index}.png"
+    return f"generations/{n.year:04d}/{n.month:02d}/{n.day:02d}/{job_id}/{index}.{ext}"
 
 
 class S3Storage:
@@ -125,14 +128,28 @@ class S3Storage:
         Retries 3x with jittered exponential backoff on ClientError (arch §4.6).
         Terminal failure → StorageError.
         """
-        key = object_key_for(job_id, index)
+        return await self.upload_generation_blob(
+            job_id, index, data, ext="png", content_type="image/png"
+        )
+
+    async def upload_generation_blob(
+        self,
+        job_id: str,
+        index: int,
+        data: bytes,
+        *,
+        ext: str,
+        content_type: str,
+    ) -> tuple[str, str]:
+        """Upload arbitrary generation bytes (image/png, video/mp4, …)."""
+        key = object_key_for(job_id, index, ext=ext)
 
         def _sync() -> None:
             self._client.put_object(
                 Bucket=self._cfg.bucket,
                 Key=key,
                 Body=data,
-                ContentType="image/png",
+                ContentType=content_type,
             )
 
         try:

@@ -15,11 +15,46 @@ from app.validation import (
     ALLOWED_SAMPLERS,
     ALLOWED_SCHEDULERS,
     GenerateRequest,
+    VideoGenerateRequest,
     ValidationFailureError,
+    _normalize_wan_num_frames,
     _touch_last_used_sync,
     resolve_and_validate,
+    resolve_and_validate_video,
     touch_last_used_async,
 )
+
+_MINI_PNG_B64 = (
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+)
+
+
+def _wan22_t2v_model_cfg(**overrides: Any) -> ModelConfig:
+    base = dict(
+        name="wan22-t2v-fixture",
+        backend="comfyui",
+        family="wan22",
+        workflow_path="workflows/wan22_t2v_api.json",
+        checkpoint="diffusion_models/x.safetensors",
+        vae="vae/y.safetensors",
+        wan_t5_encoder="text_encoders/t5.safetensors",
+        vram_estimate_gb=10.0,
+        prediction="eps",
+        capabilities={"video_gen": True, "video_task": "t2v"},
+        defaults={
+            "size": "832x480",
+            "steps": 30,
+            "cfg": 5.0,
+            "shift": 5.0,
+            "scheduler": "unipc",
+            "negative_prompt": "",
+            "mmaudio_steps": 25,
+            "mmaudio_cfg": 4.5,
+        },
+        limits={"steps_max": 60, "frames_max": 129, "size_max_pixels": 921600},
+    )
+    base.update(overrides)
+    return ModelConfig(**base)
 
 
 @pytest.fixture
@@ -460,6 +495,201 @@ def test_touch_sync_skips_when_fresh(tmp_path: Path, monkeypatch: Any) -> None:
 def test_touch_sync_missing_sidecar_noops(tmp_path: Path) -> None:
     _touch_last_used_sync(tmp_path / "absent.json")
     # No exception = pass.
+
+
+def test_normalize_wan_num_frames_rounds_up_not_down() -> None:
+    """WAN temporal length must satisfy n ≡ 1 (mod 4); never shrink 8 → 5."""
+    assert _normalize_wan_num_frames(4) == 5
+    assert _normalize_wan_num_frames(5) == 5
+    assert _normalize_wan_num_frames(8) == 9
+    assert _normalize_wan_num_frames(9) == 9
+    assert _normalize_wan_num_frames(81) == 81
+
+
+def test_video_generate_audio_requires_workflow_with_audio(
+    monkeypatch: Any, tmp_path: Path
+) -> None:
+    monkeypatch.setenv("VRAM_BUDGET_GB", "24")
+    cfg = _wan22_t2v_model_cfg(workflow_with_audio=None)
+    reg = Registry({cfg.name: cfg})
+    req = VideoGenerateRequest.model_validate(
+        {"model": cfg.name, "prompt": "ocean waves", "generate_audio": True}
+    )
+    with pytest.raises(ValidationFailureError) as exc:
+        resolve_and_validate_video(
+            req,
+            registry=reg,
+            async_mode_enabled=False,
+            expected_task="t2v",
+            loras_root=tmp_path,
+        )
+    assert "workflow_with_audio" in exc.value.message
+
+
+def test_video_generate_audio_selects_audio_workflow(
+    monkeypatch: Any, tmp_path: Path
+) -> None:
+    monkeypatch.setenv("VRAM_BUDGET_GB", "24")
+    cfg = _wan22_t2v_model_cfg(
+        workflow_with_audio="workflows/wan22_t2v_audio_api.json",
+        mmaudio_vae="mmaudio/a.safetensors",
+        mmaudio_synchformer="mmaudio/b.safetensors",
+        mmaudio_clip="mmaudio/c.safetensors",
+        mmaudio_diffusion="mmaudio/d.safetensors",
+    )
+    reg = Registry({cfg.name: cfg})
+    req = VideoGenerateRequest.model_validate(
+        {"model": cfg.name, "prompt": "soft rain ambience", "generate_audio": True}
+    )
+    job = resolve_and_validate_video(
+        req,
+        registry=reg,
+        async_mode_enabled=False,
+        expected_task="t2v",
+        loras_root=tmp_path,
+    )
+    assert job.generate_audio is True
+    assert job.resolved_workflow_path == "workflows/wan22_t2v_audio_api.json"
+
+
+def test_video_silent_uses_base_workflow(monkeypatch: Any, tmp_path: Path) -> None:
+    monkeypatch.setenv("VRAM_BUDGET_GB", "24")
+    cfg = _wan22_t2v_model_cfg(
+        workflow_with_audio="workflows/wan22_t2v_audio_api.json",
+        mmaudio_vae="mmaudio/a.safetensors",
+        mmaudio_synchformer="mmaudio/b.safetensors",
+        mmaudio_clip="mmaudio/c.safetensors",
+        mmaudio_diffusion="mmaudio/d.safetensors",
+    )
+    reg = Registry({cfg.name: cfg})
+    req = VideoGenerateRequest.model_validate({"model": cfg.name, "prompt": "silent clip"})
+    job = resolve_and_validate_video(
+        req,
+        registry=reg,
+        async_mode_enabled=False,
+        expected_task="t2v",
+        loras_root=tmp_path,
+    )
+    assert job.generate_audio is False
+    assert job.resolved_workflow_path == "workflows/wan22_t2v_api.json"
+
+
+def test_video_i2v_generate_audio_ok(monkeypatch: Any, tmp_path: Path) -> None:
+    monkeypatch.setenv("VRAM_BUDGET_GB", "24")
+    cfg = ModelConfig(
+        name="wan22-i2v-fixture",
+        backend="comfyui",
+        family="wan22",
+        workflow_path="workflows/wan22_i2v_api.json",
+        workflow_with_audio="workflows/wan22_i2v_audio_api.json",
+        checkpoint="diffusion_models/x.safetensors",
+        vae="vae/y.safetensors",
+        wan_t5_encoder="text_encoders/t5.safetensors",
+        wan_clip_vision="clip_vision/h.safetensors",
+        mmaudio_vae="mmaudio/a.safetensors",
+        mmaudio_synchformer="mmaudio/b.safetensors",
+        mmaudio_clip="mmaudio/c.safetensors",
+        mmaudio_diffusion="mmaudio/d.safetensors",
+        vram_estimate_gb=10.0,
+        prediction="eps",
+        capabilities={"video_gen": True, "video_task": "i2v"},
+        defaults={
+            "size": "832x480",
+            "steps": 30,
+            "cfg": 5.0,
+            "shift": 5.0,
+            "scheduler": "unipc",
+            "negative_prompt": "",
+        },
+        limits={"steps_max": 60, "frames_max": 129, "size_max_pixels": 921600},
+    )
+    reg = Registry({cfg.name: cfg})
+    req = VideoGenerateRequest.model_validate(
+        {
+            "model": cfg.name,
+            "prompt": "motion",
+            "init_image": _MINI_PNG_B64,
+            "generate_audio": True,
+        }
+    )
+    job = resolve_and_validate_video(
+        req,
+        registry=reg,
+        async_mode_enabled=False,
+        expected_task="i2v",
+        loras_root=tmp_path,
+    )
+    assert job.resolved_workflow_path == "workflows/wan22_i2v_audio_api.json"
+
+
+def test_video_t2v_rejects_wan_advanced_encode(monkeypatch: Any, tmp_path: Path) -> None:
+    monkeypatch.setenv("VRAM_BUDGET_GB", "24")
+    cfg = _wan22_t2v_model_cfg()
+    reg = Registry({cfg.name: cfg})
+    req = VideoGenerateRequest.model_validate(
+        {
+            "model": cfg.name,
+            "prompt": "motion",
+            "wan_advanced": {"encode": {"noise_aug_strength": 0.1}},
+        }
+    )
+    with pytest.raises(ValidationFailureError) as exc:
+        resolve_and_validate_video(
+            req,
+            registry=reg,
+            async_mode_enabled=False,
+            expected_task="t2v",
+            loras_root=tmp_path,
+        )
+    assert "image-to-video only" in exc.value.message
+
+
+def test_video_i2v_resolves_wan_loras(monkeypatch: Any, tmp_path: Path) -> None:
+    monkeypatch.setenv("VRAM_BUDGET_GB", "24")
+    loras_root = tmp_path / "loras"
+    loras_root.mkdir()
+    (loras_root / "style_x.safetensors").write_bytes(b"x")
+    cfg = ModelConfig(
+        name="wan22-i2v-lora",
+        backend="comfyui",
+        family="wan22",
+        workflow_path="workflows/wan22_i2v_api.json",
+        checkpoint="diffusion_models/x.safetensors",
+        vae="vae/y.safetensors",
+        wan_t5_encoder="text_encoders/t5.safetensors",
+        wan_clip_vision="clip_vision/h.safetensors",
+        vram_estimate_gb=10.0,
+        prediction="eps",
+        capabilities={"video_gen": True, "video_task": "i2v"},
+        defaults={
+            "size": "832x480",
+            "steps": 30,
+            "cfg": 5.0,
+            "shift": 5.0,
+            "scheduler": "unipc",
+            "negative_prompt": "",
+        },
+        limits={"steps_max": 60, "frames_max": 129, "size_max_pixels": 921600},
+    )
+    reg = Registry({cfg.name: cfg})
+    req = VideoGenerateRequest.model_validate(
+        {
+            "model": cfg.name,
+            "prompt": "motion",
+            "init_image": _MINI_PNG_B64,
+            "loras": [{"name": "style_x", "weight": 1.15}],
+        }
+    )
+    job = resolve_and_validate_video(
+        req,
+        registry=reg,
+        async_mode_enabled=False,
+        expected_task="i2v",
+        loras_root=loras_root,
+    )
+    assert len(job.loras) == 1
+    assert job.loras[0].name == "style_x"
+    assert job.loras[0].weight == pytest.approx(1.15)
 
 
 async def test_touch_async_touches_every_lora(tmp_path: Path) -> None:

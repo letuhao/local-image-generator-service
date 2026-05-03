@@ -510,3 +510,82 @@ models:
       n_max: 4
       size_max_pixels: 1572864
     vram_estimate_gb: 8
+
+  # WAN 2.x video (ComfyUI-WanVideoWrapper). Requires Docker ComfyUI with WAN nodes + VHS.
+  # checkpoint MUST appear in Comfy's diffusion_models scan (bind-mount ./models).
+  #
+  # Text encoder trap: Comfy lists whatever sits in models/text_encoders/. If you only have
+  # umt5_xxl_fp8_e4m3fn_scaled.safetensors, /prompt accepts it but execution FAILS —
+  # LoadWanVideoT5TextEncoder does not support FP8 scaled ("scaled_fp8" in state dict).
+  # You MUST add a non-scaled UMT5-xxl encoder (bf16/fp16). Typical filename:
+  #   umt5-xxl-enc-bf16.safetensors → ./models/text_encoders/ (see Kijai WanVideo_models / WanVideo_comfy on HF).
+  # Until that file exists, value_not_in_list for umt5-xxl-enc-bf16 is expected.
+  # After copying the file in, restart image-gen-service and retry.
+  - name: wan22-smooth-t2v
+    backend: comfyui
+    family: wan22
+    prediction: eps
+    workflow: workflows/wan22_t2v_api.json
+    workflow_with_audio: workflows/wan22_t2v_audio_api.json
+    mmaudio_vae: mmaudio/mmaudio_vae_44k_fp16.safetensors
+    mmaudio_synchformer: mmaudio/mmaudio_synchformer_fp16.safetensors
+    mmaudio_clip: mmaudio/apple_DFN5B-CLIP-ViT-H-14-384_fp16.safetensors
+    mmaudio_diffusion: mmaudio/mmaudio_large_44k_v2_fp16.safetensors
+    checkpoint: diffusion_models/SmoothMix_T2V_High_v3.safetensors
+    vae: vae/Wan2_1_VAE_fp32.safetensors
+    wan_t5_encoder: text_encoders/umt5-xxl-enc-bf16.safetensors
+    skip_asset_validation: true
+    capabilities:
+      video_gen: true
+      video_task: t2v
+      skip_startup_smoke: true
+    defaults:
+      size: "832x480"
+      steps: 30
+      cfg: 5.0
+      shift: 5.0
+      scheduler: unipc
+      negative_prompt: ""
+      job_timeout_s: 3600
+      mmaudio_steps: 25
+      mmaudio_cfg: 4.5
+    limits:
+      steps_max: 60
+      frames_max: 129
+      size_max_pixels: 921600
+    vram_estimate_gb: 11
+
+  - name: wan22-smooth-i2v
+    backend: comfyui
+    family: wan22
+    prediction: eps
+    workflow: workflows/wan22_i2v_api.json
+    workflow_with_audio: workflows/wan22_i2v_audio_api.json
+    mmaudio_vae: mmaudio/mmaudio_vae_44k_fp16.safetensors
+    mmaudio_synchformer: mmaudio/mmaudio_synchformer_fp16.safetensors
+    mmaudio_clip: mmaudio/apple_DFN5B-CLIP-ViT-H-14-384_fp16.safetensors
+    mmaudio_diffusion: mmaudio/mmaudio_large_44k_v2_fp16.safetensors
+    checkpoint: diffusion_models/SmoothMix_I2V_v2_High.safetensors
+    vae: vae/Wan2_1_VAE_fp32.safetensors
+    wan_t5_encoder: text_encoders/umt5-xxl-enc-bf16.safetensors
+    wan_clip_vision: clip_vision/clip_vision_h.safetensors
+    skip_asset_validation: true
+    capabilities:
+      video_gen: true
+      video_task: i2v
+      skip_startup_smoke: true
+    defaults:
+      size: "832x480"
+      steps: 30
+      cfg: 5.0
+      shift: 5.0
+      scheduler: unipc
+      negative_prompt: ""
+      job_timeout_s: 3600
+      mmaudio_steps: 25
+      mmaudio_cfg: 4.5
+    limits:
+      steps_max: 60
+      frames_max: 129
+      size_max_pixels: 921600
+    vram_estimate_gb: 11

@@ -3,9 +3,11 @@ from __future__ import annotations
 import asyncio
 import json
 from collections.abc import AsyncIterator
+from io import BytesIO
 from pathlib import Path
 
 import pytest
+from PIL import Image
 
 from app.backends.base import ModelConfig
 from app.queue.jobs import create_queued, get_by_id, set_running
@@ -18,6 +20,9 @@ from app.registry.models import Registry
 class _FakeAdapter:
     def __init__(self) -> None:
         self.client_id = "rec-client"
+        buf = BytesIO()
+        Image.new("RGBA", (2, 2), color=(255, 255, 255, 255)).save(buf, format="PNG")
+        self._png_bytes = buf.getvalue()
 
     async def submit(self, graph: dict) -> str:
         return "pid-rec"
@@ -26,7 +31,7 @@ class _FakeAdapter:
         pass
 
     async def fetch_outputs(self, prompt_id: str) -> list[bytes]:
-        return [b"\x89PNG\r\n\x1a\n" + b"payload"]
+        return [self._png_bytes]
 
     async def close(self) -> None:  # pragma: no cover
         pass

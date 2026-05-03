@@ -1,11 +1,26 @@
-# ComfyUI sidecar pin list — Cycle 2 (2026-04-19)
+# ComfyUI sidecar pin list — keep in sync with docker/comfyui/Dockerfile ARG defaults
+# and docker-compose.yml build.args for entries exposed there.
 #
-# One line per component. Format: <name> <ref> # <human comment>
-# <ref> must be either a git tag or a full SHA. Short SHAs are forbidden
-# to avoid ambiguity across repo rebases.
+# One line per component. Format: <short-name> <ref> # <github org/repo> — note
+# <ref> must be a git tag or full SHA (40 hex). Short SHAs are forbidden.
 #
-# Referenced by docker/comfyui/Dockerfile via ARG COMFYUI_REF and ARG COMFYUI_GGUF_REF.
-# Rebuilds pin exactly to these refs; pushing a new image needs a bump here first.
+# Primary workflow: workflows/WAN 2.2 Smooth Workflow v5.0.json
+# SHAs for WAN-related rows match node `ver` fields from that graph where present.
+# ComfyUI-mxToolkit is pinned to upstream HEAD at image bump time (no ver in graph).
 
-comfyui       v0.20.1  # upgraded for FLUX.2 CLIPLoader/text-encoder compatibility
-comfyui-gguf  6ea2651e7df66d7585f6ffee804b20e92fb38b8a  # city96/ComfyUI-GGUF HEAD as of 2026-04-19
+comfyui                        v0.20.1  # comfyanonymous/ComfyUI — includes core Wan nodes (e.g. WanImageToVideo in comfy_extras/nodes_wan.py)
+comfyui-gguf                   6ea2651e7df66d7585f6ffee804b20e92fb38b8a  # city96/ComfyUI-GGUF
+
+# --- WAN 2.2 Smooth stack (video / audio / UI helpers) ---
+ComfyUI-WanVideoWrapper        90c3bbb6c2e4ff5e05305e765d007d5e58428ce4  # kijai/ComfyUI-WanVideoWrapper
+ComfyUI-MMAudio                841b307095f3cdc448d940a5787bc36706e49f1d  # kijai/ComfyUI-MMAudio
+ComfyUI-VideoHelperSuite       8923bd836bdab8b7bbdf4ed104b7d045e70c66e2  # Kosinkadink/ComfyUI-VideoHelperSuite
+ComfyUI-KJNodes                a6b867b63a29ca48ddb15c589e17a9f2d8530d57  # kijai/ComfyUI-KJNodes
+rgthree-comfy                  84a146fee39f7b3a8c6631dcac29bc13b077eb49  # rgthree/rgthree-comfy
+ComfyUI-Easy-Use               de92038f88317699f314be85e5c7af84f1ab9c3a  # yolain/ComfyUI-Easy-Use
+ComfyUI-NAG                    c6f27116a8259f5b501d498a09e51c82fa72e35f  # scottmudge/ComfyUI-NAG — subgraph KSamplerWithNAG (Advanced)
+comfyui-adaptiveprompts        aa0d896b5e5d9c7031c3aa995e028f2507dfc63c  # Alectriciti/comfyui-adaptiveprompts — PromptGenerator in subgraphs
+ComfyUI-VFI                    6176a430f12cd16003f4664c1e3c6af8e96cc3c6  # GACLove/ComfyUI-VFI
+comfy_mtb                      d87e52ea2c112fd95f257dcd6a54a5db77a34fc3  # melMass/comfy_mtb
+ComfyUI_Comfyroll_CustomNodes  d78b780ae43fcf8c6b7c6505e6ffb4584281ceca  # Suzie1/ComfyUI_Comfyroll_CustomNodes
+ComfyUI-mxToolkit              7f7a0e584f12078a1c589645d866ae96bad0cc35  # Smirnov75/ComfyUI-mxToolkit (main @ bump)

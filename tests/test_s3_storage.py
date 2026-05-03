@@ -34,6 +34,14 @@ def test_object_key_for_encodes_date_path() -> None:
     assert object_key_for("gen_abc", 0, now=fixed) == "generations/2026/04/19/gen_abc/0.png"
 
 
+def test_object_key_for_mp4_extension() -> None:
+    fixed = datetime(2026, 5, 3, 0, 0, 0, tzinfo=UTC)
+    assert (
+        object_key_for("job_vid", 0, ext="mp4", now=fixed)
+        == "generations/2026/05/03/job_vid/0.mp4"
+    )
+
+
 def test_object_key_for_uses_utc_when_now_is_none() -> None:
     # Smoke: just call it. Can't assert exact date without pinning.
     key = object_key_for("gen_xyz", 3)
@@ -82,6 +90,22 @@ async def test_upload_png_round_trip(s3_config: S3Config) -> None:
 
         fetched = await store.get_object(bucket, key)
         assert fetched == png
+
+
+async def test_upload_generation_blob_mp4_round_trip(s3_config: S3Config) -> None:
+    with mock_aws():
+        store = S3Storage(s3_config)
+        await store.ensure_bucket()
+
+        payload = b"\x00\x00\x00\x20ftypmp42"
+        bucket, key = await store.upload_generation_blob(
+            "gen_mp4", 0, payload, ext="mp4", content_type="video/mp4"
+        )
+        assert bucket == s3_config.bucket
+        assert key.endswith("/gen_mp4/0.mp4")
+
+        fetched = await store.get_object(bucket, key)
+        assert fetched == payload
 
 
 async def test_get_object_missing_raises_not_found(s3_config: S3Config) -> None:

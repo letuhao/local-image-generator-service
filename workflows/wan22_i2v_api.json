@@ -1,0 +1,206 @@
+{
+  "1": {
+    "class_type": "LoadWanVideoT5TextEncoder",
+    "inputs": {
+      "model_name": "umt5-xxl-enc-bf16.safetensors",
+      "precision": "bf16",
+      "load_device": "offload_device",
+      "quantization": "disabled"
+    },
+    "_meta": {
+      "title": "%WAN_T5%"
+    }
+  },
+  "2": {
+    "class_type": "WanVideoTextEncode",
+    "inputs": {
+      "positive_prompt": "",
+      "negative_prompt": "",
+      "t5": ["1", 0],
+      "force_offload": true,
+      "use_disk_cache": false,
+      "device": "gpu"
+    },
+    "_meta": {
+      "title": "%WAN_PROMPTS%"
+    }
+  },
+  "3": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "placeholder.png"
+    },
+    "_meta": {
+      "title": "%INIT_IMAGE%"
+    }
+  },
+  "4": {
+    "class_type": "CLIPVisionLoader",
+    "inputs": {
+      "clip_name": "clip_vision_h.safetensors"
+    },
+    "_meta": {
+      "title": "%WAN_CLIP_VISION%"
+    }
+  },
+  "5": {
+    "class_type": "WanVideoClipVisionEncode",
+    "inputs": {
+      "clip_vision": ["4", 0],
+      "image_1": ["3", 0],
+      "strength_1": 1.0,
+      "strength_2": 1.0,
+      "crop": "center",
+      "combine_embeds": "average",
+      "force_offload": true,
+      "tiles": 0,
+      "ratio": 0.5
+    },
+    "_meta": {
+      "title": "%WAN_CLIP_ENCODE%,wan:clip_encode"
+    }
+  },
+  "6": {
+    "class_type": "WanVideoVAELoader",
+    "inputs": {
+      "model_name": "Wan2_1_VAE_bf16.safetensors",
+      "precision": "bf16"
+    },
+    "_meta": {
+      "title": "%WAN_VAE%"
+    }
+  },
+  "7": {
+    "class_type": "WanVideoImageToVideoEncode",
+    "inputs": {
+      "width": 832,
+      "height": 480,
+      "num_frames": 81,
+      "noise_aug_strength": 0.0,
+      "start_latent_strength": 1.0,
+      "end_latent_strength": 1.0,
+      "force_offload": true,
+      "vae": ["6", 0],
+      "clip_embeds": ["5", 0],
+      "start_image": ["3", 0],
+      "fun_or_fl2v_model": false,
+      "tiled_vae": false,
+      "augment_empty_frames": 0.0
+    },
+    "_meta": {
+      "title": "%WAN_DIMS%"
+    }
+  },
+  "8": {
+    "class_type": "WanVideoBlockSwap",
+    "inputs": {
+      "blocks_to_swap": 20,
+      "offload_img_emb": false,
+      "offload_txt_emb": false,
+      "use_non_blocking": false,
+      "vace_blocks_to_swap": 0,
+      "prefetch_blocks": 0,
+      "block_swap_debug": false
+    },
+    "_meta": {
+      "title": "%WAN_BLOCK_SWAP%,wan:block_swap_args"
+    }
+  },
+  "90": {
+    "class_type": "WanVideoLoraSelectMulti",
+    "inputs": {
+      "lora_0": "none",
+      "strength_0": 1.0,
+      "lora_1": "none",
+      "strength_1": 1.0,
+      "lora_2": "none",
+      "strength_2": 1.0,
+      "lora_3": "none",
+      "strength_3": 1.0,
+      "lora_4": "none",
+      "strength_4": 1.0,
+      "merge_loras": true,
+      "low_mem_load": false
+    },
+    "_meta": {
+      "title": "%WAN_LORA_MULTI%"
+    }
+  },
+  "9": {
+    "class_type": "WanVideoModelLoader",
+    "inputs": {
+      "model": "placeholder_i2v.safetensors",
+      "base_precision": "bf16",
+      "quantization": "fp8_e4m3fn",
+      "load_device": "offload_device",
+      "attention_mode": "sdpa",
+      "lora": ["90", 0]
+    },
+    "_meta": {
+      "title": "%WAN_MODEL%"
+    }
+  },
+  "10": {
+    "class_type": "WanVideoSetBlockSwap",
+    "inputs": {
+      "model": ["9", 0],
+      "block_swap_args": ["8", 0]
+    },
+    "_meta": {
+      "title": "wan:set_block_swap"
+    }
+  },
+  "11": {
+    "class_type": "WanVideoSampler",
+    "inputs": {
+      "model": ["10", 0],
+      "image_embeds": ["7", 0],
+      "text_embeds": ["2", 0],
+      "steps": 30,
+      "cfg": 5.0,
+      "shift": 5.0,
+      "seed": 0,
+      "force_offload": true,
+      "scheduler": "unipc",
+      "riflex_freq_index": 0
+    },
+    "_meta": {
+      "title": "%WAN_SAMPLER%"
+    }
+  },
+  "12": {
+    "class_type": "WanVideoDecode",
+    "inputs": {
+      "vae": ["6", 0],
+      "samples": ["11", 0],
+      "enable_vae_tiling": false,
+      "tile_x": 272,
+      "tile_y": 272,
+      "tile_stride_x": 144,
+      "tile_stride_y": 128,
+      "normalization": "default"
+    },
+    "_meta": {
+      "title": "%WAN_DECODE%,wan:decode"
+    }
+  },
+  "13": {
+    "class_type": "VHS_VideoCombine",
+    "inputs": {
+      "images": ["12", 0],
+      "frame_rate": 16,
+      "loop_count": 0,
+      "filename_prefix": "wan22_i2v",
+      "format": "video/h264-mp4",
+      "pix_fmt": "yuv420p",
+      "crf": 19,
+      "save_metadata": true,
+      "trim_to_audio": false,
+      "pingpong": false,
+      "save_output": true
+    },
+    "_meta": {
+      "title": "%VIDEO_OUTPUT%"
+    }
+  }
+}

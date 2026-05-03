@@ -5,6 +5,7 @@ import json
 import os
 import time
 from collections.abc import Awaitable, Callable
+from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
@@ -403,6 +404,48 @@ class ComfyUIAdapter:
                     raise ComfyUnreachableError(f"/view returned {view_resp.status_code}")
                 images_bytes.append(view_resp.content)
         return images_bytes
+
+    async def fetch_media_outputs(self, prompt_id: str) -> list[tuple[bytes, str]]:
+        """Download outputs from history: images / gifs / videos via GET /view.
+
+        Returns ordered list of (bytes, extension_without_dot).
+        """
+        try:
+            resp = await self._http.get(f"/history/{prompt_id}")
+        except httpx.HTTPError as exc:
+            raise ComfyUnreachableError(f"GET /history: {exc}") from exc
+        if resp.status_code != 200:
+            raise ComfyUnreachableError(f"/history returned {resp.status_code}")
+        data = resp.json()
+        entry = data.get(prompt_id) or {}
+        _raise_if_errored(entry.get("status") or {})
+        outputs = entry.get("outputs") or {}
+
+        media_rows: list[tuple[bytes, str]] = []
+        for _node_id, node_output in outputs.items():
+            if not isinstance(node_output, dict):
+                continue
+            for bucket_key in ("gifs", "videos", "images"):
+                for media in node_output.get(bucket_key) or []:
+                    if not isinstance(media, dict):
+                        continue
+                    params: dict[str, str] = {
+                        "filename": media.get("filename", ""),
+                        "subfolder": media.get("subfolder", ""),
+                        "type": media.get("type", "output"),
+                    }
+                    fn = params["filename"]
+                    suffix = Path(fn).suffix.lower().lstrip(".")
+                    if not suffix:
+                        suffix = "png" if bucket_key == "images" else "mp4"
+                    try:
+                        view_resp = await self._http.get("/view", params=params)
+                    except httpx.HTTPError as exc:
+                        raise ComfyUnreachableError(f"GET /view: {exc}") from exc
+                    if view_resp.status_code != 200:
+                        raise ComfyUnreachableError(f"/view returned {view_resp.status_code}")
+                    media_rows.append((view_resp.content, suffix))
+        return media_rows
 
     # ───────────────────────── cancel ─────────────────────────
 

@@ -9,6 +9,7 @@ authors = [{ name = "letuhao1994" }]
 
 dependencies = [
     "fastapi>=0.115,<0.116",
+    "python-multipart>=0.0.17",  # File()/Form() multipart uploads (WAN I2V / image init_image)
     "uvicorn[standard]>=0.32,<0.33",
     "pydantic>=2.9,<3",
     "pydantic-settings>=2.6,<3",
