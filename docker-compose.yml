@@ -4,6 +4,10 @@
 
 services:
   image-gen-service:
+    # Python package under `./app/` is copied into the image (see Dockerfile).
+    # It is NOT mounted from the host — only `./config`, `./workflows`, `./models`
+    # are bind-mounted below. After changing code in `app/`, rebuild this service:
+    #   docker compose build --no-cache image-gen-service && docker compose up -d image-gen-service
     build:
       context: .
       dockerfile: Dockerfile

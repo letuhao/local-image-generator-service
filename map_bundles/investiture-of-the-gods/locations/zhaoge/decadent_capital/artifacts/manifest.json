@@ -17,7 +17,6 @@
       },
       "tile_size": "1x1",
       "rotation": "free",
-      "prompt": "centered prop, ancient jade fox spirit artifact, glowing green eye, mystical aura particles, dramatic rim light, fox spirit energy visible, game item sprite style, isolated on white background, clean edges",
       "negative_prompt": "text, watermark, background scene, people",
       "color_palette": [
         "#00A86B",
@@ -32,7 +31,8 @@
         "artifact",
         "spirit",
         "tỳ_hồ"
-      ]
+      ],
+      "prompt_base": "ancient jade fox spirit artifact, glowing green eye, mystical aura particles, fox spirit energy visible"
     },
     {
       "id": "bronze_divination",
@@ -47,7 +47,6 @@
       },
       "tile_size": "1x1",
       "rotation": "free",
-      "prompt": "centered prop, Shang dynasty bronze divination plate, oracle bone crack patterns from burning, ancient ritual object, patina oxidation, dramatic rim light, authoritative presence, game item sprite, isolated",
       "negative_prompt": "text, watermark, background scene, people",
       "color_palette": [
         "#CD7F32",
@@ -62,7 +61,8 @@
         "oracle",
         "Shang",
         "ritual"
-      ]
+      ],
+      "prompt_base": "Shang dynasty bronze divination plate, oracle bone crack patterns from burning, ancient ritual object, patina oxidation, authoritative presence"
     },
     {
       "id": "pearl_of_daji",
@@ -77,7 +77,6 @@
       },
       "tile_size": "1x1",
       "rotation": "free",
-      "prompt": "centered prop, luminous crimson spirit pearl with golden vein patterns, fox spirit energy core, mystical glow radiating outward, seductive beauty, game item sprite style, isolated on white, clean edges",
       "negative_prompt": "text, watermark, background scene, people",
       "color_palette": [
         "#DC143C",
@@ -92,7 +91,8 @@
         "spirit",
         "crimson",
         "Địch_Cơ"
-      ]
+      ],
+      "prompt_base": "luminous crimson spirit pearl with golden vein patterns, fox spirit energy core, mystical glow radiating outward, seductive beauty"
     },
     {
       "id": "king_zhou_seal",
@@ -107,7 +107,6 @@
       },
       "tile_size": "1x1",
       "rotation": "free",
-      "prompt": "centered prop, imperial jade seal with dragon motif carving, crimson cord tassel, authoritative presence, smooth jade surface with subtle green translucence, game item sprite, isolated on white",
       "negative_prompt": "text, watermark, background scene, people",
       "color_palette": [
         "#00A86B",
@@ -122,7 +121,8 @@
         "imperial",
         "dragon",
         "Thương_Châu"
-      ]
+      ],
+      "prompt_base": "imperial jade seal with dragon motif carving, crimson cord tassel, authoritative presence, smooth jade surface with subtle green translucence"
     },
     {
       "id": "ancient_mirror",
@@ -137,7 +137,6 @@
       },
       "tile_size": "1x1",
       "rotation": "forward_back",
-      "prompt": "centered prop, ancient bronze mirror with mystical taotie engravings on back, eerie reflective surface showing distorted true form, supernatural aura, dramatic lighting, game item sprite style, isolated",
       "negative_prompt": "text, watermark, background scene, people",
       "color_palette": [
         "#CD7F32",
@@ -152,7 +151,8 @@
         "truth",
         "bronze",
         "cổ_kính"
-      ]
+      ],
+      "prompt_base": "ancient bronze mirror with mystical taotie engravings on back, eerie reflective surface showing distorted true form, supernatural aura, dramatic lighting"
     },
     {
       "id": "bronze_bianzhong",
@@ -176,13 +176,13 @@
         "đồng_biên_chung"
       ],
       "priority": "high",
-      "prompt": "centered composition, set of 8 bronze bianzhong bells hanging on wooden frame, intricate taotie thunder patterns on each bell, green patina oxidation, Shang dynasty royal music instrument, dramatic rim light, authoritative musical presence, game item sprite style, isolated on white, clean edges",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "set of 8 bronze bianzhong bells hanging on wooden frame, intricate taotie thunder patterns on each bell, green patina oxidation, Shang dynasty royal music instrument, authoritative musical presence"
     },
     {
       "id": "bronze_incense_burner_bell",
@@ -204,13 +204,13 @@
         "đồng_hương_chung"
       ],
       "priority": "high",
-      "prompt": "centered composition, bell-shaped bronze incense burner on stone pedestal, fox spirit face carved on surface, ethereal green smoke curling upward from opening, ritual object, dramatic rim light, mystical atmosphere, game item sprite, isolated",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "bell-shaped bronze incense burner on stone pedestal, fox spirit face carved on surface, ethereal green smoke curling upward from opening, ritual object, mystical atmosphere"
     },
     {
       "id": "jiang_ziya_fishing_rod",
@@ -233,13 +233,13 @@
         "khương_tử_nha"
       ],
       "priority": "high",
-      "prompt": "centered prop, simple weathered bamboo fishing rod, straight hook (symbol of waiting for worthy ruler), rustic humble appearance contrasting with divine wisdom, dramatic rim light, game item sprite style, isolated on white, clean edges",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "simple weathered bamboo fishing rod, straight hook (symbol of waiting for worthy ruler), rustic humble appearance contrasting with divine wisdom"
     },
     {
       "id": "silk_banner_roll",
@@ -261,13 +261,13 @@
         "lụa_cán"
       ],
       "priority": "high",
-      "prompt": "centered prop, rolled silk banner with Fengshen investiture text, golden calligraphy on crimson silk, jade roller ends, divine glow, game item sprite style, isolated on white, clean edges",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "rolled silk banner with Fengshen investiture text, golden calligraphy on crimson silk, jade roller ends, divine glow"
     },
     {
       "id": "bagua_mirror_wall",
@@ -289,13 +289,13 @@
         "bát_quạ_gương"
       ],
       "priority": "high",
-      "prompt": "centered prop, circular bronze Bagua mirror, eight trigram engravings on face, mystical reflective surface showing starfield, taotie border pattern, directional protection talisman, dramatic rim light, game item sprite, isolated",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "circular bronze Bagua mirror, eight trigram engravings on face, mystical reflective surface showing starfield, taotie border pattern, directional protection talisman"
     },
     {
       "id": "yin_yang_staff",
@@ -317,13 +317,13 @@
         "âm_dương_trượng"
       ],
       "priority": "high",
-      "prompt": "centered prop, tall yin-yang walking staff with wolf hair broom at top, yin-yang symbol carved in wood, weathered bamboo texture, divine aura, Jiang Ziya's iconic weapon, dramatic rim light, game item sprite, isolated",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "tall yin-yang walking staff with wolf hair broom at top, yin-yang symbol carved in wood, weathered bamboo texture, divine aura, Jiang Ziya's iconic weapon"
     },
     {
       "id": "Di_xin_crown",
@@ -345,13 +345,13 @@
         "vương_miện_đát_kỷ"
       ],
       "priority": "high",
-      "prompt": "centered prop, twelve pearl crown of King Zhou of Shang, golden filigree with twelve pearl ornaments and jade decorations, opulent royal headpiece, sinister elegance, dramatic rim light, game item sprite style, isolated on white, clean edges",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "twelve pearl crown of King Zhou of Shang, golden filigree with twelve pearl ornaments and jade decorations, opulent royal headpiece, sinister elegance"
     },
     {
       "id": "jade_drinking_cup",
@@ -373,13 +373,13 @@
         "ngọc_tửu_bối"
       ],
       "priority": "high",
-      "prompt": "centered prop, massive jade drinking cup carved with dragon patterns, translucent green jade with golden vein inlays, wine inside, opulent drinking vessel of decadent king, dramatic rim light, game item sprite style, isolated on white, clean edges",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "massive jade drinking cup carved with dragon patterns, translucent green jade with golden vein inlays, wine inside, opulent drinking vessel of decadent king"
     },
     {
       "id": "bronze_wine_cup_gui",
@@ -401,13 +401,13 @@
         "đồng_tửu_gui"
       ],
       "priority": "high",
-      "prompt": "centered prop, bronze gui wine cup with taotie thunder patterns, tripod base, green patina oxidation, Shang dynasty ritual wine vessel, dramatic rim light, authoritative presence, game item sprite, isolated",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "bronze gui wine cup with taotie thunder patterns, tripod base, green patina oxidation, Shang dynasty ritual wine vessel, authoritative presence"
     },
     {
       "id": "fengshen_banner",
@@ -429,13 +429,13 @@
         "phong_thần_kỳ"
       ],
       "priority": "high",
-      "prompt": "centered prop, divine Fengshen investiture banner, golden Chinese characters on crimson silk that seal gods into heaven, mystical radiance emanating, ethereal glow, game item sprite style, isolated",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "divine Fengshen investiture banner, golden Chinese characters on crimson silk that seal gods into heaven, mystical radiance emanating, ethereal glow"
     },
     {
       "id": "zhao_xing_tower_clock",
@@ -457,13 +457,13 @@
         "trích_tinh_chung"
       ],
       "priority": "high",
-      "prompt": "centered prop, massive bronze bell from Star-Picking Tower, cracked surface with soot marks, inscribed with Di Xin's poems, tragic atmosphere, dramatic rim light, game item sprite, isolated",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "massive bronze bell from Star-Picking Tower, cracked surface with soot marks, inscribed with Di Xin's poems, tragic atmosphere"
     },
     {
       "id": "immortal_peach_xian_tao",
@@ -485,13 +485,13 @@
         "tiên_đào"
       ],
       "priority": "high",
-      "prompt": "centered prop, peach of immortality from Wang Mu Niang Niang's garden, pink glowing fruit with golden mist emanating, three peaches in jade basket, divine fruit granting eternal life, mystical glow, game item sprite, isolated",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "peach of immortality from Wang Mu Niang Niang's garden, pink glowing fruit with golden mist emanating, three peaches in jade basket, divine fruit granting eternal life, mystical glow"
     },
     {
       "id": "divine_wine_xian_jiu",
@@ -513,13 +513,13 @@
         "tiên_tửu"
       ],
       "priority": "high",
-      "prompt": "centered prop, celestial wine jar with golden vapor rising, ornate bronze jar with taotie patterns, wine glowing with divine energy, poured into wine pool at Lộc Đài, mystical atmosphere, game item sprite, isolated",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "celestial wine jar with golden vapor rising, ornate bronze jar with taotie patterns, wine glowing with divine energy, poured into wine pool at Lộc Đài, mystical atmosphere"
     },
     {
       "id": "yin_ruochen_scarf",
@@ -541,13 +541,13 @@
         "nhục_ngân_khâm"
       ],
       "priority": "high",
-      "prompt": "centered prop, jade pendant of Yin Ruochen, inscribed with love poem from Jiang Ziya, smooth green jade with silver wire inlay, trigger for Yin Jiao's rebellion, emotional significance, dramatic rim light, game item sprite, isolated",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "jade pendant of Yin Ruochen, inscribed with love poem from Jiang Ziya, smooth green jade with silver wire inlay, trigger for Yin Jiao's rebellion, emotional significance"
     },
     {
       "id": "stone_chime_block",
@@ -569,13 +569,13 @@
         "thạch_bích"
       ],
       "priority": "medium",
-      "prompt": "centered prop, stone chime block (qing) for ritual court music, carved dragon patterns on surface, green jade stone, suspended by silk cord, ancient musical instrument, dramatic rim light, game item sprite, isolated",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "stone chime block (qing) for ritual court music, carved dragon patterns on surface, green jade stone, suspended by silk cord, ancient musical instrument"
     },
     {
       "id": "jade_disc_pianzhong",
@@ -596,13 +596,13 @@
         "ngọc_phiến_chung"
       ],
       "priority": "medium",
-      "prompt": "centered prop, circular jade disc with bell motif carvings around edge, translucent green jade, immortal realm gift, soft luminous glow, game item sprite style, isolated on white, clean edges",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "circular jade disc with bell motif carvings around edge, translucent green jade, immortal realm gift, soft luminous glow"
     },
     {
       "id": "bronze_hand_mirror",
@@ -623,13 +623,13 @@
         "đồng_thủ_kính"
       ],
       "priority": "medium",
-      "prompt": "centered prop, circular bronze hand mirror for palace women, ornate decorative back with phoenix and floral patterns, reflective surface, palace women's accessory, dramatic rim light, game item sprite, isolated",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "circular bronze hand mirror for palace women, ornate decorative back with phoenix and floral patterns, reflective surface, palace women's accessory"
     },
     {
       "id": "tea_set_imperial",
@@ -651,13 +651,13 @@
         "trà_set"
       ],
       "priority": "medium",
-      "prompt": "centered prop, imperial jade-accented tea set for court ceremonies, bronze teapot with jade handles, jade tea cups, golden tea vapor, court ceremony object, dramatic rim light, game item sprite, isolated",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "imperial jade-accented tea set for court ceremonies, bronze teapot with jade handles, jade tea cups, golden tea vapor, court ceremony object"
     },
     {
       "id": "daoist_talisman_stack",
@@ -678,13 +678,13 @@
         "đạo_phù"
       ],
       "priority": "medium",
-      "prompt": "centered prop, stack of yellow Daoist talisman paper with red cinnabar ink, mystical characters and seals on top sheet, bamboo binding, ritual talisman object, dramatic rim light, game item sprite, isolated",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "stack of yellow Daoist talisman paper with red cinnabar ink, mystical characters and seals on top sheet, bamboo binding, ritual talisman object"
     },
     {
       "id": "incense_stick_bundle",
@@ -705,13 +705,13 @@
         "hương_trú"
       ],
       "priority": "medium",
-      "prompt": "centered prop, bundle of incense sticks for temple offerings, golden smoke curling upward, red lacquered sticks, temple ritual object, dramatic rim light, game item sprite, isolated",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "bundle of incense sticks for temple offerings, golden smoke curling upward, red lacquered sticks, temple ritual object"
     },
     {
       "id": "gold_knife_flesh",
@@ -732,13 +732,13 @@
         "kim_đao"
       ],
       "priority": "medium",
-      "prompt": "centered prop, ornate golden knife for cutting meat at wine forest banquet, jeweled handle, luxurious appearance, symbol of Di Xin's decadence, dramatic rim light, game item sprite, isolated",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "ornate golden knife for cutting meat at wine forest banquet, jeweled handle, luxurious appearance, symbol of Di Xin's decadence"
     },
     {
       "id": "spirit_tablet_72",
@@ -759,13 +759,13 @@
         "linh_vị"
       ],
       "priority": "medium",
-      "prompt": "centered prop, one of 72 Zhu Tian Shen spirit tablets, carved stone tablet with golden inscribed deity name, wooden stand with red cloth, ancestral worship object, dramatic rim light, game item sprite, isolated",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "one of 72 Zhu Tian Shen spirit tablets, carved stone tablet with golden inscribed deity name, wooden stand with red cloth, ancestral worship object"
     },
     {
       "id": "yin_jiao_sword",
@@ -787,13 +787,13 @@
         "yin_jiao_kiếm"
       ],
       "priority": "medium",
-      "prompt": "centered prop, sword Yin Jiao used at Xuanyuan Hall before jumping, blood-stained blade, ornate hilt, tragic weapon of loyal minister, dramatic rim light, game item sprite, isolated",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "sword Yin Jiao used at Xuanyuan Hall before jumping, blood-stained blade, ornate hilt, tragic weapon of loyal minister"
     },
     {
       "id": "heaven_scroll_fragment",
@@ -814,13 +814,13 @@
         "thiên_thư_phách"
       ],
       "priority": "high",
-      "prompt": "centered prop, fragment of heavenly investiture scroll, golden Chinese characters on luminous parchment, divine authority, celestial origin, mystical glow, game item sprite, isolated",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "fragment of heavenly investiture scroll, golden Chinese characters on luminous parchment, divine authority, celestial origin, mystical glow"
     },
     {
       "id": "nine_heaven_cloud",
@@ -841,13 +841,13 @@
         "cửu_thiên_vân"
       ],
       "priority": "medium",
-      "prompt": "centered prop, fragment of Nine Heavens cloud platform, ethereal luminescent glow, jade and cloud patterns, immortal realm artifact, mystical presence, game item sprite, isolated",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "fragment of Nine Heavens cloud platform, ethereal luminescent glow, jade and cloud patterns, immortal realm artifact, mystical presence"
     },
     {
       "id": "calligraphy_set",
@@ -868,13 +868,13 @@
         "thư_pháp"
       ],
       "priority": "low",
-      "prompt": "centered prop, imperial scribe calligraphy set, bamboo brush, carved ink stick, stack of rice paper with golden edge, scholar's tools, dramatic rim light, game item sprite, isolated",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "imperial scribe calligraphy set, bamboo brush, carved ink stick, stack of rice paper with golden edge, scholar's tools"
     },
     {
       "id": "bronze_weight_marker",
@@ -895,13 +895,13 @@
         "đồng_cân"
       ],
       "priority": "low",
-      "prompt": "centered prop, bronze weight marker base at market crossroads, inscribed measurement standards, taotie patterns, practical government object, dramatic rim light, game item sprite, isolated",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "bronze weight marker base at market crossroads, inscribed measurement standards, taotie patterns, practical government object"
     },
     {
       "id": "spiritual_firing_mirror",
@@ -921,13 +921,13 @@
         "luyện_hình_kính"
       ],
       "priority": "medium",
-      "prompt": "centered prop, magical mirror that reveals true forms, luminous silver surface showing distorted reflections, golden frame with talisman inscriptions, game item sprite, isolated",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "magical mirror that reveals true forms, luminous silver surface showing distorted reflections, golden frame with talisman inscriptions"
     }
   ]
 }

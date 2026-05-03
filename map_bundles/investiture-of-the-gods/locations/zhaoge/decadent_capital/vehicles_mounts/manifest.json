@@ -17,11 +17,22 @@
       },
       "tile_size": "2x1",
       "rotation": "forward_back",
-      "prompt": "2.5D sprite angle, ornate golden palanquin carriage, crimson silk drapes, bronze fittings with taotie patterns, imperial transport, elegant design, clean cutout, isolated on white, game vehicle asset",
       "negative_prompt": "text, watermark, background scene, people",
-      "color_palette": ["#D4AF37", "#DC143C", "#CD7F32", "#F5F5DC"],
+      "color_palette": [
+        "#D4AF37",
+        "#DC143C",
+        "#CD7F32",
+        "#F5F5DC"
+      ],
       "priority": "high",
-      "tags": ["palanquin", "imperial", "golden", "transport", "xa_kiệu"]
+      "tags": [
+        "palanquin",
+        "imperial",
+        "golden",
+        "transport",
+        "xa_kiệu"
+      ],
+      "prompt_base": "ornate golden palanquin carriage, crimson silk drapes, bronze fittings with taotie patterns, imperial transport, elegant design, clean cutout"
     },
     {
       "id": "dragon_junk",
@@ -36,11 +47,22 @@
       },
       "tile_size": "2x1",
       "rotation": "forward_back",
-      "prompt": "2.5D sprite angle, golden dragon-headed imperial boat, crimson sails with gold trim, bronze dragon details, elegant water transport, clean cutout, isolated on white, game vehicle asset",
       "negative_prompt": "text, watermark, background scene, people",
-      "color_palette": ["#D4AF37", "#DC143C", "#2E8B57", "#CD7F32"],
+      "color_palette": [
+        "#D4AF37",
+        "#DC143C",
+        "#2E8B57",
+        "#CD7F32"
+      ],
       "priority": "medium",
-      "tags": ["dragon", "boat", "imperial", "water", "long_thuyền"]
+      "tags": [
+        "dragon",
+        "boat",
+        "imperial",
+        "water",
+        "long_thuyền"
+      ],
+      "prompt_base": "golden dragon-headed imperial boat, crimson sails with gold trim, bronze dragon details, elegant water transport, clean cutout"
     },
     {
       "id": "flying_sword_imperial",
@@ -55,11 +77,22 @@
       },
       "tile_size": "1x1",
       "rotation": "cardinal",
-      "prompt": "2.5D sprite angle, elegant flying sword with bronze hilt and golden energy trail, imperial cultivation tool, dynamic pose, mystical aura, clean cutout, isolated, game vehicle asset",
       "negative_prompt": "text, watermark, background scene, people",
-      "color_palette": ["#D4AF37", "#CD7F32", "#00A86B", "#F5F5DC"],
+      "color_palette": [
+        "#D4AF37",
+        "#CD7F32",
+        "#00A86B",
+        "#F5F5DC"
+      ],
       "priority": "medium",
-      "tags": ["flying_sword", "cultivator", "golden", "immortal", "kiên_tiên"]
+      "tags": [
+        "flying_sword",
+        "cultivator",
+        "golden",
+        "immortal",
+        "kiên_tiên"
+      ],
+      "prompt_base": "elegant flying sword with bronze hilt and golden energy trail, imperial cultivation tool, mystical aura, clean cutout"
     },
     {
       "id": "war_chariot",
@@ -74,11 +107,22 @@
       },
       "tile_size": "2x1",
       "rotation": "cardinal",
-      "prompt": "2.5D sprite angle, ancient Chinese war chariot, bronze weapons and fittings, crimson accent details, battle-worn appearance, Shang dynasty military vehicle, clean cutout, isolated",
       "negative_prompt": "text, watermark, background scene, people",
-      "color_palette": ["#CD7F32", "#DC143C", "#4A3B2C", "#8B6914"],
+      "color_palette": [
+        "#CD7F32",
+        "#DC143C",
+        "#4A3B2C",
+        "#8B6914"
+      ],
       "priority": "high",
-      "tags": ["chariot", "war", "Shang", "military", "chiến_xa"]
+      "tags": [
+        "chariot",
+        "war",
+        "Shang",
+        "military",
+        "chiến_xa"
+      ],
+      "prompt_base": "ancient Chinese war chariot, bronze weapons and fittings, crimson accent details, battle-worn appearance, Shang dynasty military vehicle, clean cutout"
     },
     {
       "id": "cloud_platform",
@@ -93,11 +137,22 @@
       },
       "tile_size": "2x2",
       "rotation": "free",
-      "prompt": "2.5D sprite angle, floating cloud platform, ethereal luminescent glow, jade accent details, immortal transport, serene mystical presence, clean cutout, isolated, game vehicle asset",
       "negative_prompt": "text, watermark, background scene, people",
-      "color_palette": ["#F5F5DC", "#00A86B", "#D4AF37", "#6A5ACD"],
+      "color_palette": [
+        "#F5F5DC",
+        "#00A86B",
+        "#D4AF37",
+        "#6A5ACD"
+      ],
       "priority": "medium",
-      "tags": ["cloud", "platform", "immortal", "mystical", "vân_đài"]
+      "tags": [
+        "cloud",
+        "platform",
+        "immortal",
+        "mystical",
+        "vân_đài"
+      ],
+      "prompt_base": "floating cloud platform, ethereal luminescent glow, jade accent details, immortal transport, serene mystical presence, clean cutout"
     }
   ]
 }

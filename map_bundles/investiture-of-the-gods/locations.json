@@ -1,11 +1,12 @@
 {
-    "_readme": "Primary language: English (optimized for Flux prompt parsing). Vietnamese: developer reference only. Canon names corrected per Fengshen Yanyi (Phong Thần Diễn Nghĩa). Structure optimized for batch asset generation pipeline.",
+    "_readme": "Primary language: English (optimized for Flux prompt parsing). Vietnamese: developer reference only. Canon names corrected per Fengshen Yanyi (Phong Thần Diễn Nghĩa). Structure optimized for batch asset generation pipeline. Optional negative_hint: merged into API negative_prompt for isolated props (skipped for terrain, vfx_atmosphere, magic_arrays_traps categories).",
     "project": "Phong Thần Diễn Nghĩa - Biome & Location Planning",
     "biomes": [
         {
             "id": "chan_school_mountains",
             "name": "Xiển Giáo Thánh Địa (Chan School Mountains)",
-            "hint": "ethereal ancient chinese mountain peaks, sea of glowing clouds, ancient twisted pine trees, divine aura, misty, floating rocks, xianxia aesthetic",
+            "hint": "ethereal ancient chinese mountain peaks, sea of glowing clouds, ancient twisted pine trees, divine aura, misty, floating rocks, ancient cultivation theme",
+            "negative_hint": "layered landscape wallpaper, distant multi-peak panorama clutter",
             "locations": [
                 "Côn Lôn Sơn (Ngọc Thanh Nguyên Thủy Thiên Tôn)",
                 "Quy Long Động (Na Tra tu luyện)",
@@ -21,6 +22,7 @@
             "id": "jie_school_mountains",
             "name": "Triệt Giáo Thánh Địa (Jie School Mountains)",
             "hint": "dark and ominous ancient chinese mystical landscape, corrupted glowing flora, strange jagged rock formations, eerie mist, dark purple and green sky, sinister aura",
+            "negative_hint": "sinister panorama vista, layered horizon filler unrelated focal prop",
             "locations": [
                 "Kim Lăng Sơn (Triệt Giáo)",
                 "Đâu Lặc Sơn",
@@ -36,6 +38,7 @@
             "id": "shang_capital",
             "name": "Thương Đô (Shang Imperial Capital)",
             "hint": "opulent ancient chinese shang dynasty city, grand massive architecture, bronze decorations, slightly dark and oppressive atmosphere, red lanterns, towering pillars",
+            "negative_hint": "street establishing crowd shot, aerial city map clutter, multiple buildings framing the edges",
             "locations": [
                 "Triều Ca (Kinh đô nhà Thương)",
                 "Lộc Đài (Công trình xa hoa)",
@@ -50,6 +53,7 @@
             "id": "zhou_capital",
             "name": "Chu Thành (Zhou Righteous Capital)",
             "hint": "lush green fertile plains, ancient chinese zhou dynasty agriculture, bright hopeful sunlight, peaceful rivers, clear blue sky, majestic orderly city walls in distance",
+            "negative_hint": "pastoral panorama wide shot, distant wall skyline filler, crowd scene",
             "locations": [
                 "Tây Kỳ (Kinh đô nhà Chu)",
                 "Hà Dương",
@@ -64,6 +68,7 @@
             "id": "strategic_passes",
             "name": "Quan Ải Chiến Lược (Strategic Fortress Passes)",
             "hint": "imposing ancient chinese fortress built into rugged mountains, massive stone walls, towering gatehouse, battle flags blowing in wind, strategic chokepoint, overcast sky",
+            "negative_hint": "fortress siege panorama, aerial chokepoint map clutter",
             "locations": [
                 "Trần Đường Quan (Lý Tịnh)",
                 "Giới Bài Quan (Tru Tiên Trận)",
@@ -84,6 +89,7 @@
             "id": "barren_battlefield",
             "name": "Chiến Trường Hoang Tàn (Barren Battlefield)",
             "hint": "desolate battle-scarred wasteland, cratered earth, broken ancient weapons, dark ominous clouds, mystical energy residues, blood-stained soil",
+            "negative_hint": "epic battlefield panorama wide vista, scattered debris unrelated focal prop",
             "locations": [
                 "Khu vực Tru Tiên Trận",
                 "Khu vực Vạn Tiên Trận",
@@ -98,6 +104,7 @@
             "id": "jagged_ridge",
             "name": "Tuyệt Lĩnh (Jagged Dead Ridge)",
             "hint": "steep rocky cliffs, bottomless chasm, jagged dead rocks, ominous shadows, withered trees, narrow dangerous path, dramatic lighting",
+            "negative_hint": "chasm vista panorama wallpaper, layered cliff horizon filler",
             "locations": [
                 "Tuyệt Long Lĩnh (Văn Thái Sư tử trận)",
                 "Núi Kỳ Sơn"
@@ -111,6 +118,7 @@
             "id": "underworld_realm",
             "name": "Âm Ty Minh Giới (Underworld Realm)",
             "hint": "ethereal chinese underworld landscape, pale blue mist, bone-white bark, ghostly willow trees, cold luminescence, silent solemn atmosphere",
+            "negative_hint": "underworld landscape wallpaper, wide ethereal panorama unrelated single prop",
             "locations": [
                 "Minh Giới",
                 "Âm Ty",
@@ -126,6 +134,7 @@
             "id": "jiuxiao_palace",
             "name": "Cửu Tiêu Cung (Nine Heavens Palace)",
             "hint": "elegant ancient chinese celestial architecture, floating jade platforms, intricate lattice windows, soft golden light, mystical arrays, serene yet powerful aura",
+            "negative_hint": "throne hall establishing panorama, wide palace interior crowd shot",
             "locations": [
                 "Cửu Tiêu Cung",
                 "Vân Tiêu Các",
@@ -140,6 +149,7 @@
             "id": "eastern_dragon_sea",
             "name": "Đông Hải Long Cung (Eastern Dragon Sea)",
             "hint": "ancient chinese underwater realm, coral reefs, kelp forests, bioluminescent flora, stone dragon motifs, deep blue water, marine energy",
+            "negative_hint": "underwater reef panorama wide scene, dive vista filler unrelated focal prop",
             "locations": [
                 "Đông Hải Long Cung",
                 "Quy Long Sơn thủy vực",
@@ -154,6 +164,7 @@
             "id": "celestial_court",
             "name": "Thiên Đình (Celestial Court)",
             "hint": "majestic ancient chinese heavenly palace, golden clouds, white jade pillars, starlight reflections, divine geometry, solemn authoritative atmosphere",
+            "negative_hint": "celestial palace panorama vista, heavenly hall establishing wide shot",
             "locations": [
                 "Thiên Đình",
                 "Ngọc Hư Cung",

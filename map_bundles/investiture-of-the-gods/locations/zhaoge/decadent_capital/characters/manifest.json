@@ -21,13 +21,13 @@
           "enabled": true,
           "format": "isometric",
           "dimensions": {"width": 1024, "height": 1024},
-          "style_prompt": "full body game character sprite, isometric 2.5D angle, standing tall combat idle pose, isolated on solid white background, clean clear silhouette, game asset"
+          "style_prompt": "full body game character sprite, isometric 2.5D angle, standing tall combat idle pose, clean clear silhouette, game asset"
         },
         "dialog_portrait": {
           "enabled": true,
           "format": "half_body",
           "dimensions": {"width": 1024, "height": 1024},
-          "style_prompt": "visual novel character sprite, half-body portrait, standing posture, looking at viewer, isolated on solid white background, clean edges, game UI asset"
+          "style_prompt": "visual novel character sprite, half-body portrait, standing posture, looking at viewer, clean edges, game UI asset"
         }
       },
       "tags": ["character", "boss", "emperor", "shang", "di_xin"]
@@ -51,13 +51,13 @@
           "enabled": true,
           "format": "isometric",
           "dimensions": {"width": 1024, "height": 1024},
-          "style_prompt": "full body game character sprite, isometric 2.5D angle, elegant floating pose, isolated on solid white background, clean clear silhouette, game asset"
+          "style_prompt": "full body game character sprite, isometric 2.5D angle, elegant floating pose, clean clear silhouette, game asset"
         },
         "dialog_portrait": {
           "enabled": true,
           "format": "half_body",
           "dimensions": {"width": 1024, "height": 1024},
-          "style_prompt": "visual novel character sprite, half-body portrait, seductive posture, looking directly at viewer, isolated on solid white background, clean edges, game UI asset"
+          "style_prompt": "visual novel character sprite, half-body portrait, seductive posture, looking directly at viewer, clean edges, game UI asset"
         }
       },
       "tags": ["character", "boss", "fox_spirit", "shang", "daji"]
@@ -81,13 +81,13 @@
           "enabled": true,
           "format": "isometric",
           "dimensions": {"width": 1024, "height": 1024},
-          "style_prompt": "full body game character sprite, isometric 2.5D angle, standing holding tablet pose, isolated on solid white background, clean clear silhouette, game asset"
+          "style_prompt": "full body game character sprite, isometric 2.5D angle, standing holding tablet pose, clean clear silhouette, game asset"
         },
         "dialog_portrait": {
           "enabled": true,
           "format": "half_body",
           "dimensions": {"width": 1024, "height": 1024},
-          "style_prompt": "visual novel character sprite, half-body portrait, respectful posture, holding jade tablet, looking at viewer, isolated on solid white background, clean edges, game UI asset"
+          "style_prompt": "visual novel character sprite, half-body portrait, respectful posture, holding jade tablet, looking at viewer, clean edges, game UI asset"
         }
       },
       "tags": ["character", "npc", "official", "shang", "bi_gan"]

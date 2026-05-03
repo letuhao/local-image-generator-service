@@ -138,6 +138,25 @@ class ComfyUIAdapter:
         log.info("comfy.submit", prompt_id=prompt_id, client_id=self.client_id)
         return prompt_id
 
+    async def upload_image(self, image_bytes: bytes, filename: str) -> str:
+        """Uploads an image to ComfyUI's input directory via /upload/image."""
+        try:
+            files = {"image": (filename, image_bytes, "application/octet-stream")}
+            resp = await self._http.post("/upload/image", files=files)
+        except httpx.ConnectError as exc:
+            raise ComfyUnreachableError(f"connect /upload/image: {exc}") from exc
+        except httpx.HTTPError as exc:
+            raise ComfyUnreachableError(f"transport /upload/image: {exc}") from exc
+
+        if resp.status_code >= 400:
+            raise ComfyUnreachableError(f"/upload/image returned {resp.status_code}: {resp.text[:200]}")
+        
+        data = resp.json()
+        name = data.get("name")
+        if not name:
+            raise ComfyNodeError(f"/upload/image response missing name: {data}")
+        return name
+
     # ───────────────────────── wait_for_completion ─────────────────────────
 
     async def wait_for_completion(self, prompt_id: str, timeout_s: float) -> None:

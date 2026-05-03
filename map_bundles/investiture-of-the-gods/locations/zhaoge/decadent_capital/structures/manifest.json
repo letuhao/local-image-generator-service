@@ -17,7 +17,6 @@
       },
       "tile_size": "3x2",
       "rotation": "forward_back",
-      "prompt": "centered composition, towering imperial gatehouse, massive bronze door studs in grid pattern, crimson lacquer pillars, golden tiled roof with dragon ridge ends, oppressive grandeur, atmospheric mist at base, dramatic low angle, isolated against white, game prop style",
       "negative_prompt": "text, watermark, people, cartoon, flat 2D",
       "color_palette": [
         "#D4AF37",
@@ -32,7 +31,8 @@
         "bronze",
         "entrance",
         "Triều_Ca"
-      ]
+      ],
+      "prompt_base": "towering imperial gatehouse, massive bronze door studs in grid pattern, crimson lacquer pillars, golden tiled roof with dragon ridge ends, oppressive grandeur, atmospheric mist at base, dramatic low angle"
     },
     {
       "id": "bronze_zun_altar",
@@ -47,7 +47,6 @@
       },
       "tile_size": "2x2",
       "rotation": "radial",
-      "prompt": "centered composition, bronze zun ritual cauldron on carved stone altar, intricate taotie thunder patterns covering surface, ancient ritual object, dramatic rim light, incense smoke rising, authoritative presence, isolated prop, game item sprite style",
       "negative_prompt": "text, watermark, people, cartoon, flat 2D",
       "color_palette": [
         "#CD7F32",
@@ -62,7 +61,8 @@
         "ritual",
         "zun",
         "taotie"
-      ]
+      ],
+      "prompt_base": "bronze zun ritual cauldron on carved stone altar, intricate taotie thunder patterns covering surface, ancient ritual object, incense smoke rising, authoritative presence"
     },
     {
       "id": "fox_spirit_archway",
@@ -77,7 +77,6 @@
       },
       "tile_size": "2x1",
       "rotation": "cardinal",
-      "prompt": "centered composition, stone paifang archway with fox spirit relief carvings, weathered and eroded stone surface, eerie green luminescence from corrupted carvings, sinister elegance, isolated against white, game prop style",
       "negative_prompt": "text, watermark, people, cartoon, flat 2D",
       "color_palette": [
         "#6B8E23",
@@ -92,7 +91,8 @@
         "stone",
         "corrupted",
         "paifang"
-      ]
+      ],
+      "prompt_base": "stone paifang archway with fox spirit relief carvings, weathered and eroded stone surface, eerie green luminescence from corrupted carvings, sinister elegance"
     },
     {
       "id": "sign_of_doom",
@@ -107,7 +107,6 @@
       },
       "tile_size": "1x1",
       "rotation": "cardinal",
-      "prompt": "centered composition, tall monolithic stone pillar with cryptic oracle bone inscriptions, dark ominous aura, foreboding atmosphere, dramatic sidelight, prophetic weight, isolated prop, game asset style",
       "negative_prompt": "text, watermark, people, cartoon, flat 2D",
       "color_palette": [
         "#2F2F2F",
@@ -122,7 +121,8 @@
         "doom",
         "oracle",
         "Vong_Quốc"
-      ]
+      ],
+      "prompt_base": "tall monolithic stone pillar with cryptic oracle bone inscriptions, dark ominous aura, foreboding atmosphere, dramatic sidelight, prophetic weight, game asset style"
     },
     {
       "id": "imperial_bridge",
@@ -137,7 +137,6 @@
       },
       "tile_size": "2x1",
       "rotation": "forward_back",
-      "prompt": "centered composition, crimson arched stone bridge over calm moat water, golden dragon-pattern railings, elegant imperial design, reflections in water below, graceful curve, isolated prop, game asset style",
       "negative_prompt": "text, watermark, people, cartoon, flat 2D",
       "color_palette": [
         "#DC143C",
@@ -152,7 +151,8 @@
         "moat",
         "imperial",
         "Hoàng_Gia"
-      ]
+      ],
+      "prompt_base": "crimson arched stone bridge over calm moat water, golden dragon-pattern railings, elegant imperial design, reflections in water below, graceful curve, game asset style"
     },
     {
       "id": "bronze_dragon_spout",
@@ -174,13 +174,13 @@
         "long_tẩu"
       ],
       "priority": "high",
-      "prompt": "centered composition, dragon-headed bronze spout protruding from palace wall, wine pouring from dragon's mouth in golden arc, taotie patterns on dragon body, opulent banquet atmosphere, dramatic lighting, game prop style, isolated",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "dragon-headed bronze spout protruding from palace wall, wine pouring from dragon's mouth in golden arc, taotie patterns on dragon body, opulent banquet atmosphere, dramatic lighting"
     },
     {
       "id": "bronze_fire_urn",
@@ -202,13 +202,13 @@
         "hỏa_bồn"
       ],
       "priority": "high",
-      "prompt": "centered composition, large bronze fire prevention urn on stone base, water surface reflecting moonlight, dragon handle grips on sides, practical imperial object, dramatic lighting, game prop style, isolated",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "large bronze fire prevention urn on stone base, water surface reflecting moonlight, dragon handle grips on sides, practical imperial object, dramatic lighting"
     },
     {
       "id": "stone_lion_pair",
@@ -230,13 +230,13 @@
         "_thạch_sư"
       ],
       "priority": "high",
-      "prompt": "centered composition, pair of guardian stone lions at palace entrance, weathered surface with patina, one paw on carved sphere, imposing protective presence, dramatic sidelight, game prop style, isolated",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "pair of guardian stone lions at palace entrance, weathered surface with patina, one paw on carved sphere, imposing protective presence, dramatic sidelight"
     },
     {
       "id": "imperial_brazen_urn",
@@ -258,13 +258,13 @@
         "đại_hỏa"
       ],
       "priority": "high",
-      "prompt": "centered composition, massive brazen urn for sacred eternal fire, golden flames always burning inside, intricate taotie patterns all over surface, ritual object, dramatic rim light, authoritative presence, game prop style, isolated",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "massive brazen urn for sacred eternal fire, golden flames always burning inside, intricate taotie patterns all over surface, ritual object, authoritative presence"
     },
     {
       "id": "fengshen_altar_base",
@@ -286,13 +286,13 @@
         "_phong_thần_đàn"
       ],
       "priority": "high",
-      "prompt": "centered composition, three-tiered Fengshen altar base platform, Bagua trigram floor markings with bronze and jade inlay, directional guardian positions marked, solemn sacred atmosphere, dramatic overhead lighting, game prop style, isolated",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "three-tiered Fengshen altar base platform, Bagua trigram floor markings with bronze and jade inlay, directional guardian positions marked, solemn sacred atmosphere, dramatic overhead lighting"
     },
     {
       "id": "directional_pillar_qinglong",
@@ -314,13 +314,13 @@
         "thanh_long_trụ"
       ],
       "priority": "high",
-      "prompt": "centered composition, Azure Dragon directional pillar of Fengshen Altar, green jade dragon carving coiled around stone pillar, eastern direction marker, mystical luminescence, solemn sacred atmosphere, game prop style, isolated",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "Azure Dragon directional pillar of Fengshen Altar, green jade dragon carving coiled around stone pillar, eastern direction marker, mystical luminescence, solemn sacred atmosphere"
     },
     {
       "id": "directional_pillar_baihu",
@@ -342,13 +342,13 @@
         "bạch_hổ_trụ"
       ],
       "priority": "high",
-      "prompt": "centered composition, White Tiger directional pillar of Fengshen Altar, white jade tiger carving coiled around stone pillar, western direction marker, fierce protective aura, solemn sacred atmosphere, game prop style, isolated",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "White Tiger directional pillar of Fengshen Altar, white jade tiger carving coiled around stone pillar, western direction marker, fierce protective aura, solemn sacred atmosphere"
     },
     {
       "id": "directional_pillar_zhuque",
@@ -370,13 +370,13 @@
         "chu_tước_trụ"
       ],
       "priority": "high",
-      "prompt": "centered composition, Vermilion Bird directional pillar of Fengshen Altar, red phoenix/carving coiled around stone pillar, southern direction marker, flame aura, solemn sacred atmosphere, game prop style, isolated",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "Vermilion Bird directional pillar of Fengshen Altar, red phoenix/carving coiled around stone pillar, southern direction marker, flame aura, solemn sacred atmosphere"
     },
     {
       "id": "directional_pillar_xuanwu",
@@ -398,13 +398,13 @@
         "huyền_vũ_trụ"
       ],
       "priority": "high",
-      "prompt": "centered composition, Black Tortoise directional pillar of Fengshen Altar, tortoise-and-snake carving coiled around stone pillar, northern direction marker, dark protective aura, solemn sacred atmosphere, game prop style, isolated",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "Black Tortoise directional pillar of Fengshen Altar, tortoise-and-snake carving coiled around stone pillar, northern direction marker, dark protective aura, solemn sacred atmosphere"
     },
     {
       "id": "drum_tower_gu_lou",
@@ -426,13 +426,13 @@
         "cổ_lâu"
       ],
       "priority": "high",
-      "prompt": "centered composition, drum tower for ancient Chinese capital city timekeeping, wooden multi-tiered structure, massive drum inside, crimson and gold, civic architecture, atmospheric mist, game prop style, isolated",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "drum tower for ancient Chinese capital city timekeeping, wooden multi-tiered structure, massive drum inside, crimson and gold, civic architecture, atmospheric mist"
     },
     {
       "id": "bell_tower_chong_lou",
@@ -454,13 +454,13 @@
         "chung_lâu"
       ],
       "priority": "high",
-      "prompt": "centered composition, bell tower opposite drum tower in ancient capital, wooden multi-tiered structure, massive bronze bell hanging inside, crimson and gold, civic architecture, atmospheric mist, game prop style, isolated",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "bell tower opposite drum tower in ancient capital, wooden multi-tiered structure, massive bronze bell hanging inside, crimson and gold, civic architecture, atmospheric mist"
     },
     {
       "id": "lantern_pillar_tower",
@@ -481,13 +481,13 @@
         "đăng_trụ"
       ],
       "priority": "medium",
-      "prompt": "centered composition, tall lantern pillar for festival nights in capital, multiple tiers of red lanterns on wooden pole, golden light emission, festive atmosphere, dramatic lighting, game prop style, isolated",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "tall lantern pillar for festival nights in capital, multiple tiers of red lanterns on wooden pole, golden light emission, festive atmosphere, dramatic lighting"
     },
     {
       "id": "temple_spirit_gate",
@@ -508,13 +508,13 @@
         "thần_đạo_môn"
       ],
       "priority": "medium",
-      "prompt": "centered composition, temple spirit gate (Paifang) at temple entrance, three-arch design with carved dragon pillars, green tile roof, sacred boundary marker, atmospheric mist, game prop style, isolated",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "temple spirit gate (Paifang) at temple entrance, three-arch design with carved dragon pillars, green tile roof, sacred boundary marker, atmospheric mist"
     }
   ]
 }

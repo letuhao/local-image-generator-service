@@ -36,6 +36,7 @@ from app.registry.workflows import (
     inject_loras,
     inject_model_source,
     inject_vpred,
+    inject_init_image,
     load_workflow,
 )
 from app.storage.s3 import StorageError
@@ -317,6 +318,19 @@ class QueueWorker:
         # implemented), then inject_loras consumes the final MODEL/CLIP anchors.
         inject_vpred(graph, model_cfg=validated.model)
         inject_loras(graph, validated.loras, model_cfg=validated.model)
+
+        if validated.init_image_bytes:
+            filename = f"{job.id}.png"
+            try:
+                await self._adapter.upload_image(validated.init_image_bytes, filename)
+            except ComfyUnreachableError as exc:
+                await set_failed(
+                    self._store, job.id, error_code="comfy_unreachable", error_message=str(exc)
+                )
+                if self._metrics is not None:
+                    self._metrics.record_job_event(status="failed", error_code="comfy_unreachable")
+                raise
+            inject_init_image(graph, filename)
 
         # 3. Enforce model-swap unload before submit.
         current_model = validated.model.name

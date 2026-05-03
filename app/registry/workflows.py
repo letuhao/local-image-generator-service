@@ -343,3 +343,18 @@ def inject_vpred(graph: dict[str, dict], *, model_cfg) -> None:
             "vpred injection deferred per arch v0.5; "
             "re-enable when a vpred model is added to config/models.yaml"
         )
+
+def inject_init_image(graph: dict[str, dict], filename: str) -> None:
+    """Inject the uploaded init_image filename into the graph.
+    Looks for the %INIT_IMAGE% anchor on a LoadImage node.
+    """
+    try:
+        image_node_id = find_anchor(graph, "%INIT_IMAGE%")
+        node = graph[image_node_id]
+        if "inputs" not in node:
+            node["inputs"] = {}
+        node["inputs"]["image"] = filename
+    except KeyError:
+        # If the workflow doesn't support %INIT_IMAGE%, just ignore.
+        pass
+

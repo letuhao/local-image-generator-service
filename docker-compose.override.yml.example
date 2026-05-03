@@ -7,6 +7,10 @@ services:
   image-gen-service:
     ports:
       - "127.0.0.1:8700:8000"     # local-only: curl http://127.0.0.1:8700/health
+    # Optional dev ergonomics: run Python from the host so `app/` edits apply
+    # without `docker compose build`. Base compose does NOT mount `./app/`.
+    # volumes:
+    #   - ./app:/app/app:ro
 
   comfyui:
     ports:

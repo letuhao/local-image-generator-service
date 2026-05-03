@@ -1,4 +1,23 @@
 # syntax=docker/dockerfile:1.7
+#
+# Cache / CUDA–PyTorch layers (why rebuilds feel “full”)
+# -------------------------------------------------------
+# Heavy wheels (torch, etc.) live in the builder stage’s `RUN uv sync` layer.
+# That layer only invalidates when `pyproject.toml`, `uv.lock`, or `.python-version`
+# change — `app/` is NOT copied into the builder, so Python-only edits keep the
+# dependency layer **fully cached**.
+#
+# • Normal app change:   `docker compose build image-gen-service`  (no `--no-cache`)
+#                         → fast: only `COPY app/` + later layers rerun.
+# • Lockfile / deps bump: same command; only then does `uv sync` rerun (~minutes).
+# • `--no-cache`:         forces **everything** to rerun, including `uv sync`.
+#                         Use only when you suspect a poisoned cache or after
+#                         dependency corruption — not for everyday app edits.
+#
+# Optional: publish a “venv-only” base image (rebuild rarely), then application
+# images `FROM your-registry/image-gen-venv:<tag>` and only `COPY app/`.
+# Optional dev: bind-mount `./app` via `docker-compose.override.yml` (see example).
+# ---------------------------------------------------------------------------
 
 # ── Stage 1: builder ─────────────────────────────────────────────────────────
 # Install deps into a standalone venv using uv. The runtime stage won't ship

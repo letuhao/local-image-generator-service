@@ -44,7 +44,7 @@ class ModelConfig:
     clip_loader_type: str | None = None  # CLIPLoader type (e.g. "flux2") when workflow uses CLIPLoader
     # Runtime family marker used for workflow/validation branching while keeping
     # a universal client payload contract.
-    family: Literal["sdxl", "flux"] = "sdxl"
+    family: Literal["sdxl", "flux", "qwen"] = "sdxl"
     # "eps" | "vpred" — informational in Cycle 3; Cycle 5+ uses it for graph injection.
     prediction: Literal["eps", "vpred"] = "eps"
     capabilities: dict[str, Any] = field(default_factory=dict)  # e.g. {"image_gen": True}
@@ -66,6 +66,10 @@ class BackendAdapter(Protocol):
 
     async def submit(self, graph: dict) -> str:
         """Send the prompt graph to the backend. Returns a backend-assigned prompt_id."""
+        ...
+
+    async def upload_image(self, image_bytes: bytes, filename: str) -> str:
+        """Uploads an image to the backend and returns the uploaded filename."""
         ...
 
     async def wait_for_completion(self, prompt_id: str, timeout_s: float) -> None:

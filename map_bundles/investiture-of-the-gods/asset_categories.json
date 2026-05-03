@@ -1,5 +1,5 @@
 {
-  "_readme": "Primary language: English (optimized for Flux AI & pipeline routing). Vietnamese: developer reference. Structured to match locations.json schema. Add new categories as biome/lore expands.",
+  "_readme": "Primary language: English (optimized for Flux AI & pipeline routing). Vietnamese: developer reference. Extra typography/poster/UI negatives appended per category for Flux CFG≈1 runs (weak negative conditioning). framing_prompt / prompt_keywords / manifest prompt_base as usual.",
   "project": "Phong Thần Diễn Nghĩa",
   "theme": "Giao thoa Tiên - Phàm (Intersection of Immortal and Mortal)",
   "categories": [
@@ -15,7 +15,9 @@
         "mystic_water",
         "corrupted_earth"
       ],
+      "framing_prompt": "",
       "prompt_keywords": "orthographic tile, seamless border, flat top-down or isometric view, game terrain base, no heightmap, clean edges, isolated prop",
+      "negative_prompt_keywords": "text, watermark, vignette crop, UI overlay, character portrait, creature hero shot, duplicate unrelated focal object, subtitle, caption, typography, logo, letters, written text, title card, movie poster, magazine cover, decorative border, ornate frame, hud, speech bubble, chinese text, chinese characters, hanzi, japanese text, kanji, calligraphy, title card, poster art, book cover, promotional art, splash art, game cover, light novel cover, decorative border, ornate frame, chinese calligraphy brush",
       "priority": "high"
     },
     {
@@ -30,7 +32,9 @@
         "floating_pavilion",
         "jade_palace"
       ],
+      "framing_prompt": "game object sprite, white background, isolated object, single focal building",
       "prompt_keywords": "2.5D sprite angle, subtle depth tilt, clean cutout, architectural detail, no background, game asset ready",
+      "negative_prompt_keywords": "text, watermark, ground plane, pedestal, platform base, duplicate building, crowd, panorama establishing shot, aerial map view, subtitle, caption, typography, logo, letters, written text, title card, movie poster, magazine cover, decorative border, ornate frame, hud, speech bubble, chinese text, chinese characters, hanzi, japanese text, kanji, calligraphy, title card, poster art, book cover, promotional art, splash art, game cover, light novel cover, decorative border, ornate frame, chinese calligraphy brush",
       "priority": "high"
     },
     {
@@ -45,7 +49,9 @@
         "pagoda",
         "array_pillar"
       ],
+      "framing_prompt": "game object sprite, white background, isolated object, single focal structure",
       "prompt_keywords": "centered composition, readable silhouette, flat shading, game prop style, isolated, white background",
+      "negative_prompt_keywords": "text, watermark, ground plane, pedestal, platform base, duplicate structure, crowd, panorama establishing shot, street perspective clutter, subtitle, caption, typography, logo, letters, written text, title card, movie poster, magazine cover, decorative border, ornate frame, hud, speech bubble, chinese text, chinese characters, hanzi, japanese text, kanji, calligraphy, title card, poster art, book cover, promotional art, splash art, game cover, light novel cover, decorative border, ornate frame, chinese calligraphy brush",
       "priority": "high"
     },
     {
@@ -60,7 +66,9 @@
         "corrupted_thorn",
         "celestial_lotus"
       ],
-      "prompt_keywords": "single sprite, 2.5D orthographic, shallow tilt, clean alpha, game foliage asset, no terrain",
+      "framing_prompt": "game object sprite, white background, isolated object, single sprite",
+      "prompt_keywords": "shallow tilt, 2.5D orthographic view, clean alpha, game foliage asset, no terrain plane",
+      "negative_prompt_keywords": "text, watermark, ground, grass patch, soil plane, pedestal, platform base, exposed roots lump, seamless terrain tile, duplicate tree, multiple trees composition, panorama establishing shot, subtitle, caption, typography, logo, letters, written text, title card, movie poster, magazine cover, decorative border, ornate frame, hud, speech bubble, chinese text, chinese characters, hanzi, japanese text, kanji, calligraphy, title card, poster art, book cover, promotional art, splash art, game cover, light novel cover, decorative border, ornate frame, chinese calligraphy brush",
       "priority": "high"
     },
     {
@@ -75,7 +83,9 @@
         "floating_scroll",
         "spirit_statue"
       ],
+      "framing_prompt": "game object sprite, white background, isolated object, single focal artifact",
       "prompt_keywords": "centered prop, dramatic rim light, flat color blocking, game item sprite, isolated, clean edges",
+      "negative_prompt_keywords": "text, watermark, cluttered pile, multiple items collage, hands holding prop, pedestal showroom, subtitle, caption, typography, logo, letters, written text, title card, movie poster, magazine cover, decorative border, ornate frame, hud, speech bubble, chinese text, chinese characters, hanzi, japanese text, kanji, calligraphy, title card, poster art, book cover, promotional art, splash art, game cover, light novel cover, decorative border, ornate frame, chinese calligraphy brush",
       "priority": "medium"
     },
     {
@@ -90,7 +100,9 @@
         "lightning_residue",
         "sandstorm"
       ],
+      "framing_prompt": "",
       "prompt_keywords": "translucent overlay, seamless tile, soft edges, game VFX sprite, no solid geometry, alpha-ready",
+      "negative_prompt_keywords": "text, watermark, opaque solid backdrop, harsh rectangular matte, UI chrome frame, heavy vignette, subtitle, caption, typography, logo, letters, written text, title card, movie poster, magazine cover, decorative border, ornate frame, hud, speech bubble, chinese text, chinese characters, hanzi, japanese text, kanji, calligraphy, title card, poster art, book cover, promotional art, splash art, game cover, light novel cover, decorative border, ornate frame, chinese calligraphy brush",
       "priority": "medium"
     },
     {
@@ -105,8 +117,32 @@
         "spirit_fox",
         "demon_general"
       ],
+      "framing_prompt": "game creature sprite, white background, isolated subject, single focal creature",
       "prompt_keywords": "2.5D sprite angle, readable silhouette, flat shading, game character base, isolated, clean cutout",
+      "negative_prompt_keywords": "text, watermark, duplicate creature, herd flock, crowd, ground blob shadow pile, panorama scenic filler, subtitle, caption, typography, logo, letters, written text, title card, movie poster, magazine cover, decorative border, ornate frame, hud, speech bubble, chinese text, chinese characters, hanzi, japanese text, kanji, calligraphy, title card, poster art, book cover, promotional art, splash art, game cover, light novel cover, decorative border, ornate frame, chinese calligraphy brush",
       "priority": "high"
+    },
+    {
+      "id": "musical_instruments",
+      "name": "Musical Instruments / Nhạc cụ",
+      "description": "Court instruments: bells, zithers, drums, ritual sound props.",
+      "description_vn": "Nhạc cụ cung đình: chuông, đàn, trống.",
+      "asset_focus": ["bianzhong", "qing", "drum", "zither"],
+      "framing_prompt": "game object sprite, white background, isolated object, single focal instrument",
+      "prompt_keywords": "centered composition, dramatic rim light, readable silhouette, clean edges, court music asset",
+      "negative_prompt_keywords": "text, watermark, cluttered orchestra pile, hands playing, concert hall panorama, subtitle, caption, typography, logo, letters, written text, title card, movie poster, magazine cover, decorative border, ornate frame, hud, speech bubble, chinese text, chinese characters, hanzi, japanese text, kanji, calligraphy, title card, poster art, book cover, promotional art, splash art, game cover, light novel cover, decorative border, ornate frame, chinese calligraphy brush",
+      "priority": "medium"
+    },
+    {
+      "id": "water_infrastructure",
+      "name": "Water Infrastructure / Thủy lợi & ao rượu",
+      "description": "Spouts, basins, pools, irrigation props tied to palace decadence.",
+      "description_vn": "Vòi phun, ao bể, tile mặt nước.",
+      "asset_focus": ["dragon_spout", "wine_pool", "basin"],
+      "framing_prompt": "game object sprite, white background, isolated object, single focal water prop",
+      "prompt_keywords": "2.5D sprite angle, readable silhouette, game prop style, isolated",
+      "negative_prompt_keywords": "text, watermark, crowded banquet panorama, cross-section cutaway, aerial city map, subtitle, caption, typography, logo, letters, written text, title card, movie poster, magazine cover, decorative border, ornate frame, hud, speech bubble, chinese text, chinese characters, hanzi, japanese text, kanji, calligraphy, title card, poster art, book cover, promotional art, splash art, game cover, light novel cover, decorative border, ornate frame, chinese calligraphy brush",
+      "priority": "medium"
     },
     {
       "id": "magic_arrays_traps",
@@ -120,7 +156,9 @@
         "ritual_circle",
         "formation_marker"
       ],
+      "framing_prompt": "",
       "prompt_keywords": "top-down or isometric tile, seamless border, game UI/prop hybrid, clean geometry, isolated",
+      "negative_prompt_keywords": "text, watermark, character portrait, extreme perspective distortion, outdoor panorama clutter unrelated to circle, subtitle, caption, typography, logo, letters, written text, title card, movie poster, magazine cover, decorative border, ornate frame, hud, speech bubble, chinese text, chinese characters, hanzi, japanese text, kanji, calligraphy, title card, poster art, book cover, promotional art, splash art, game cover, light novel cover, decorative border, ornate frame, chinese calligraphy brush",
       "priority": "high"
     },
     {
@@ -135,7 +173,9 @@
         "celestial_chariot",
         "spirit_mount"
       ],
+      "framing_prompt": "game vehicle sprite, white background, isolated object, single focal mount or vehicle",
       "prompt_keywords": "2.5D sprite angle, dynamic pose, flat shading, game vehicle asset, isolated, clean edges",
+      "negative_prompt_keywords": "text, watermark, crowd, garage interior cutaway, busy street scene duplicate mounts, subtitle, caption, typography, logo, letters, written text, title card, movie poster, magazine cover, decorative border, ornate frame, hud, speech bubble, chinese text, chinese characters, hanzi, japanese text, kanji, calligraphy, title card, poster art, book cover, promotional art, splash art, game cover, light novel cover, decorative border, ornate frame, chinese calligraphy brush",
       "priority": "medium"
     },
     {
@@ -149,7 +189,9 @@
         "silk_screen",
         "ruined_pillar_rubble"
       ],
-      "prompt_keywords": "small game prop, destructible object, isolated on white background, 2.5D orthographic, clear silhouette",
+      "framing_prompt": "small game prop sprite, white background, isolated object, single focal prop",
+      "prompt_keywords": "destructible object style, 2.5D orthographic, clear silhouette",
+      "negative_prompt_keywords": "text, watermark, cluttered shelf, flea market pile, multiple unrelated props collage, subtitle, caption, typography, logo, letters, written text, title card, movie poster, magazine cover, decorative border, ornate frame, hud, speech bubble, chinese text, chinese characters, hanzi, japanese text, kanji, calligraphy, title card, poster art, book cover, promotional art, splash art, game cover, light novel cover, decorative border, ornate frame, chinese calligraphy brush",
       "priority": "high"
     },
     {
@@ -163,7 +205,20 @@
         "bronze_treasure_chest",
         "wall_sconce"
       ],
-      "prompt_keywords": "isometric level design asset, modular building block, game environment prop, seamless where applicable, clear orthographic perspective",
+      "framing_prompt": "modular game environment block, white background, isolated segment, single module focus",
+      "prompt_keywords": "isometric level design asset, modular building block, seamless where applicable, clear orthographic perspective",
+      "negative_prompt_keywords": "text, watermark, character portrait, hero creature focal, panorama scenic filler unrelated module, subtitle, caption, typography, logo, letters, written text, title card, movie poster, magazine cover, decorative border, ornate frame, hud, speech bubble, chinese text, chinese characters, hanzi, japanese text, kanji, calligraphy, title card, poster art, book cover, promotional art, splash art, game cover, light novel cover, decorative border, ornate frame, chinese calligraphy brush",
+      "priority": "high"
+    },
+    {
+      "id": "characters",
+      "name": "Characters / Nhân vật",
+      "description": "NPC and hero manifests under locations/*/characters/manifest.json; category id matches folder name for batch filtering.",
+      "description_vn": "Manifest nhân vật; id khớp thư mục để lọc --categories.",
+      "asset_focus": [],
+      "framing_prompt": "",
+      "prompt_keywords": "",
+      "negative_prompt_keywords": "text, watermark, lowres, blurry, bad anatomy, deformed hands, extra limbs, fused fingers, multiple heads, cropped face, subtitle, caption, typography, logo, letters, written text, title card, movie poster, magazine cover, decorative border, ornate frame, hud, speech bubble, chinese text, chinese characters, hanzi, japanese text, kanji, calligraphy, title card, poster art, book cover, promotional art, splash art, game cover, light novel cover, decorative border, ornate frame, chinese calligraphy brush",
       "priority": "high"
     }
   ]

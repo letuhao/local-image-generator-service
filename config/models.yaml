@@ -10,6 +10,8 @@
 #
 # Startup validation fails fast on missing files, missing workflow anchors,
 # or vram_estimate_gb > VRAM_BUDGET_GB.
+#
+# qwen: Qwen Image Edit–style AIO checkpoints (single safetensors: unet+CLIP+VAE).
 
 models:
   - name: noobai-xl-v1.1
@@ -18,7 +20,7 @@ models:
     workflow: workflows/sdxl_eps.json
     checkpoint: checkpoints/NoobAI-XL-v1.1.safetensors
     prediction: eps
-    vae: vae/sdxl_vae.safetensors
+    vae: vae/sdxl.vae.safetensors
     capabilities:
       image_gen: true
     defaults:
@@ -65,7 +67,7 @@ models:
     workflow: workflows/sdxl_eps.json
     checkpoint: checkpoints/chineseMartialArts_v10.safetensors
     prediction: eps
-    vae: vae/sdxl_vae.safetensors
+    vae: vae/sdxl.vae.safetensors
     capabilities:
       image_gen: true
     defaults:
@@ -87,7 +89,7 @@ models:
     workflow: workflows/sdxl_eps.json
     checkpoint: checkpoints/sd_xl_base_1.0.safetensors
     prediction: eps
-    vae: vae/sdxl_vae.safetensors
+    vae: vae/sdxl.vae.safetensors
     capabilities:
       image_gen: true
     defaults:
@@ -130,7 +132,7 @@ models:
     workflow: workflows/sdxl_eps.json
     checkpoint: checkpoints/realisticFantasyMix_v30.safetensors
     prediction: eps
-    vae: vae/sdxl_vae.safetensors
+    vae: vae/sdxl.vae.safetensors
     capabilities:
       image_gen: true
     defaults:
@@ -146,11 +148,11 @@ models:
       size_max_pixels: 1572864
     vram_estimate_gb: 8
 
-  - name: flux1-dev
+  - name: flux1-kontext
     backend: comfyui
     family: flux
-    workflow: workflows/flux_checkpoint.json
-    checkpoint: checkpoints/flux1-dev.safetensors
+    workflow: workflows/flux_gguf.json
+    checkpoint: unet/flux1-kontext-dev-Q8_0.gguf
     prediction: eps
     vae: vae/ae.safetensors
     clip_l: text_encoders/clip_l.safetensors
@@ -160,8 +162,8 @@ models:
       image_gen: true
     defaults:
       size: "1024x1024"
-      steps: 28
-      cfg: 4.0
+      steps: 30
+      cfg: 1.0
       sampler: euler
       scheduler: simple
       negative_prompt: ""
@@ -169,7 +171,132 @@ models:
       steps_max: 50
       n_max: 2
       size_max_pixels: 1572864
-    vram_estimate_gb: 12
+    vram_estimate_gb: 10
+
+  - name: animeMixFluxLucifer_v10
+    backend: comfyui
+    family: flux
+    workflow: workflows/flux_checkpoint.json
+    checkpoint: checkpoints/animeMixFluxLucifer_v10.safetensors
+    prediction: eps
+    vae: vae/ae.safetensors
+    clip_l: text_encoders/clip_l.safetensors
+    t5xxl: text_encoders/t5xxl_fp8_e4m3fn.safetensors
+    dual_clip_type: flux
+    capabilities:
+      image_gen: true
+    defaults:
+      size: "1024x1024"
+      steps: 32
+      cfg: 1.0
+      sampler: euler
+      scheduler: simple
+      negative_prompt: ""
+    limits:
+      steps_max: 50
+      n_max: 2
+      size_max_pixels: 1572864
+    vram_estimate_gb: 20
+
+  - name: FLUX1984AnimeStyleFeat_v20Fp8Noclip
+    backend: comfyui
+    family: flux
+    workflow: workflows/flux_checkpoint.json
+    checkpoint: checkpoints/FLUX1984AnimeStyleFeat_v20Fp8Noclip.safetensors
+    prediction: eps
+    vae: vae/ae.safetensors
+    clip_l: text_encoders/clip_l.safetensors
+    t5xxl: text_encoders/t5xxl_fp8_e4m3fn.safetensors
+    dual_clip_type: flux
+    capabilities:
+      image_gen: true
+    defaults:
+      size: "1024x1024"
+      steps: 32
+      cfg: 1.0
+      sampler: euler
+      scheduler: simple
+      negative_prompt: ""
+    limits:
+      steps_max: 50
+      n_max: 2
+      size_max_pixels: 1572864
+    vram_estimate_gb: 20
+
+  - name: LahMysteriousQwen_fluxAlpha
+    backend: comfyui
+    family: flux
+    workflow: workflows/flux_gguf.json
+    checkpoint: unet/118441_LahMysteriousQwen_fluxAlpha.q8_0.gguf
+    prediction: eps
+    vae: vae/ae.safetensors
+    clip_l: text_encoders/clip_l.safetensors
+    t5xxl: text_encoders/t5xxl_fp8_e4m3fn.safetensors
+    dual_clip_type: flux
+    capabilities:
+      image_gen: true
+    defaults:
+      size: "1024x1024"
+      steps: 24
+      cfg: 1.0
+      sampler: euler
+      scheduler: simple
+      negative_prompt: ""
+    limits:
+      steps_max: 50
+      n_max: 2
+      size_max_pixels: 1572864
+    vram_estimate_gb: 20
+
+  - name: picpongPrime_picpongPrimeV1
+    backend: comfyui
+    family: flux
+    workflow: workflows/flux_gguf.json
+    checkpoint: unet/2473720_picpongPrime_picpongPrimeV1.q8_0.gguf
+    prediction: eps
+    vae: vae/ae.safetensors
+    clip_l: text_encoders/clip_l.safetensors
+    t5xxl: text_encoders/t5xxl_fp8_e4m3fn.safetensors
+    dual_clip_type: flux
+    capabilities:
+      image_gen: true
+    defaults:
+      size: "1024x1024"
+      steps: 24
+      cfg: 1.0
+      sampler: euler
+      scheduler: simple
+      negative_prompt: ""
+    limits:
+      steps_max: 50
+      n_max: 2
+      size_max_pixels: 1572864
+    vram_estimate_gb: 20
+
+  - name: unholyDesiresAbyssal_v10
+    backend: comfyui
+    family: flux
+    workflow: workflows/flux_gguf.json
+    checkpoint: unet/1847675_unholyDesiresAbyssal_v10.q8_0.gguf
+    prediction: eps
+    vae: vae/ae.safetensors
+    clip_l: text_encoders/clip_l.safetensors
+    t5xxl: text_encoders/t5xxl_fp8_e4m3fn.safetensors
+    dual_clip_type: flux
+    capabilities:
+      image_gen: true
+    defaults:
+      size: "1024x1024"
+      steps: 24
+      cfg: 1.0
+      sampler: euler
+      scheduler: simple
+      negative_prompt: ""
+    limits:
+      steps_max: 50
+      n_max: 2
+      size_max_pixels: 1572864
+    vram_estimate_gb: 20
 
   - name: flux1-dev-q8
     backend: comfyui
@@ -252,7 +379,7 @@ models:
     workflow: workflows/sdxl_eps.json
     checkpoint: checkpoints/Illustrious-XL-v1.0.safetensors
     prediction: eps
-    vae: vae/sdxl_vae.safetensors
+    vae: vae/sdxl.vae.safetensors
     capabilities:
       image_gen: true
     defaults:
@@ -317,3 +444,69 @@ models:
       n_max: 1
       size_max_pixels: 1572864
     vram_estimate_gb: 12
+
+  - name: qwen-anime-beta3-aio
+    backend: comfyui
+    family: qwen
+    workflow: workflows/qwen_aio_eps.json
+    checkpoint: checkpoints/2122738_qwenAnime_qwenAnimeBeta3AIO.safetensors
+    prediction: eps
+    # Baked VAE in AIO checkpoint — VAEDecode uses CheckpointLoaderSimple output [2].
+    capabilities:
+      image_gen: true
+    defaults:
+      size: "1024x1024"
+      steps: 8
+      cfg: 1.0
+      sampler: euler
+      scheduler: simple
+      negative_prompt: "low quality, blurry, bad anatomy, bad hands, text, watermark"
+    limits:
+      steps_max: 40
+      n_max: 2
+      size_max_pixels: 1572864
+    vram_estimate_gb: 10
+
+  - name: qwen_rapid_aio_v23
+    backend: comfyui
+    family: qwen
+    workflow: workflows/qwen_aio_eps.json
+    checkpoint: checkpoints/2167203_Qwen-Rapid-AIO-NSFW-v23.safetensors
+    prediction: eps
+    # Baked VAE in AIO checkpoint — VAEDecode uses CheckpointLoaderSimple output [2].
+    capabilities:
+      image_gen: true
+    defaults:
+      size: "1024x1024"
+      steps: 8
+      cfg: 1.0
+      sampler: euler
+      scheduler: simple
+      negative_prompt: "low quality, blurry, bad anatomy, bad hands, text, watermark"
+    limits:
+      steps_max: 40
+      n_max: 2
+      size_max_pixels: 1572864
+    vram_estimate_gb: 10
+
+  - name: noobai-xl-controlnet-canny
+    backend: comfyui
+    family: sdxl
+    workflow: workflows/sdxl_controlnet_canny.json
+    checkpoint: checkpoints/NoobAI-XL-v1.1.safetensors
+    prediction: eps
+    vae: vae/sdxl.vae.safetensors
+    capabilities:
+      image_gen: true
+    defaults:
+      size: "1024x1024"
+      steps: 30
+      cfg: 5.0
+      sampler: euler_ancestral
+      scheduler: karras
+      negative_prompt: "worst quality, low quality"
+    limits:
+      steps_max: 60
+      n_max: 4
+      size_max_pixels: 1572864
+    vram_estimate_gb: 8

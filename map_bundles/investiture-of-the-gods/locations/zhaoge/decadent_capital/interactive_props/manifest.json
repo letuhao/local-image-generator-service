@@ -16,11 +16,22 @@
         "width": 512,
         "height": 512
       },
-      "prompt": "centered composition, ancient clay pottery vase, intricate taotie motif engravings, slightly worn texture, dark imperial aesthetic, loot container, isolated game prop",
       "negative_prompt": "text, watermark, people, cartoon, flat 2D, background",
-      "color_palette": ["#8B4513", "#A0522D", "#2F4F4F", "#1A1A2E"],
+      "color_palette": [
+        "#8B4513",
+        "#A0522D",
+        "#2F4F4F",
+        "#1A1A2E"
+      ],
       "priority": "high",
-      "tags": ["prop", "pottery", "destructible", "taotie", "loot"]
+      "tags": [
+        "prop",
+        "pottery",
+        "destructible",
+        "taotie",
+        "loot"
+      ],
+      "prompt_base": "ancient clay pottery vase, intricate taotie motif engravings, slightly worn texture, dark imperial aesthetic, loot container, isolated game prop"
     },
     {
       "id": "shang_taotie_pottery_broken",
@@ -34,11 +45,22 @@
         "width": 512,
         "height": 512
       },
-      "prompt": "centered composition, shattered ancient clay pottery vase, broken ceramic shards scattered on the ground, intricate taotie motif fragments, ruined, destroyed loot container, debris, isolated game prop",
       "negative_prompt": "text, watermark, people, cartoon, flat 2D, background, intact vase",
-      "color_palette": ["#8B4513", "#A0522D", "#2F4F4F", "#1A1A2E"],
+      "color_palette": [
+        "#8B4513",
+        "#A0522D",
+        "#2F4F4F",
+        "#1A1A2E"
+      ],
       "priority": "high",
-      "tags": ["prop", "pottery", "broken", "ruin", "debris"]
+      "tags": [
+        "prop",
+        "pottery",
+        "broken",
+        "ruin",
+        "debris"
+      ],
+      "prompt_base": "shattered ancient clay pottery vase, broken ceramic shards scattered on the ground, intricate taotie motif fragments, ruined, destroyed loot container, debris, isolated game prop"
     },
     {
       "id": "bronze_execution_rack",
@@ -52,11 +74,22 @@
         "width": 512,
         "height": 512
       },
-      "prompt": "centered composition, dark bronze weapon rack, hanging ancient execution tools, chains, dried blood stains, sinister torture device, oppressive imperial aesthetic, isolated game prop",
       "negative_prompt": "text, watermark, people, cartoon, flat 2D, background",
-      "color_palette": ["#CD7F32", "#4A0E4E", "#1A1A1A", "#8B0000"],
+      "color_palette": [
+        "#CD7F32",
+        "#4A0E4E",
+        "#1A1A1A",
+        "#8B0000"
+      ],
       "priority": "medium",
-      "tags": ["prop", "torture", "weapon_rack", "bronze", "dark"]
+      "tags": [
+        "prop",
+        "torture",
+        "weapon_rack",
+        "bronze",
+        "dark"
+      ],
+      "prompt_base": "dark bronze weapon rack, hanging ancient execution tools, chains, dried blood stains, sinister torture device, oppressive imperial aesthetic, isolated game prop"
     },
     {
       "id": "torn_silk_screen",
@@ -70,11 +103,22 @@
         "width": 1024,
         "height": 1024
       },
-      "prompt": "centered composition, imperial folding screen room divider, dark carved wood frame, torn and ruined crimson silk fabric, signs of decay and decadence, abandoned palace furniture, isolated game prop",
       "negative_prompt": "text, watermark, people, cartoon, flat 2D, background, intact, clean",
-      "color_palette": ["#3E1F1F", "#DC143C", "#1A1A1A", "#D4AF37"],
+      "color_palette": [
+        "#3E1F1F",
+        "#DC143C",
+        "#1A1A1A",
+        "#D4AF37"
+      ],
       "priority": "low",
-      "tags": ["prop", "furniture", "screen", "torn", "decadent"]
+      "tags": [
+        "prop",
+        "furniture",
+        "screen",
+        "torn",
+        "decadent"
+      ],
+      "prompt_base": "imperial folding screen room divider, dark carved wood frame, torn and ruined crimson silk fabric, signs of decay and decadence, abandoned palace furniture, isolated game prop"
     },
     {
       "id": "blood_stained_barrel",
@@ -88,11 +132,22 @@
         "width": 512,
         "height": 512
       },
-      "prompt": "centered composition, old bound wooden barrel, iron hoops, dark wood, sinister blood stains splashed on the side, loot container, execution area prop, isolated game prop",
       "negative_prompt": "text, watermark, people, cartoon, flat 2D, background, clean",
-      "color_palette": ["#5C4033", "#2F2F2F", "#8B0000", "#1A1A1A"],
+      "color_palette": [
+        "#5C4033",
+        "#2F2F2F",
+        "#8B0000",
+        "#1A1A1A"
+      ],
       "priority": "medium",
-      "tags": ["prop", "barrel", "wood", "blood", "loot"]
+      "tags": [
+        "prop",
+        "barrel",
+        "wood",
+        "blood",
+        "loot"
+      ],
+      "prompt_base": "old bound wooden barrel, iron hoops, dark wood, sinister blood stains splashed on the side, loot container, execution area prop, isolated game prop"
     },
     {
       "id": "bronze_brazier_overturned",
@@ -106,11 +161,22 @@
         "width": 512,
         "height": 512
       },
-      "prompt": "centered composition, overturned heavy bronze brazier, glowing red hot coals spilling out onto the floor, smoke rising, fire hazard, chaos and destruction, dark imperial aesthetic, isolated game prop",
       "negative_prompt": "text, watermark, people, cartoon, flat 2D, background, upright",
-      "color_palette": ["#CD7F32", "#FF4500", "#1A1A1A", "#8B0000"],
+      "color_palette": [
+        "#CD7F32",
+        "#FF4500",
+        "#1A1A1A",
+        "#8B0000"
+      ],
       "priority": "medium",
-      "tags": ["prop", "brazier", "fire", "hazard", "bronze"]
+      "tags": [
+        "prop",
+        "brazier",
+        "fire",
+        "hazard",
+        "bronze"
+      ],
+      "prompt_base": "overturned heavy bronze brazier, glowing red hot coals spilling out onto the floor, smoke rising, fire hazard, chaos and destruction, dark imperial aesthetic, isolated game prop"
     },
     {
       "id": "wooden_prisoner_cage",
@@ -124,11 +190,22 @@
         "width": 1024,
         "height": 1024
       },
-      "prompt": "centered composition, small wooden prisoner cage, reinforced with rusted iron bands, dark decaying wood, sinister torture device, empty interior, execution square prop, isolated game prop",
       "negative_prompt": "text, watermark, people, cartoon, flat 2D, background, clean",
-      "color_palette": ["#3E2723", "#4E342E", "#212121", "#8B0000"],
+      "color_palette": [
+        "#3E2723",
+        "#4E342E",
+        "#212121",
+        "#8B0000"
+      ],
       "priority": "high",
-      "tags": ["prop", "cage", "prison", "wood", "torture"]
+      "tags": [
+        "prop",
+        "cage",
+        "prison",
+        "wood",
+        "torture"
+      ],
+      "prompt_base": "small wooden prisoner cage, reinforced with rusted iron bands, dark decaying wood, sinister torture device, empty interior, execution square prop, isolated game prop"
     },
     {
       "id": "scattered_bamboo_slips",
@@ -142,11 +219,22 @@
         "width": 512,
         "height": 512
       },
-      "prompt": "centered composition, scattered ancient chinese bamboo slips on the ground, untied leather straps, discarded official documents, chaos and neglect, historical artifacts, isolated game prop",
       "negative_prompt": "text, watermark, people, cartoon, flat 2D, background, neat stack",
-      "color_palette": ["#D2B48C", "#F5DEB3", "#8B4513", "#2F2F2F"],
+      "color_palette": [
+        "#D2B48C",
+        "#F5DEB3",
+        "#8B4513",
+        "#2F2F2F"
+      ],
       "priority": "medium",
-      "tags": ["prop", "document", "lore", "bamboo", "scattered"]
+      "tags": [
+        "prop",
+        "document",
+        "lore",
+        "bamboo",
+        "scattered"
+      ],
+      "prompt_base": "scattered ancient chinese bamboo slips on the ground, untied leather straps, discarded official documents, chaos and neglect, historical artifacts, isolated game prop"
     },
     {
       "id": "jade_wine_jug",
@@ -160,11 +248,22 @@
         "width": 512,
         "height": 512
       },
-      "prompt": "centered composition, precious carved jade wine jug, elegant imperial design, glowing slightly with mystical energy, spilled dark red wine at the base, symbol of royal decadence, isolated game prop",
       "negative_prompt": "text, watermark, people, cartoon, flat 2D, background, rough",
-      "color_palette": ["#50C878", "#00A86B", "#8B0000", "#1A1A1A"],
+      "color_palette": [
+        "#50C878",
+        "#00A86B",
+        "#8B0000",
+        "#1A1A1A"
+      ],
       "priority": "medium",
-      "tags": ["prop", "jug", "jade", "wine", "decadent"]
+      "tags": [
+        "prop",
+        "jug",
+        "jade",
+        "wine",
+        "decadent"
+      ],
+      "prompt_base": "precious carved jade wine jug, elegant imperial design, glowing slightly with mystical energy, spilled dark red wine at the base, symbol of royal decadence, isolated game prop"
     },
     {
       "id": "execution_block",
@@ -178,11 +277,22 @@
         "width": 512,
         "height": 512
       },
-      "prompt": "centered composition, massive scarred wooden execution block, a large rusted guandao blade embedded deeply in the wood, dark dried blood stains, ominous atmosphere, punishment square prop, isolated game prop",
       "negative_prompt": "text, watermark, people, cartoon, flat 2D, background, clean",
-      "color_palette": ["#4A3C31", "#2A2A2A", "#8B0000", "#708090"],
+      "color_palette": [
+        "#4A3C31",
+        "#2A2A2A",
+        "#8B0000",
+        "#708090"
+      ],
       "priority": "high",
-      "tags": ["prop", "execution", "weapon", "wood", "blood"]
+      "tags": [
+        "prop",
+        "execution",
+        "weapon",
+        "wood",
+        "blood"
+      ],
+      "prompt_base": "massive scarred wooden execution block, a large rusted guandao blade embedded deeply in the wood, dark dried blood stains, ominous atmosphere, punishment square prop, isolated game prop"
     }
   ]
 }

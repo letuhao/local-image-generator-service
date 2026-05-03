@@ -17,7 +17,6 @@
       },
       "tile_size": "4x4",
       "rotation": "fixed",
-      "prompt": "2.5D sprite angle, massive tiered terrace platform structure, golden roof pavilions atop, crimson lacquer pillars, opulent yet decaying grandeur, bronze railings, atmospheric mist around base, clean cutout, isolated against white background, architectural detail",
       "negative_prompt": "text, watermark, people, cartoon, flat 2D",
       "color_palette": [
         "#D4AF37",
@@ -32,7 +31,8 @@
         "golden_roof",
         "imperial",
         "Lộc_Đài"
-      ]
+      ],
+      "prompt_base": "massive tiered terrace platform structure, golden roof pavilions atop, crimson lacquer pillars, opulent yet decaying grandeur, bronze railings, atmospheric mist around base, isolated against isometric 2.5D game object sprite"
     },
     {
       "id": "xuan_yuan_hall",
@@ -47,7 +47,6 @@
       },
       "tile_size": "3x3",
       "rotation": "forward_back",
-      "prompt": "2.5D sprite angle, grand imperial hall facade, massive bronze doors with taotie patterns, dark oppressive atmosphere, golden light leaking from cracks, towering scale, crimson columns, sinister elegance, clean cutout, isolated",
       "negative_prompt": "text, watermark, people, cartoon, flat 2D",
       "color_palette": [
         "#1A1A2E",
@@ -62,7 +61,8 @@
         "transformation",
         "oppressive",
         "Hiên_Viên"
-      ]
+      ],
+      "prompt_base": "grand imperial hall facade, massive bronze doors with taotie patterns, dark oppressive atmosphere, golden light leaking from cracks, towering scale, crimson columns, sinister elegance"
     },
     {
       "id": "daji_west_palace",
@@ -77,7 +77,6 @@
       },
       "tile_size": "3x3",
       "rotation": "forward_back",
-      "prompt": "2.5D sprite, elegant palace with fox spirit motifs carved into pillars, crimson and gold color scheme, sinister elegance, moonlight glow from within, ornate balconies, seductive beauty, clean architectural cutout, isolated",
       "negative_prompt": "text, watermark, people, cartoon, flat 2D",
       "color_palette": [
         "#6A5ACD",
@@ -92,7 +91,8 @@
         "Daji",
         "elegant",
         "Tây_Cung"
-      ]
+      ],
+      "prompt_base": "2.5D sprite, elegant palace with fox spirit motifs carved into pillars, crimson and gold color scheme, sinister elegance, moonlight glow from within, ornate balconies, seductive beauty, clean architectural cutout"
     },
     {
       "id": "mortal_quarters",
@@ -107,7 +107,6 @@
       },
       "tile_size": "2x2",
       "rotation": "cardinal",
-      "prompt": "2.5D sprite, dilapidated mud-brick commoner huts, thatched roofs falling apart, crumbling walls, contrast to nearby imperial grandeur, desolate atmosphere, muted brown tones, isolated against white, game asset ready",
       "negative_prompt": "text, watermark, people, cartoon, flat 2D",
       "color_palette": [
         "#8B7355",
@@ -122,7 +121,8 @@
         "poverty",
         "crumbling",
         "commoner"
-      ]
+      ],
+      "prompt_base": "2.5D sprite, dilapidated mud-brick commoner huts, thatched roofs falling apart, crumbling walls, contrast to nearby imperial grandeur, desolate atmosphere, muted brown tones"
     },
     {
       "id": "guard_tower",
@@ -137,7 +137,6 @@
       },
       "tile_size": "1x2",
       "rotation": "cardinal",
-      "prompt": "2.5D sprite angle, wooden watchtower with bronze bells, weathered wood texture, defensive battlements, battle-worn appearance, Shang dynasty military architecture, isolated prop, clean cutout, game asset style",
       "negative_prompt": "text, watermark, people, cartoon, flat 2D",
       "color_palette": [
         "#6B4226",
@@ -152,7 +151,8 @@
         "defense",
         "bronze_bell",
         "military"
-      ]
+      ],
+      "prompt_base": "wooden watchtower with bronze bells, weathered wood texture, defensive battlements, battle-worn appearance, Shang dynasty military architecture, game asset style"
     },
     {
       "id": "messenger_pavilion",
@@ -173,13 +173,13 @@
         "tin_quán"
       ],
       "priority": "low",
-      "prompt": "2.5D sprite, small pavilion for imperial messengers at city intersection, open-sided wooden structure with curved roof, message board inside, civic infrastructure, game asset style, clean cutout",
       "dimensions": {
         "width": 512,
         "height": 512
       },
       "tile_size": "1x1",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "2.5D sprite, small pavilion for imperial messengers at city intersection, open-sided wooden structure with curved roof, message board inside, civic infrastructure, game asset style"
     }
   ]
 }

@@ -11,11 +11,18 @@
       "format": "orthographic_top_down",
       "seamless": true,
       "tile_size": "2x1",
-      "dimensions": {"width": 1024, "height": 512},
-      "prompt": "orthographic top-down, straight palace wall segment, dark obsidian brick, golden trim, modular game asset, seamless tileable edge, imperial decadent aesthetic",
+      "dimensions": {
+        "width": 1024,
+        "height": 512
+      },
       "negative_prompt": "text, watermark, people, background scene",
       "priority": "high",
-      "tags": ["wall", "modular", "palace"]
+      "tags": [
+        "wall",
+        "modular",
+        "palace"
+      ],
+      "prompt_base": "orthographic top-down, straight palace wall segment, dark obsidian brick, golden trim, modular game asset, seamless tileable edge, imperial decadent aesthetic"
     },
     {
       "id": "shang_palace_wall_corner",
@@ -24,11 +31,19 @@
       "format": "orthographic_top_down",
       "seamless": false,
       "tile_size": "1x1",
-      "dimensions": {"width": 512, "height": 512},
-      "prompt": "orthographic top-down, L-shaped corner palace wall segment, dark obsidian brick, golden trim, modular game asset, imperial decadent aesthetic",
+      "dimensions": {
+        "width": 512,
+        "height": 512
+      },
       "negative_prompt": "text, watermark, people, background scene",
       "priority": "high",
-      "tags": ["wall", "corner", "modular", "palace"]
+      "tags": [
+        "wall",
+        "corner",
+        "modular",
+        "palace"
+      ],
+      "prompt_base": "orthographic top-down, L-shaped corner palace wall segment, dark obsidian brick, golden trim, modular game asset, imperial decadent aesthetic"
     },
     {
       "id": "imperial_stone_stairs",
@@ -37,11 +52,18 @@
       "format": "centered_composition",
       "seamless": false,
       "tile_size": "1x2",
-      "dimensions": {"width": 512, "height": 1024},
-      "prompt": "isometric view, wide stone staircase going up, dark marble steps with golden central dragon ramp, elevation change asset, game prop, clean edges",
+      "dimensions": {
+        "width": 512,
+        "height": 1024
+      },
       "negative_prompt": "text, watermark, people, background scene",
       "priority": "high",
-      "tags": ["stairs", "elevation", "stone"]
+      "tags": [
+        "stairs",
+        "elevation",
+        "stone"
+      ],
+      "prompt_base": "isometric view, wide stone staircase going up, dark marble steps with golden central dragon ramp, elevation change asset, game prop"
     },
     {
       "id": "bronze_taotie_chest",
@@ -50,11 +72,19 @@
       "format": "centered_composition",
       "seamless": false,
       "tile_size": "1x1",
-      "dimensions": {"width": 512, "height": 512},
-      "prompt": "centered composition, heavy bronze treasure chest, intricate taotie thunder patterns, glowing lock, high tier loot container, game prop style, isolated",
+      "dimensions": {
+        "width": 512,
+        "height": 512
+      },
       "negative_prompt": "text, watermark, people, background scene, open",
       "priority": "high",
-      "tags": ["chest", "loot", "bronze", "treasure"]
+      "tags": [
+        "chest",
+        "loot",
+        "bronze",
+        "treasure"
+      ],
+      "prompt_base": "heavy bronze treasure chest, intricate taotie thunder patterns, glowing lock, high tier loot container"
     },
     {
       "id": "imperial_wall_sconce",
@@ -63,11 +93,19 @@
       "format": "centered_composition",
       "seamless": false,
       "tile_size": "1x1",
-      "dimensions": {"width": 512, "height": 512},
-      "prompt": "centered composition, bronze wall sconce torch, roaring orange fire, dragon shaped holder, lighting fixture, game prop style, isolated",
+      "dimensions": {
+        "width": 512,
+        "height": 512
+      },
       "negative_prompt": "text, watermark, people, background scene, unlit",
       "priority": "high",
-      "tags": ["light", "fire", "sconce", "bronze"]
+      "tags": [
+        "light",
+        "fire",
+        "sconce",
+        "bronze"
+      ],
+      "prompt_base": "bronze wall sconce torch, roaring orange fire, dragon shaped holder, lighting fixture"
     },
     {
       "id": "shang_wooden_barricade",
@@ -76,11 +114,19 @@
       "format": "centered_composition",
       "seamless": false,
       "tile_size": "2x1",
-      "dimensions": {"width": 1024, "height": 512},
-      "prompt": "centered composition, spiked wooden barricade fence, tied with thick ropes, blood stains, Shang dynasty military camp defense, blocking obstacle, game prop style, isolated",
+      "dimensions": {
+        "width": 1024,
+        "height": 512
+      },
       "negative_prompt": "text, watermark, people, background scene",
       "priority": "medium",
-      "tags": ["barricade", "fence", "obstacle", "wood"]
+      "tags": [
+        "barricade",
+        "fence",
+        "obstacle",
+        "wood"
+      ],
+      "prompt_base": "spiked wooden barricade fence, tied with thick ropes, blood stains, Shang dynasty military camp defense, blocking obstacle"
     }
   ]
 }

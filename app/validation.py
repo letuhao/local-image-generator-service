@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 import json
 import os
 import re
@@ -63,11 +64,14 @@ ALLOWED_SCHEDULERS: frozenset[str] = frozenset(
 ALLOWED_SAMPLERS_BY_FAMILY: dict[str, frozenset[str]] = {
     "sdxl": ALLOWED_SAMPLERS,
     "flux": frozenset({"euler", "euler_ancestral", "dpmpp_2m", "dpmpp_2m_sde"}),
+    # Qwen-Anime / Qwen Image Edit (Beta3-AIO): Euler-focused; same tight set as Flux.
+    "qwen": frozenset({"euler", "euler_ancestral", "dpmpp_2m", "dpmpp_2m_sde"}),
 }
 
 ALLOWED_SCHEDULERS_BY_FAMILY: dict[str, frozenset[str]] = {
     "sdxl": ALLOWED_SCHEDULERS,
     "flux": frozenset({"simple", "karras", "normal"}),
+    "qwen": frozenset({"simple", "karras", "normal"}),
 }
 
 
@@ -137,6 +141,7 @@ class GenerateRequest(BaseModel):
     mode: Literal["sync", "async"] = "sync"
     timeout_s: float | None = Field(default=None, ge=1.0, le=3600.0)
     loras: list[LoraSpec] | None = Field(default=None, max_length=20)
+    init_image: str | None = Field(default=None, description="Base64 encoded image or data URI")
     webhook: WebhookSpec | None = None
 
 
@@ -163,6 +168,7 @@ class ValidatedJob:
     webhook_url: str | None = None
     webhook_headers: dict[str, str] | None = None
     loras: tuple[ResolvedLoraRef, ...] = field(default=())
+    init_image_bytes: bytes | None = field(default=None, repr=False)
 
 
 def _parse_size(size: str) -> tuple[int, int]:
@@ -355,6 +361,23 @@ def resolve_and_validate(
             ),
         )
 
+    init_image_bytes: bytes | None = None
+    if req.init_image:
+        # Strip data URI prefix if present: data:image/png;base64,...
+        b64_str = req.init_image
+        if b64_str.startswith("data:image"):
+            try:
+                b64_str = b64_str.split(",", 1)[1]
+            except IndexError:
+                pass
+        try:
+            init_image_bytes = base64.b64decode(b64_str, validate=True)
+        except ValueError as exc:
+            raise ValidationFailureError(
+                error_code="validation_error",
+                message="init_image must be a valid base64 string",
+            ) from exc
+
     return ValidatedJob(
         model=model,
         prompt=req.prompt,
@@ -375,6 +398,7 @@ def resolve_and_validate(
         webhook_url=webhook_url,
         webhook_headers=webhook_headers,
         loras=resolved_loras,
+        init_image_bytes=init_image_bytes,
     )
 
 

@@ -15,7 +15,7 @@ from app.registry.workflows import (
 
 _ALLOWED_BACKENDS: frozenset[str] = frozenset({"comfyui"})
 _ALLOWED_PREDICTIONS: frozenset[str] = frozenset({"eps", "vpred"})
-_ALLOWED_FAMILIES: frozenset[str] = frozenset({"sdxl", "flux"})
+_ALLOWED_FAMILIES: frozenset[str] = frozenset({"sdxl", "flux", "qwen"})
 
 log = structlog.get_logger(__name__)
 

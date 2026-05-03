@@ -108,3 +108,12 @@ def test_real_sdxl_eps_workflow_validates() -> None:
     for anchor in REQUIRED_ANCHORS_SDXL:
         node_id = find_anchor(graph, anchor)
         assert node_id in graph
+
+
+def test_real_qwen_aio_eps_workflow_validates() -> None:
+    """Qwen AIO uses the same anchor contract as SDXL (checkpoint + encode + KSampler)."""
+    graph = load_workflow(Path(__file__).parent.parent / "workflows" / "qwen_aio_eps.json")
+    validate_anchors(graph, REQUIRED_ANCHORS_SDXL)
+    for anchor in REQUIRED_ANCHORS_SDXL:
+        node_id = find_anchor(graph, anchor)
+        assert node_id in graph

@@ -17,7 +17,6 @@
       },
       "tile_size": "1x1",
       "rotation": "free",
-      "prompt": "orthographic top-down tile, cracked dry earth texture, dusty brown tones, sparse withered weeds growing from fissures, oppressive atmosphere, seamless border, flat lighting, clean edges, game terrain base, isolated prop",
       "negative_prompt": "perspective, gradient, background, people, text, watermark",
       "color_palette": [
         "#8B7355",
@@ -32,7 +31,8 @@
         "drought",
         "earth",
         "cracked"
-      ]
+      ],
+      "prompt_base": "cracked dry earth texture, dusty brown tones, sparse withered weeds growing from fissures, oppressive atmosphere"
     },
     {
       "id": "imperial_brick_gold",
@@ -47,7 +47,6 @@
       },
       "tile_size": "1x1",
       "rotation": "free",
-      "prompt": "orthographic top-down tile, polished crimson brick pathway, gold dust inlay between bricks, imperial luxury, subtle reflective surface, seamless border, clean edges, game terrain, flat lighting",
       "negative_prompt": "perspective, gradient, background, people, text, watermark",
       "color_palette": [
         "#DC143C",
@@ -62,7 +61,8 @@
         "gold",
         "brick",
         "crimson"
-      ]
+      ],
+      "prompt_base": "polished crimson brick pathway, gold dust inlay between bricks, imperial luxury, subtle reflective surface, game terrain"
     },
     {
       "id": "bronze_pathway",
@@ -77,7 +77,6 @@
       },
       "tile_size": "1x1",
       "rotation": "free",
-      "prompt": "orthographic top-down tile, bronze plates with taotie thunder patterns, golden patina oxidation, Shang dynasty motifs, geometric seamless border, flat shading, game terrain base, isolated",
       "negative_prompt": "perspective, gradient, background, people, text, watermark",
       "color_palette": [
         "#CD7F32",
@@ -92,7 +91,8 @@
         "Shang",
         "pattern",
         "imperial"
-      ]
+      ],
+      "prompt_base": "bronze plates with taotie thunder patterns, golden patina oxidation, Shang dynasty motifs, geometric seamless border"
     },
     {
       "id": "decadant_garden",
@@ -107,7 +107,6 @@
       },
       "tile_size": "2x2",
       "rotation": "free",
-      "prompt": "isometric tile, overgrown stone pathway, wilting lotus flowers in decaying pond, moss-covered stones, opulent ruin aesthetic, melancholic beauty, seamless border, game terrain",
       "negative_prompt": "perspective, gradient, background, people, text, watermark",
       "color_palette": [
         "#2E8B57",
@@ -122,7 +121,8 @@
         "lotus",
         "overgrown",
         "melancholy"
-      ]
+      ],
+      "prompt_base": "isometric tile, overgrown stone pathway, wilting lotus flowers in decaying pond, moss-covered stones, opulent ruin aesthetic, melancholic beauty, game terrain"
     },
     {
       "id": "blood_stained_court",
@@ -137,7 +137,6 @@
       },
       "tile_size": "1x1",
       "rotation": "free",
-      "prompt": "orthographic top-down tile, stone courtyard with dark blood stains, crimson patina overlay, oppressive atmosphere, subtle crack patterns, seamless border, flat lighting, game terrain base",
       "negative_prompt": "perspective, gradient, background, people, text, watermark",
       "color_palette": [
         "#8B0000",
@@ -152,7 +151,8 @@
         "dark",
         "stain",
         "oppressive"
-      ]
+      ],
+      "prompt_base": "stone courtyard with dark blood stains, crimson patina overlay, oppressive atmosphere, subtle crack patterns"
     },
     {
       "id": "wine_pool_basin",
@@ -174,13 +174,13 @@
         "tửu_trì"
       ],
       "priority": "high",
-      "prompt": "orthographic top-down tile, circular marble wine pool basin edge, golden wine surface with floating peach petals, seamless border, opulent decadence, flat lighting, game terrain base, isolated",
       "dimensions": {
         "width": 1024,
         "height": 1024
       },
       "tile_size": "2x2",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "circular marble wine pool basin edge, golden wine surface with floating peach petals, opulent decadence"
     },
     {
       "id": "decorative_pond_edge",
@@ -202,13 +202,13 @@
         "hồ_biên"
       ],
       "priority": "medium",
-      "prompt": "orthographic top-down tile, curved stone pond edge with lotus flower carvings, koi fish visible in dark water below, seamless border, imperial garden aesthetic, flat lighting, game terrain base",
       "dimensions": {
         "width": 1024,
         "height": 1024
       },
       "tile_size": "2x2",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "curved stone pond edge with lotus flower carvings, koi fish visible in dark water below, imperial garden aesthetic"
     },
     {
       "id": "imperial_water_tower",
@@ -230,13 +230,13 @@
         "tháp_nước"
       ],
       "priority": "low",
-      "prompt": "orthographic top-down tile, circular elevated wooden water reservoir top, wooden plank construction, water surface with reflections, seamless border, palace infrastructure, flat lighting, game terrain base",
       "dimensions": {
         "width": 1024,
         "height": 1024
       },
       "tile_size": "2x2",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "circular elevated wooden water reservoir top, wooden plank construction, water surface with reflections, palace infrastructure"
     },
     {
       "id": "stone_canal_section",
@@ -257,13 +257,13 @@
         "kênh_đá"
       ],
       "priority": "low",
-      "prompt": "orthographic top-down tile, carved stone water channel section, dragon scale pattern on channel walls, flowing water inside, seamless border, flat lighting, game terrain base",
       "dimensions": {
         "width": 1024,
         "height": 1024
       },
       "tile_size": "2x2",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "carved stone water channel section, dragon scale pattern on channel walls, flowing water inside"
     },
     {
       "id": "imperial_spirit_way",
@@ -284,13 +284,13 @@
         "thần_đạo"
       ],
       "priority": "medium",
-      "prompt": "orthographic top-down tile, imperial spirit way with stone animal alignments, carved stone path with paired guardian animals on both sides, seamless border, flat lighting, game terrain base",
       "dimensions": {
         "width": 1024,
         "height": 1024
       },
       "tile_size": "2x2",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "imperial spirit way with stone animal alignments, carved stone path with paired guardian animals on both sides"
     },
     {
       "id": "imperial_water_tower_top",
@@ -311,13 +311,13 @@
         "tháp_nước_đỉnh"
       ],
       "priority": "low",
-      "prompt": "orthographic top-down tile, top of elevated wooden water reservoir, wooden plank cover with iron bands, water surface visible through gap, seamless border, flat lighting, game terrain base",
       "dimensions": {
         "width": 1024,
         "height": 1024
       },
       "tile_size": "2x2",
-      "seamless": false
+      "seamless": false,
+      "prompt_base": "top of elevated wooden water reservoir, wooden plank cover with iron bands, water surface visible through gap"
     }
   ]
 }
