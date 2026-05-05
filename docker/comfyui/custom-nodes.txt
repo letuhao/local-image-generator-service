@@ -33,6 +33,24 @@ Nvidia_RTX_Nodes_ComfyUI       892515e3eb9a4920a131a502a047e47adca9eb0d  # Comfy
 ComfyUI-DaSiWa-Nodes           a24d041df8f1b36fcd453341f65a636e76303d0f  # darksidewalker/ComfyUI-DaSiWa-Nodes — DaSiWa_ResolutionScaleCalculator, DaSiWa_NodeStatusSwitch
 comfyui-WhiteRabbit            178156241b29b7cf0fb540a9688e1d9c375e8608  # Artificial-Sweetener/comfyui-WhiteRabbit (default branch master)
 RES4LYF                        0dc91c00c4c3fb38e7874fcd7a2a327765e8882c  # ClownsharkBatwing/RES4LYF — samplers / sigmas / Wan patchers (opencv, matplotlib, pywavelets)
+comfyui_controlnet_aux         e8b689a513c3e6b63edc44066560ca5919c0576e  # Fannovel16/comfyui_controlnet_aux — AIO_Preprocessor, DepthAnythingV2Preprocessor
+ComfyUI-segment-anything-2     0c35fff5f382803e2310103357b5e985f5437f32  # kijai/ComfyUI-segment-anything-2 — DownloadAndLoadSAM2Model, Sam2Segmentation
+ComfyUI_essentials             9d9f4bedfc9f0321c19faf71855e228c93bd0dc9  # cubiq/ComfyUI_essentials — SimpleMath+
+ComfyUI_LayerStyle             d94bef1ee5ed3656f5ff1bb2830a4ffd94f40935  # chflame163/ComfyUI_LayerStyle — LayerUtility: ImageScaleByAspectRatio V2
+ComfyUI_LayerStyle_Advance     7b678b401a38307a4a7e99ef6630bd48f9cecedb  # chflame163/ComfyUI_LayerStyle_Advance — LayerUtility: GeminiV2
+ComfyUI-Impact-Pack            429d0159ad429e64d2b3916e6e7be9c22d025c3c  # ltdrdata/ComfyUI-Impact-Pack — ImpactSwitch
+ComfyUI-Logic                  f82d46766b26788c17dbbbd6f2421af23c267666  # theUpsider/ComfyUI-Logic — plain Float / Int (graphs before 🔬 rename); newer HEAD uses Float-🔬 / Int-🔬 and breaks older workflows
+ComfyUI-RMBG                   d7402513f23f58db7d56754b02a4f51a148b4941  # 1038lab/ComfyUI-RMBG — RMBG
+ComfyUI-SeedVR2_VideoUpscaler  4490bd1f482e026674543386bb2a4d176da245b9  # numz/ComfyUI-SeedVR2_VideoUpscaler — V3 nodes (SeedVR2VideoUpscaler, …). Legacy graphs (e.g. Rapid-Wan2.2… Motion Transfer) expect types SeedVR2 + SeedVR2BlockSwap → pin build ARG to workflow ver 4df5cef5937001bcef056d5508c6a884849ffe13 if you need that JSON unchanged
+comfyui-ollama                6db7560576e5a59488708e6be13e07b5aba2432a  # stavsap/comfyui-ollama — latest HEAD with OllamaConnectivityV2 / OllamaGenerateV2
+comfyui-openai-api            efb68c42291ae77df665423e02d6885a3f556bd1  # hekmon/comfyui-openai-api — lightweight OpenAI chat + vision nodes
+ComfyUI-OpenAI                89e2e57b02d3865aa9349076d2f373513e8afd0b  # ComfyUI-Workflow/ComfyUI-OpenAI — OpenAI caption/vision-focused nodes
+ComfyUI-Chibi-Nodes           9a9734f9c17bab3b4775c04291d26f48cbff2791  # chibiace/ComfyUI-Chibi-Nodes — latest HEAD (RH_Captioner is not provided by this pack)
+comfyui-find-perfect-resolution b8ee6c1872e796329bffbcbf53a5207aaf964bdb  # ashtar1984/comfyui-find-perfect-resolution — FindPerfectResolution node
+comfyui_fill-nodes            5bae402eadb57a795541825c3fa7fdf4457aee59  # filliptm/ComfyUI_Fill-Nodes — FL_RIFE and related video/image utilities
+ComfyUI-PainterI2Vadvanced    a044ac7b2a33565343ddc75283c94a41371b4352  # princepainter/ComfyUI-PainterI2Vadvanced — PainterI2VAdvanced node
+ComfyUI-PainterLongVideo      889b4ff67909561e52d6ae023f5b9e8c33fdba94  # princepainter/ComfyUI-PainterLongVideo — PainterLongVideo node
+was-node-suite-comfyui         ea935d1044ae5a26efa54ebeb18fe9020af49a45  # WASasquatch/was-node-suite-comfyui — Text Concatenate
 
 # --- LTX-Video 2.x / 10Eros stack ---
 ComfyUI-LTXVideo               2acf7af8991f33b5cc06ec26753cb6e88e057d04  # Lightricks/ComfyUI-LTXVideo — LTXAVTextEncoderLoader, LTXVConditioning, STGGuiderAdvanced, etc.

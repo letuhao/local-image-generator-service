@@ -77,6 +77,11 @@ services:
         COMFYUI_REF: ${COMFYUI_REF:-v0.20.1}
         COMFYUI_GGUF_REF: ${COMFYUI_GGUF_REF:-6ea2651e7df66d7585f6ffee804b20e92fb38b8a}
     image: image-gen-comfyui:0.20.1-wan22
+    environment:
+      # Persist HuggingFace metadata/cache on host so model nodes don't re-download.
+      HF_HOME: /workspace/ComfyUI/models/.hf
+      HF_HUB_CACHE: /workspace/ComfyUI/models/.hf/hub
+      HF_HUB_DISABLE_TELEMETRY: "1"
     # Local-only tag — suppress the failing registry pull attempt every `up` does.
     pull_policy: never
     deploy:
@@ -88,8 +93,9 @@ services:
               capabilities: [gpu]
     volumes:
       # Full ComfyUI models tree — checkpoints/, vae/, loras/, etc. under ./models/.
-      # LoRAs are `models/loras/**`; no separate top-level ./loras overlay.
-      - ./models:/workspace/ComfyUI/models:ro
+      # Writable so WAS Node Suite and other custom nodes can auto-install/fetch
+      # missing model assets into /workspace/ComfyUI/models at runtime.
+      - ./models:/workspace/ComfyUI/models
       # Writable user tree — ComfyUI ≥0.9 persists settings.json + an asset DB
       # (SQLite) here. Without a writable mount, the web UI throws
       # PermissionError on save and the asset scanner's Session factory stays

@@ -223,3 +223,8 @@ LoRA/
 outputs/
 
 tmp-wan
+
+docker-build.log.err
+
+workflows/
+docs/specs/

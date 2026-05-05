@@ -43,6 +43,24 @@ ORDER=(
   ComfyUI-DaSiWa-Nodes
   comfyui-WhiteRabbit
   RES4LYF
+  comfyui_controlnet_aux
+  ComfyUI-segment-anything-2
+  ComfyUI_essentials
+  ComfyUI_LayerStyle
+  ComfyUI_LayerStyle_Advance
+  ComfyUI-Impact-Pack
+  ComfyUI-Logic
+  ComfyUI-RMBG
+  ComfyUI-SeedVR2_VideoUpscaler
+  comfyui-ollama
+  comfyui-openai-api
+  ComfyUI-OpenAI
+  ComfyUI-Chibi-Nodes
+  comfyui-find-perfect-resolution
+  ComfyUI_Fill-Nodes
+  ComfyUI-PainterI2Vadvanced
+  ComfyUI-PainterLongVideo
+  was-node-suite-comfyui
   ComfyUI-Easy-Use
 )
 
