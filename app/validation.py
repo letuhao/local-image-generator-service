@@ -98,7 +98,7 @@ class LoraSpec(BaseModel):
         pattern=r"^[A-Za-z0-9_][A-Za-z0-9_/\-.]*$",
         max_length=256,
     )
-    weight: float = Field(ge=-2.0, le=2.0)
+    weight: float
 
 
 class WanVideoEncodeOptions(BaseModel):
@@ -325,6 +325,19 @@ def _normalize_wan_num_frames(raw: int) -> int:
     return raw + (4 - rem)
 
 
+def _normalize_ltxv_num_frames(raw: int) -> int:
+    """LTX Video expects (num_frames - 1) divisible by 8, minimum 9.
+
+    Valid values: 9, 17, 25, 33, 41, 49, 57, 65, 73, 81, 89, 97, ...
+    """
+    if raw < 9:
+        return 9
+    rem = (raw - 1) % 8
+    if rem == 0:
+        return raw
+    return raw + (8 - rem)
+
+
 def _parse_size(size: str) -> tuple[int, int]:
     w_str, h_str = size.lower().split("x", 1)
     return int(w_str), int(h_str)
@@ -363,6 +376,39 @@ def _resolve_loras_for_job(
             )
         resolved_list.append(ResolvedLoraRef(name=spec.name, weight=spec.weight))
     return tuple(resolved_list)
+
+
+def _resolve_default_loras_for_model(
+    default_loras: list[dict],
+    loras_root: Path,
+) -> tuple[ResolvedLoraRef, ...]:
+    """Resolve model-level default LoRAs from trusted registry config.
+
+    Bypasses ``LoraSpec``'s user-input weight cap (max 2.0) so configs like
+    LightX2V at weight=3.0 are accepted.  Still enforces path containment.
+    """
+    if not default_loras:
+        return ()
+    root = loras_root.resolve()
+    resolved: list[ResolvedLoraRef] = []
+    for d in default_loras:
+        name = str(d["name"])
+        weight = float(d["weight"])
+        target = (root / f"{name}.safetensors").resolve()
+        try:
+            target.relative_to(root)
+        except ValueError:
+            raise ValidationFailureError(
+                error_code="validation_error",
+                message=f"default_lora name {name!r} escapes loras root",
+            ) from None
+        if not target.is_file():
+            raise ValidationFailureError(
+                error_code="lora_missing",
+                message=f"default_lora file not found: {name}",
+            )
+        resolved.append(ResolvedLoraRef(name=name, weight=weight))
+    return tuple(resolved)
 
 
 def resolve_and_validate(
@@ -597,10 +643,10 @@ def resolve_and_validate_video(
                 f"but this endpoint expects {expected_task!r}"
             ),
         )
-    if model.family != "wan22":
+    if model.family not in ("wan22", "ltxv"):
         raise ValidationFailureError(
             error_code="validation_error",
-            message=f"video pipeline currently supports family=wan22 only, got {model.family!r}",
+            message=f"video pipeline supports family wan22/ltxv, got {model.family!r}",
         )
 
     defaults = model.defaults or {}
@@ -614,7 +660,10 @@ def resolve_and_validate_video(
             error_code="validation_error",
             message=f"frames={frames_raw} exceeds model.limits.frames_max={frames_cap}",
         )
-    frames = _normalize_wan_num_frames(frames_raw)
+    if model.family == "ltxv":
+        frames = _normalize_ltxv_num_frames(frames_raw)
+    else:
+        frames = _normalize_wan_num_frames(frames_raw)
 
     steps = req.steps if req.steps is not None else int(defaults.get("steps", 30))
     steps_max = int(limits.get("steps_max", 50))
@@ -722,13 +771,21 @@ def resolve_and_validate_video(
             error_code="validation_error",
             message="image-to-video requires init_image",
         )
-    if expected_task == "t2v" and init_image_bytes:
+    # ltxv T2V workflows use the init_image to determine video dimensions —
+    # allow (but don't require) init_image for ltxv t2v.
+    if expected_task == "t2v" and init_image_bytes and model.family != "ltxv":
         raise ValidationFailureError(
             error_code="validation_error",
             message="text-to-video does not accept init_image",
         )
 
-    resolved_video_loras = _resolve_loras_for_job(req.loras, loras_root)
+    user_loras = _resolve_loras_for_job(req.loras, loras_root)
+
+    # Prepend model-level default_loras (e.g. required acceleration LoRAs not
+    # baked into the checkpoint).  These come from trusted registry config so
+    # they bypass LoraSpec's user-input weight cap and are resolved directly.
+    default_resolved = _resolve_default_loras_for_model(model.default_loras or [], loras_root)
+    resolved_video_loras = default_resolved + user_loras
 
     wa = req.wan_advanced
     if wa is not None and expected_task == "t2v":

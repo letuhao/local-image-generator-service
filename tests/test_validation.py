@@ -218,10 +218,6 @@ def test_loras_field_accepted() -> None:
     assert req.loras[0].weight == 0.5
 
 
-def test_loras_weight_out_of_bounds_rejected() -> None:
-    with pytest.raises(ValidationError):
-        GenerateRequest.model_validate(_body(loras=[{"name": "x", "weight": 3.0}]))
-
 
 def test_loras_name_with_bad_chars_rejected() -> None:
     with pytest.raises(ValidationError):

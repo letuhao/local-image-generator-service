@@ -12,10 +12,10 @@
 ARG COMFYUI_REF=v0.20.1
 ARG COMFYUI_GGUF_REF=6ea2651e7df66d7585f6ffee804b20e92fb38b8a
 # WAN 2.2 Smooth Workflow v5.0 — pins duplicated in docker/comfyui/custom-nodes.txt
-ARG COMFYUI_WAN_VIDEO_REF=90c3bbb6c2e4ff5e05305e765d007d5e58428ce4
+ARG COMFYUI_WAN_VIDEO_REF=df8f3e49daaad117cf3090cc916c83f3d001494c
 ARG COMFYUI_MMAUDIO_REF=841b307095f3cdc448d940a5787bc36706e49f1d
 ARG COMFYUI_VHS_REF=8923bd836bdab8b7bbdf4ed104b7d045e70c66e2
-ARG COMFYUI_KJ_REF=a6b867b63a29ca48ddb15c589e17a9f2d8530d57
+ARG COMFYUI_KJ_REF=cd5ad8002bdc7d4cc586f69ebc988e22a04a89a1
 ARG RGTHREE_REF=84a146fee39f7b3a8c6631dcac29bc13b077eb49
 ARG COMFYUI_EASY_USE_REF=de92038f88317699f314be85e5c7af84f1ab9c3a
 ARG COMFYUI_NAG_REF=c6f27116a8259f5b501d498a09e51c82fa72e35f
@@ -24,6 +24,18 @@ ARG COMFYUI_VFI_REF=6176a430f12cd16003f4664c1e3c6af8e96cc3c6
 ARG COMFY_MTB_REF=d87e52ea2c112fd95f257dcd6a54a5db77a34fc3
 ARG COMFYUI_COMFYROLL_REF=d78b780ae43fcf8c6b7c6505e6ffb4584281ceca
 ARG COMFYUI_MXTOOLKIT_REF=7f7a0e584f12078a1c589645d866ae96bad0cc35
+# LTX-Video 2.x (10Eros / LTXV family) stack
+ARG COMFYUI_LTXVIDEO_REF=2acf7af8991f33b5cc06ec26753cb6e88e057d04
+ARG COMFYUI_10S_NODES_REF=f5f8221d9745166e79de775af0949817283f2ea0
+ARG COMFYUI_CUSTOM_SCRIPTS_REF=609f3afaa74b2f88ef9ce8d939626065e3247469
+ARG COMFYUI_COMFYMATH_REF=c01177221c31b8e5fbc062778fc8254aeb541638
+ARG COMFYUI_DETAIL_DAEMON_REF=39206d10849584e0b6ded943faca4dcd8747beb7
+ARG COMFYUI_AUDIOTOOLS_REF=8763c3ec71d4d05278b53386cec57a06e1d99417
+# RTX VSR / DaSiWa / WhiteRabbit (see docker/comfyui/custom-nodes.txt)
+ARG NVIDIA_RTX_NODES_REF=892515e3eb9a4920a131a502a047e47adca9eb0d
+ARG COMFYUI_DASIWA_REF=a24d041df8f1b36fcd453341f65a636e76303d0f
+ARG COMFYUI_WHITERABBIT_REF=178156241b29b7cf0fb540a9688e1d9c375e8608
+ARG RES4LYF_REF=0dc91c00c4c3fb38e7874fcd7a2a327765e8882c
 
 FROM nvidia/cuda:12.4.1-runtime-ubuntu22.04 AS base
 
@@ -38,7 +50,7 @@ RUN --mount=type=cache,id=comfy-apt-cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,id=comfy-apt-lists,target=/var/lib/apt/lists,sharing=locked \
     apt-get update && apt-get install -y --no-install-recommends \
       python3.11 python3.11-venv python3.11-dev python3-pip \
-      git curl ca-certificates libgl1 libglib2.0-0 ffmpeg && \
+      git curl ca-certificates libgl1 libglib2.0-0 ffmpeg libsndfile1 && \
     update-alternatives --install /usr/bin/python python /usr/bin/python3.11 1
 
 # uv — matches host pin. Copy both binaries the uv image ships (`uv` and `uvx`).
@@ -64,6 +76,16 @@ ARG COMFYUI_VFI_REF
 ARG COMFY_MTB_REF
 ARG COMFYUI_COMFYROLL_REF
 ARG COMFYUI_MXTOOLKIT_REF
+ARG COMFYUI_LTXVIDEO_REF
+ARG COMFYUI_10S_NODES_REF
+ARG COMFYUI_CUSTOM_SCRIPTS_REF
+ARG COMFYUI_COMFYMATH_REF
+ARG COMFYUI_DETAIL_DAEMON_REF
+ARG COMFYUI_AUDIOTOOLS_REF
+ARG NVIDIA_RTX_NODES_REF
+ARG COMFYUI_DASIWA_REF
+ARG COMFYUI_WHITERABBIT_REF
+ARG RES4LYF_REF
 
 # Clone ComfyUI at the pinned tag/commit.
 RUN git clone --depth 1 --branch ${COMFYUI_REF} https://github.com/comfyanonymous/ComfyUI.git
@@ -95,7 +117,27 @@ RUN git clone https://github.com/city96/ComfyUI-GGUF.git && \
     git clone https://github.com/Suzie1/ComfyUI_Comfyroll_CustomNodes.git && \
     (cd ComfyUI_Comfyroll_CustomNodes && git checkout ${COMFYUI_COMFYROLL_REF}) && \
     git clone https://github.com/Smirnov75/ComfyUI-mxToolkit.git && \
-    (cd ComfyUI-mxToolkit && git checkout ${COMFYUI_MXTOOLKIT_REF})
+    (cd ComfyUI-mxToolkit && git checkout ${COMFYUI_MXTOOLKIT_REF}) && \
+    git clone https://github.com/Lightricks/ComfyUI-LTXVideo.git && \
+    (cd ComfyUI-LTXVideo && git checkout ${COMFYUI_LTXVIDEO_REF}) && \
+    git clone https://github.com/TenStrip/10S-Comfy-nodes.git && \
+    (cd 10S-Comfy-nodes && git checkout ${COMFYUI_10S_NODES_REF}) && \
+    git clone https://github.com/pythongosssss/ComfyUI-Custom-Scripts.git && \
+    (cd ComfyUI-Custom-Scripts && git checkout ${COMFYUI_CUSTOM_SCRIPTS_REF}) && \
+    git clone https://github.com/evanspearman/ComfyMath.git && \
+    (cd ComfyMath && git checkout ${COMFYUI_COMFYMATH_REF}) && \
+    git clone https://github.com/Jonseed/ComfyUI-Detail-Daemon.git && \
+    (cd ComfyUI-Detail-Daemon && git checkout ${COMFYUI_DETAIL_DAEMON_REF}) && \
+    git clone https://github.com/Urabewe/ComfyUI-AudioTools.git && \
+    (cd ComfyUI-AudioTools && git checkout ${COMFYUI_AUDIOTOOLS_REF}) && \
+    git clone https://github.com/Comfy-Org/Nvidia_RTX_Nodes_ComfyUI.git && \
+    (cd Nvidia_RTX_Nodes_ComfyUI && git checkout ${NVIDIA_RTX_NODES_REF}) && \
+    git clone https://github.com/darksidewalker/ComfyUI-DaSiWa-Nodes.git && \
+    (cd ComfyUI-DaSiWa-Nodes && git checkout ${COMFYUI_DASIWA_REF}) && \
+    git clone https://github.com/Artificial-Sweetener/comfyui-WhiteRabbit.git && \
+    (cd comfyui-WhiteRabbit && git checkout ${COMFYUI_WHITERABBIT_REF}) && \
+    git clone https://github.com/ClownsharkBatwing/RES4LYF.git && \
+    (cd RES4LYF && git checkout ${RES4LYF_REF})
 
 USER root
 COPY --chown=comfy:comfy install-custom-node-requirements.sh /workspace/install-custom-node-requirements.sh
@@ -119,9 +161,33 @@ RUN bash -c 'grep -q "class WanImageToVideo" /workspace/ComfyUI/comfy_extras/nod
     (echo "Comfy core smoke test: WanImageToVideo node missing from comfy_extras/nodes_wan.py" && exit 1)'
 RUN bash -c 'test -f /workspace/ComfyUI/custom_nodes/ComfyUI-WanVideoWrapper/nodes.py || \
     (echo "WanVideoWrapper smoke test: nodes.py missing" && exit 1)'
+RUN bash -c 'grep -q "NormalizeAudioLoudness" /workspace/ComfyUI/custom_nodes/ComfyUI-WanVideoWrapper/nodes_utility.py || \
+    (echo "WanVideoWrapper smoke test: NormalizeAudioLoudness missing from nodes_utility.py" && exit 1)'
+RUN bash -c 'grep -q "WanChunkFeedForward" /workspace/ComfyUI/custom_nodes/ComfyUI-KJNodes/__init__.py && \
+    grep -q "ColorMatchV2" /workspace/ComfyUI/custom_nodes/ComfyUI-KJNodes/__init__.py || \
+    (echo "ComfyUI-KJNodes smoke test: WanChunkFeedForward / ColorMatchV2 missing from NODE_CONFIG" && exit 1)'
 RUN bash -c 'grep -rq "KSamplerWithNAG" /workspace/ComfyUI/custom_nodes/ComfyUI-NAG --include="*.py" || \
     (echo "ComfyUI-NAG smoke test: KSamplerWithNAG not found" && exit 1)'
-RUN echo "Smoke tests OK: GGUF + core WanImageToVideo + WanVideoWrapper + NAG"
+RUN bash -c 'grep -rq "NODE_CLASS_MAPPINGS" /workspace/ComfyUI/custom_nodes/ComfyUI-Detail-Daemon --include="*.py" || \
+    (echo "ComfyUI-Detail-Daemon smoke test: NODE_CLASS_MAPPINGS not found under extension" && exit 1)'
+RUN bash -c 'test -f /workspace/ComfyUI/custom_nodes/ComfyUI-AudioTools/audio_normalize.py || \
+    (echo "ComfyUI-AudioTools smoke test: audio_normalize.py missing" && exit 1)'
+RUN bash -c 'grep -q "RTXVideoSuperResolution" /workspace/ComfyUI/custom_nodes/Nvidia_RTX_Nodes_ComfyUI/__init__.py || \
+    (echo "Nvidia_RTX_Nodes_ComfyUI smoke test: RTXVideoSuperResolution missing" && exit 1)'
+RUN bash -c 'grep -rq "DaSiWa_ResolutionScaleCalculator" /workspace/ComfyUI/custom_nodes/ComfyUI-DaSiWa-Nodes --include="*.py" || \
+    (echo "ComfyUI-DaSiWa-Nodes smoke test: DaSiWa_ResolutionScaleCalculator missing" && exit 1)'
+RUN bash -c 'grep -q "NODE_CLASS_MAPPINGS" /workspace/ComfyUI/custom_nodes/comfyui-WhiteRabbit/__init__.py || \
+    (echo "comfyui-WhiteRabbit smoke test: NODE_CLASS_MAPPINGS missing" && exit 1)'
+RUN bash -c 'grep -q "ClownModelLoader" /workspace/ComfyUI/custom_nodes/RES4LYF/__init__.py || \
+    (echo "RES4LYF smoke test: ClownModelLoader mapping missing" && exit 1)'
+RUN echo "Smoke tests OK: GGUF + core WanImageToVideo + WanVideoWrapper (NormalizeAudioLoudness) + KJ (WanChunkFeedForward, ColorMatchV2) + NAG + Detail-Daemon + AudioTools + RTX + DaSiWa + WhiteRabbit + RES4LYF"
+
+# extra_model_paths.yaml: let LTXVAudioVAELoader find standalone audio VAE files.
+# ComfyUI-LTXVideo's LTXVAudioVAELoader only searches the "checkpoints" folder_paths
+# group.  Adding the vae/ subdirectory here makes LTX23_audio_vae_bf16.safetensors
+# findable without duplicating the file.
+RUN printf 'other_ui:\n  base_path: /workspace/ComfyUI/models\n  checkpoints: vae\n' \
+    > /workspace/ComfyUI/extra_model_paths.yaml
 
 # Entrypoint script.
 COPY --chown=comfy:comfy entrypoint.sh /workspace/entrypoint.sh

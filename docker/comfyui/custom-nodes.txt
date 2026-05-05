@@ -12,10 +12,13 @@ comfyui                        v0.20.1  # comfyanonymous/ComfyUI — includes co
 comfyui-gguf                   6ea2651e7df66d7585f6ffee804b20e92fb38b8a  # city96/ComfyUI-GGUF
 
 # --- WAN 2.2 Smooth stack (video / audio / UI helpers) ---
-ComfyUI-WanVideoWrapper        90c3bbb6c2e4ff5e05305e765d007d5e58428ce4  # kijai/ComfyUI-WanVideoWrapper
+ComfyUI-WanVideoWrapper        df8f3e49daaad117cf3090cc916c83f3d001494c  # kijai/ComfyUI-WanVideoWrapper — NormalizeAudioLoudness lives in nodes_utility.py (added after 90c3bbb)
+ComfyMath                      c01177221c31b8e5fbc062778fc8254aeb541638  # evanspearman/ComfyMath — math / float / int nodes
+ComfyUI-Detail-Daemon          39206d10849584e0b6ded943faca4dcd8747beb7  # Jonseed/ComfyUI-Detail-Daemon — sigma / detail tuning (Flux, SDXL, etc.)
 ComfyUI-MMAudio                841b307095f3cdc448d940a5787bc36706e49f1d  # kijai/ComfyUI-MMAudio
+ComfyUI-AudioTools             8763c3ec71d4d05278b53386cec57a06e1d99417  # Urabewe/ComfyUI-AudioTools — audio normalize / enhance (librosa stack)
 ComfyUI-VideoHelperSuite       8923bd836bdab8b7bbdf4ed104b7d045e70c66e2  # Kosinkadink/ComfyUI-VideoHelperSuite
-ComfyUI-KJNodes                a6b867b63a29ca48ddb15c589e17a9f2d8530d57  # kijai/ComfyUI-KJNodes
+ComfyUI-KJNodes                cd5ad8002bdc7d4cc586f69ebc988e22a04a89a1  # kijai/ComfyUI-KJNodes — includes ColorMatchV2, WanChunkFeedForward (DaSiWa / WAN graphs)
 rgthree-comfy                  84a146fee39f7b3a8c6631dcac29bc13b077eb49  # rgthree/rgthree-comfy
 ComfyUI-Easy-Use               de92038f88317699f314be85e5c7af84f1ab9c3a  # yolain/ComfyUI-Easy-Use
 ComfyUI-NAG                    c6f27116a8259f5b501d498a09e51c82fa72e35f  # scottmudge/ComfyUI-NAG — subgraph KSamplerWithNAG (Advanced)
@@ -24,3 +27,14 @@ ComfyUI-VFI                    6176a430f12cd16003f4664c1e3c6af8e96cc3c6  # GACLo
 comfy_mtb                      d87e52ea2c112fd95f257dcd6a54a5db77a34fc3  # melMass/comfy_mtb
 ComfyUI_Comfyroll_CustomNodes  d78b780ae43fcf8c6b7c6505e6ffb4584281ceca  # Suzie1/ComfyUI_Comfyroll_CustomNodes
 ComfyUI-mxToolkit              7f7a0e584f12078a1c589645d866ae96bad0cc35  # Smirnov75/ComfyUI-mxToolkit (main @ bump)
+
+# --- Extra workflow nodes (Manager “missing custom node” fixes) ---
+Nvidia_RTX_Nodes_ComfyUI       892515e3eb9a4920a131a502a047e47adca9eb0d  # Comfy-Org/Nvidia_RTX_Nodes_ComfyUI — RTXVideoSuperResolution (needs RTX + nvidia-vfx; runtime may require matching drivers)
+ComfyUI-DaSiWa-Nodes           a24d041df8f1b36fcd453341f65a636e76303d0f  # darksidewalker/ComfyUI-DaSiWa-Nodes — DaSiWa_ResolutionScaleCalculator, DaSiWa_NodeStatusSwitch
+comfyui-WhiteRabbit            178156241b29b7cf0fb540a9688e1d9c375e8608  # Artificial-Sweetener/comfyui-WhiteRabbit (default branch master)
+RES4LYF                        0dc91c00c4c3fb38e7874fcd7a2a327765e8882c  # ClownsharkBatwing/RES4LYF — samplers / sigmas / Wan patchers (opencv, matplotlib, pywavelets)
+
+# --- LTX-Video 2.x / 10Eros stack ---
+ComfyUI-LTXVideo               2acf7af8991f33b5cc06ec26753cb6e88e057d04  # Lightricks/ComfyUI-LTXVideo — LTXAVTextEncoderLoader, LTXVConditioning, STGGuiderAdvanced, etc.
+10S-Comfy-nodes                f5f8221d9745166e79de775af0949817283f2ea0  # TenStrip/10S-Comfy-nodes — LatentTemporalInpainter, LatentMotionSharpener, ResizeImageMaskNode
+ComfyUI-Custom-Scripts         609f3afaa74b2f88ef9ce8d939626065e3247469  # pythongosssss/ComfyUI-Custom-Scripts — SetNode, GetNode, PrimitiveInt, PrimitiveFloat, CM_FloatToInt

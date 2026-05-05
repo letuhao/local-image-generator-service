@@ -43,6 +43,7 @@ BASE_ANCHORS_WAN22: tuple[str, ...] = (
     "%WAN_SHIFT%",
     "%WAN_VAE%",
     "%WAN_SAMPLER%",
+    "%WAN_NAG_SAMPLER%",
     "%WAN_DECODE%",
     "%VIDEO_OUTPUT%",
 )
@@ -73,6 +74,31 @@ MMAUDIO_ANCHORS_WAN22: tuple[str, ...] = (
 def required_anchors_for_wan22_audio_task(task: str) -> tuple[str, ...]:
     """Anchors for optional-audio WAN API graphs (silent path does not include these)."""
     return required_anchors_for_video_task(task) + MMAUDIO_ANCHORS_WAN22
+
+
+# ---------------------------------------------------------------------------
+# LTX Video (10Eros / ltxv family) anchor sets
+# ---------------------------------------------------------------------------
+
+# Minimum required anchors shared by both t2v and i2v.
+REQUIRED_ANCHORS_LTXV: tuple[str, ...] = (
+    "%LTXV_CHECKPOINT%",
+    "%LTXV_TEXT_ENCODER%",
+    "%LTXV_VIDEO_VAE%",
+    "%LTXV_POSITIVE%",
+    "%LTXV_NEGATIVE%",
+    "%LTXV_SEED%",
+    "%LTXV_FRAMES%",
+    "%LTXV_OUTPUT%",
+    "%INIT_IMAGE%",
+)
+
+
+def required_anchors_for_ltxv_task(task: str) -> tuple[str, ...]:
+    """Anchors required for LTXV workflows (both t2v and i2v use the same set)."""
+    if task in ("t2v", "i2v"):
+        return REQUIRED_ANCHORS_LTXV
+    raise WorkflowValidationError(f"unknown video_task for ltxv anchor validation: {task!r}")
 
 
 def required_anchors_for_family(family: str) -> tuple[str, ...]:
@@ -651,4 +677,119 @@ def inject_init_image(graph: dict[str, dict], filename: str) -> None:
     except KeyError:
         # If the workflow doesn't support %INIT_IMAGE%, just ignore.
         pass
+
+
+# ---------------------------------------------------------------------------
+# LTX Video (10Eros / ltxv family) injection helpers
+# ---------------------------------------------------------------------------
+
+
+def inject_ltxv_weights(graph: dict[str, dict], *, model_cfg) -> None:
+    """Inject checkpoint and text-encoder filenames for LTXV (10Eros) workflows.
+
+    Patches:
+    - %LTXV_CHECKPOINT% (CheckpointLoaderSimple) → ckpt_name
+    - %LTXV_TEXT_ENCODER% (LTXAVTextEncoderLoader) → text_encoder + ckpt_name
+    - Any LTXVAudioVAELoader node in the graph → ckpt_name (same checkpoint)
+    """
+    ckpt_basename = _basename(model_cfg.checkpoint)
+
+    try:
+        ckpt_id = find_anchor(graph, "%LTXV_CHECKPOINT%")
+    except KeyError as exc:
+        raise WorkflowValidationError(f"inject_ltxv_weights: {exc}") from exc
+    ckpt_node = graph.get(ckpt_id) or {}
+    ckpt_inputs = ckpt_node.get("inputs")
+    if not isinstance(ckpt_inputs, dict):
+        raise WorkflowValidationError(
+            f"inject_ltxv_weights: node {ckpt_id} has invalid inputs"
+        )
+    ckpt_inputs["ckpt_name"] = ckpt_basename
+
+    try:
+        te_id = find_anchor(graph, "%LTXV_TEXT_ENCODER%")
+    except KeyError as exc:
+        raise WorkflowValidationError(f"inject_ltxv_weights: {exc}") from exc
+    te_node = graph.get(te_id) or {}
+    te_inputs = te_node.get("inputs")
+    if not isinstance(te_inputs, dict):
+        raise WorkflowValidationError(
+            f"inject_ltxv_weights: node {te_id} has invalid inputs"
+        )
+    te_inputs["ckpt_name"] = ckpt_basename
+    if model_cfg.ltxv_text_encoder:
+        te_inputs["text_encoder"] = _basename(model_cfg.ltxv_text_encoder)
+
+    # Patch all LTXVAudioVAELoader nodes with the standalone audio VAE file.
+    # The main checkpoint (10Eros_v1_bf16) contains audio TRANSFORMER weights but
+    # has no audio_vae.* weights.  Loading it as an AudioVAE gives a randomly-
+    # initialised model that decodes audio latents to NaN.  LTX23_audio_vae_bf16
+    # is the correct standalone audio VAE; it is made findable under the
+    # "checkpoints" folder_paths group via extra_model_paths.yaml in the container.
+    LTXV_AUDIO_VAE_FILENAME = "LTX23_audio_vae_bf16.safetensors"
+    for node in graph.values():
+        if node.get("class_type") == "LTXVAudioVAELoader":
+            av_inputs = node.get("inputs")
+            if isinstance(av_inputs, dict):
+                av_inputs["ckpt_name"] = LTXV_AUDIO_VAE_FILENAME
+
+
+def inject_ltxv_video_vae(graph: dict[str, dict], vae_name: str) -> None:
+    """Inject the LTX Video VAE filename into the %LTXV_VIDEO_VAE% anchor node.
+
+    The anchor is expected on a ``VAELoader`` node.  LTXV checkpoints do not
+    embed a VAE; the video VAE must be loaded from a separate file
+    (e.g. ``LTX23_video_vae_bf16.safetensors``).
+    """
+    try:
+        vae_id = find_anchor(graph, "%LTXV_VIDEO_VAE%")
+    except KeyError as exc:
+        raise WorkflowValidationError(f"inject_ltxv_video_vae: {exc}") from exc
+    vae_node = graph.get(vae_id) or {}
+    vae_inputs = vae_node.get("inputs")
+    if not isinstance(vae_inputs, dict):
+        raise WorkflowValidationError(
+            f"inject_ltxv_video_vae: node {vae_id} has invalid inputs"
+        )
+    vae_inputs["vae_name"] = vae_name
+
+
+def inject_ltxv_seed(graph: dict[str, dict], actual_seed: int) -> None:
+    """Inject *actual_seed* into the %LTXV_SEED% anchor node.
+
+    The anchor is expected to be on a ``Seed (rgthree)`` node whose API
+    representation exposes a ``seed`` integer input.  That seed propagates
+    through SetNode/GetNode chains to RandomNoise and KSampler downstream.
+    """
+    try:
+        seed_id = find_anchor(graph, "%LTXV_SEED%")
+    except KeyError as exc:
+        raise WorkflowValidationError(f"inject_ltxv_seed: {exc}") from exc
+    seed_node = graph.get(seed_id) or {}
+    seed_inputs = seed_node.get("inputs")
+    if not isinstance(seed_inputs, dict):
+        raise WorkflowValidationError(
+            f"inject_ltxv_seed: node {seed_id} has invalid inputs"
+        )
+    # rgthree Seed node has max 1125899906842624 (2^50).
+    seed_inputs["seed"] = actual_seed % 1125899906842624
+
+
+def inject_ltxv_frames(graph: dict[str, dict], frames: int) -> None:
+    """Inject *frames* (video length) into the %LTXV_FRAMES% anchor node.
+
+    The anchor is expected on a ``PrimitiveInt`` node whose ``value`` feeds
+    the SetNode('length_0') → GetNode('length_0') → EmptyLTXVLatentVideo chain.
+    """
+    try:
+        frames_id = find_anchor(graph, "%LTXV_FRAMES%")
+    except KeyError as exc:
+        raise WorkflowValidationError(f"inject_ltxv_frames: {exc}") from exc
+    frames_node = graph.get(frames_id) or {}
+    frames_inputs = frames_node.get("inputs")
+    if not isinstance(frames_inputs, dict):
+        raise WorkflowValidationError(
+            f"inject_ltxv_frames: node {frames_id} has invalid inputs"
+        )
+    frames_inputs["value"] = int(frames)
 

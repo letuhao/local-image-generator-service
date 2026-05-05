@@ -10,6 +10,7 @@ from app.registry.workflows import (
     WorkflowValidationError,
     load_workflow,
     required_anchors_for_family,
+    required_anchors_for_ltxv_task,
     required_anchors_for_video_task,
     required_anchors_for_wan22_audio_task,
     validate_anchors,
@@ -17,7 +18,7 @@ from app.registry.workflows import (
 
 _ALLOWED_BACKENDS: frozenset[str] = frozenset({"comfyui"})
 _ALLOWED_PREDICTIONS: frozenset[str] = frozenset({"eps", "vpred"})
-_ALLOWED_FAMILIES: frozenset[str] = frozenset({"sdxl", "flux", "qwen", "wan22"})
+_ALLOWED_FAMILIES: frozenset[str] = frozenset({"sdxl", "flux", "qwen", "wan22", "ltxv"})
 
 log = structlog.get_logger(__name__)
 
@@ -69,11 +70,13 @@ def _parse_entry(raw: dict) -> ModelConfig:
         wan_t5_encoder=raw.get("wan_t5_encoder"),
         wan_clip_vision=raw.get("wan_clip_vision"),
         skip_asset_validation=bool(raw.get("skip_asset_validation", False)),
+        default_loras=list(raw.get("default_loras") or []),
         workflow_with_audio=raw.get("workflow_with_audio"),
         mmaudio_vae=raw.get("mmaudio_vae"),
         mmaudio_synchformer=raw.get("mmaudio_synchformer"),
         mmaudio_clip=raw.get("mmaudio_clip"),
         mmaudio_diffusion=raw.get("mmaudio_diffusion"),
+        ltxv_text_encoder=raw.get("ltxv_text_encoder"),
     )
 
 
@@ -139,7 +142,7 @@ def load_registry(
         default_sampler = (cfg.defaults or {}).get("sampler")
         allowed_samplers = ALLOWED_SAMPLERS_BY_FAMILY.get(cfg.family, frozenset())
         if (
-            cfg.family != "wan22"
+            cfg.family not in ("wan22", "ltxv")
             and default_sampler is not None
             and default_sampler not in allowed_samplers
         ):
@@ -153,7 +156,7 @@ def load_registry(
         default_scheduler = (cfg.defaults or {}).get("scheduler")
         allowed_schedulers = ALLOWED_SCHEDULERS_BY_FAMILY.get(cfg.family, frozenset())
         if (
-            cfg.family != "wan22"
+            cfg.family not in ("wan22", "ltxv")
             and default_scheduler is not None
             and default_scheduler not in allowed_schedulers
         ):
@@ -185,6 +188,20 @@ def load_registry(
             if not cfg.vae:
                 raise RegistryValidationError(
                     "wan22_vae_missing", f"{cfg.name}: vae path is required for family=wan22"
+                )
+
+        if cfg.family == "ltxv":
+            caps = cfg.capabilities or {}
+            video_task = caps.get("video_task")
+            if video_task not in ("t2v", "i2v"):
+                raise RegistryValidationError(
+                    "ltxv_video_task",
+                    f"{cfg.name}: capabilities.video_task must be 't2v' or 'i2v' for family=ltxv",
+                )
+            if not cfg.ltxv_text_encoder:
+                raise RegistryValidationError(
+                    "ltxv_text_encoder_missing",
+                    f"{cfg.name}: ltxv_text_encoder is required for family=ltxv",
                 )
 
         skip_assets = cfg.skip_asset_validation
@@ -225,6 +242,12 @@ def load_registry(
                 raise RegistryValidationError(
                     "wan_clip_missing", f"{cfg.name}: {cv_path} not found"
                 )
+        if cfg.ltxv_text_encoder is not None:
+            lte_path = models_root / cfg.ltxv_text_encoder
+            if not skip_assets and not lte_path.exists():
+                raise RegistryValidationError(
+                    "ltxv_te_missing", f"{cfg.name}: {lte_path} not found"
+                )
 
         if cfg.workflow_with_audio is not None:
             for field_name, path in (
@@ -253,6 +276,9 @@ def load_registry(
             if cfg.family == "wan22":
                 vt = (cfg.capabilities or {}).get("video_task")
                 validate_anchors(graph, required_anchors_for_video_task(str(vt)))
+            elif cfg.family == "ltxv":
+                vt = (cfg.capabilities or {}).get("video_task")
+                validate_anchors(graph, required_anchors_for_ltxv_task(str(vt)))
             else:
                 validate_anchors(graph, required_anchors_for_family(cfg.family))
         except WorkflowValidationError as exc:

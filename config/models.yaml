@@ -535,14 +535,16 @@ models:
     vae: vae/Wan2_1_VAE_fp32.safetensors
     wan_t5_encoder: text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors
     skip_asset_validation: true
+    # No LoRA: SmoothMix T2V has distillation baked in, external LoRAs incompatible.
+    default_loras: []
     capabilities:
       video_gen: true
       video_task: t2v
       skip_startup_smoke: true
     defaults:
       size: "832x480"
-      steps: 20
-      cfg: 6.0
+      steps: 6
+      cfg: 1.0
       shift: 8.0
       scheduler: simple
       negative_prompt: ""
@@ -551,8 +553,8 @@ models:
       mmaudio_cfg: 4.5
     limits:
       steps_max: 60
-      frames_max: 129
-      size_max_pixels: 921600
+      frames_max: 9001
+      size_max_pixels: 16588800
     vram_estimate_gb: 11
 
   - name: wan22-smooth-i2v
@@ -570,14 +572,24 @@ models:
     wan_t5_encoder: text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors
     wan_clip_vision: clip_vision/clip_vision_h.safetensors
     skip_asset_validation: true
+    # rank128_bf16 LoRA loaded twice per SmoothMix I2V v2 author comment:
+    # "lightx2v_I2V_14B_480p_cfg_step_distill_rank128_bf16 set with weight 3.0 on High
+    # and 1.5 on Low" — cross_attn.k_img keys won't map (SmoothMix uses different
+    # image conditioning) but self-attn/FFN distillation keys load and are sufficient.
+    default_loras:
+      - name: wan2.2/lightx2v_I2V_14B_480p_cfg_step_distill_rank128_bf16
+        weight: 3.0
+      - name: wan2.2/lightx2v_I2V_14B_480p_cfg_step_distill_rank128_bf16
+        weight: 1.5
     capabilities:
       video_gen: true
       video_task: i2v
       skip_startup_smoke: true
     defaults:
       size: "832x480"
-      steps: 20
-      cfg: 6.0
+      # Distilled via rank128 LoRA (3.0+1.5): use 4-6 steps, cfg=1.
+      steps: 6
+      cfg: 1.0
       shift: 8.0
       scheduler: simple
       negative_prompt: ""
@@ -586,6 +598,80 @@ models:
       mmaudio_cfg: 4.5
     limits:
       steps_max: 60
-      frames_max: 129
-      size_max_pixels: 921600
+      frames_max: 9001
+      size_max_pixels: 16588800
     vram_estimate_gb: 11
+
+  # -- LTX Video / 10Eros ------------------------------------------------
+  #
+  # 10Eros v1 (LTX Video 2.3) - triple-pass (First -> Renoising -> Upscale).
+  # Both I2V and T2V workflows require an init_image:
+  #   - I2V: init_image is the first frame.
+  #   - T2V: init_image sets the aspect ratio / resolution via GetImageSize.
+  #
+  # Pre-baked LoRAs (injected automatically via default_loras):
+  #   - ltx23/ltx-2.3-22b-distilled-lora-1.1  (acceleration, weight 1.0)
+  #   - ltx23/ltx23_edit_anything_global_rank128_v1_9000steps_adamw (IC-LoRA, weight 1.0)
+  # Spatial upscaler path is hardcoded in the workflow JSON.
+
+  - name: 10eros-i2v
+    backend: comfyui
+    family: ltxv
+    prediction: eps
+    workflow: workflows/10eros_i2v_api.json
+    checkpoint: checkpoints/10Eros_v1_bf16.safetensors
+    ltxv_text_encoder: text_encoders/gemma_3_12B_it_fp8_e4m3fn.safetensors
+    default_loras:
+      - name: ltx23/ltx-2.3-22b-distilled-lora-1.1_fro90_ceil72_condsafe
+        weight: 1.0
+      - name: ltx23/ltx23_edit_anything_global_rank128_v1_9000steps_adamw
+        weight: 1.0
+    capabilities:
+      video_gen: true
+      video_task: i2v
+      skip_startup_smoke: true
+    defaults:
+      size: "768x512"
+      steps: 10
+      cfg: 3.0
+      shift: 0.0
+      scheduler: simple
+      negative_prompt: "3D, still image, bad quality, subtitles, text, watermark"
+      job_timeout_s: 7200
+      fps: 24
+    limits:
+      steps_max: 50
+      frames_max: 241
+      size_max_pixels: 1572864
+    vram_estimate_gb: 24
+
+  - name: 10eros-t2v
+    backend: comfyui
+    family: ltxv
+    prediction: eps
+    workflow: workflows/10eros_t2v_api.json
+    checkpoint: checkpoints/10Eros_v1_bf16.safetensors
+    ltxv_text_encoder: text_encoders/gemma_3_12B_it_fp8_e4m3fn.safetensors
+    default_loras:
+      - name: ltx23/ltx-2.3-22b-distilled-lora-1.1_fro90_ceil72_condsafe
+        weight: 1.0
+      - name: ltx23/ltx23_edit_anything_global_rank128_v1_9000steps_adamw
+        weight: 1.0
+    capabilities:
+      video_gen: true
+      video_task: t2v
+      skip_startup_smoke: true
+    defaults:
+      size: "768x512"
+      steps: 10
+      cfg: 3.0
+      shift: 0.0
+      scheduler: simple
+      negative_prompt: "3D, still image, bad quality, subtitles, text, watermark"
+      job_timeout_s: 7200
+      fps: 24
+    limits:
+      steps_max: 50
+      frames_max: 241
+      size_max_pixels: 1572864
+    vram_estimate_gb: 24

@@ -1,0 +1,3 @@
+--progress is a global compose flag, better use `docker compose --progress xx build ...
+ Image image-gen-comfyui:0.20.1-wan22 Building 
+ Image image-gen-comfyui:0.20.1-wan22 Built 

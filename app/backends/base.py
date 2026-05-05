@@ -44,7 +44,7 @@ class ModelConfig:
     clip_loader_type: str | None = None  # CLIPLoader type (e.g. "flux2") when workflow uses CLIPLoader
     # Runtime family marker used for workflow/validation branching while keeping
     # a universal client payload contract.
-    family: Literal["sdxl", "flux", "qwen", "wan22"] = "sdxl"
+    family: Literal["sdxl", "flux", "qwen", "wan22", "ltxv"] = "sdxl"
     # "eps" | "vpred" — informational in Cycle 3; Cycle 5+ uses it for graph injection.
     prediction: Literal["eps", "vpred"] = "eps"
     capabilities: dict[str, Any] = field(default_factory=dict)  # e.g. {"image_gen": True}
@@ -54,12 +54,19 @@ class ModelConfig:
     wan_t5_encoder: str | None = None  # models/text_encoders relative path
     wan_clip_vision: str | None = None  # models/clip_vision (I2V)
     skip_asset_validation: bool = False  # skip on-disk checks (dev/CI without weights)
+    # LoRAs that are always prepended to user-specified loras for this model.
+    # Each entry is {"name": "<relative-to-loras-root>", "weight": <float>}.
+    # Used for acceleration LoRAs that are not baked into the checkpoint
+    # (e.g. LightX2V for SmoothMix I2V v2.0 which ships the LoRA separately).
+    default_loras: list[dict[str, Any]] = field(default_factory=list)
     # Optional ComfyUI-MMAudio companion workflow (WAN graphs with %MMAUDIO_*% anchors).
     workflow_with_audio: str | None = None  # relative to repo root
     mmaudio_vae: str | None = None  # relative to models/ (mmaudio subfolder weights)
     mmaudio_synchformer: str | None = None
     mmaudio_clip: str | None = None
     mmaudio_diffusion: str | None = None  # MMAudio main checkpoint filename/path under models/
+    # LTX Video (10Eros / ltxv family) additional assets.
+    ltxv_text_encoder: str | None = None  # e.g. text_encoders/gemma_3_12B_it_fp8_e4m3fn.safetensors
 
 
 @dataclass(frozen=True, slots=True)

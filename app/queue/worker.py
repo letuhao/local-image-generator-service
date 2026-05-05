@@ -37,6 +37,10 @@ from app.registry.workflows import (
     find_anchor,
     inject_init_image,
     inject_loras,
+    inject_ltxv_frames,
+    inject_ltxv_seed,
+    inject_ltxv_video_vae,
+    inject_ltxv_weights,
     inject_mmaudio_weights,
     inject_model_source,
     inject_video_weights,
@@ -289,6 +293,16 @@ class QueueWorker:
             raise ComfyNodeError(f"re-validation failed: {exc}") from exc
 
         if isinstance(envelope, dict) and envelope.get("artifact_kind") == "video":
+            # Peek at the model family to dispatch to the right pipeline.
+            video_task = envelope.get("video_task")
+            payload = envelope.get("payload") or {}
+            model_name = payload.get("model", "")
+            try:
+                peek_model = self._registry.get(model_name)
+            except KeyError:
+                peek_model = None
+            if peek_model is not None and peek_model.family == "ltxv":
+                return await self._run_ltxv_pipeline(job, envelope)
             return await self._run_video_pipeline(job, envelope)
 
         raw = envelope
@@ -543,6 +557,231 @@ class QueueWorker:
 
         return JobResult(data=data, duration_ms=duration_ms, resolved_seed=actual_seed)
 
+    async def _run_ltxv_pipeline(self, job: Job, envelope: dict[str, Any]) -> JobResult:
+        """LTX Video (10Eros / ltxv family) pipeline — single-graph submission."""
+        video_task = envelope.get("video_task")
+        payload = envelope.get("payload")
+        if video_task not in ("t2v", "i2v") or not isinstance(payload, dict):
+            msg = "stored video envelope missing video_task or payload"
+            await set_failed(self._store, job.id, error_code="validation_error", error_message=msg)
+            raise ComfyNodeError(msg)
+
+        try:
+            body = VideoGenerateRequest.model_validate(payload)
+            validated = resolve_and_validate_video(
+                body,
+                registry=self._registry,
+                async_mode_enabled=self._async_mode_enabled,
+                expected_task=video_task,
+                loras_root=self._loras_root,
+            )
+            await touch_last_used_async(self._loras_root, validated.loras)
+        except ValidationFailureError as exc:
+            await set_failed(
+                self._store, job.id, error_code=exc.error_code, error_message=exc.message
+            )
+            if self._metrics is not None:
+                self._metrics.record_job_event(status="failed", error_code=exc.error_code)
+            raise ComfyNodeError(f"re-validation failed: {exc}") from exc
+
+        graph_template = load_workflow(validated.resolved_workflow_path)
+        graph = copy.deepcopy(graph_template)
+
+        actual_seed = validated.seed if validated.seed >= 0 else secrets.randbelow(2**53)
+
+        try:
+            inject_ltxv_weights(graph, model_cfg=validated.model)
+            inject_ltxv_video_vae(graph, "LTX23_video_vae_bf16.safetensors")
+
+            pos_id = find_anchor(graph, "%LTXV_POSITIVE%")
+            neg_id = find_anchor(graph, "%LTXV_NEGATIVE%")
+            graph[pos_id]["inputs"]["text"] = validated.prompt
+            graph[neg_id]["inputs"]["text"] = validated.negative_prompt
+
+            inject_ltxv_seed(graph, actual_seed)
+            inject_ltxv_frames(graph, validated.frames)
+
+            # Inject output frame_rate into %LTXV_OUTPUT%.
+            try:
+                out_id = find_anchor(graph, "%LTXV_OUTPUT%")
+                graph[out_id]["inputs"]["frame_rate"] = validated.fps
+            except KeyError:
+                pass
+
+        except WorkflowValidationError as exc:
+            await set_failed(self._store, job.id, error_code="comfy_error", error_message=str(exc))
+            if self._metrics is not None:
+                self._metrics.record_job_event(status="failed", error_code="comfy_error")
+            raise ComfyNodeError(str(exc)) from exc
+
+        # Upload init image (required for i2v; optional for ltxv t2v as dimension reference).
+        if validated.init_image_bytes:
+            filename = f"{job.id}_init.png"
+            try:
+                await self._adapter.upload_image(validated.init_image_bytes, filename)
+            except ComfyUnreachableError as exc:
+                await set_failed(
+                    self._store, job.id, error_code="comfy_unreachable", error_message=str(exc)
+                )
+                if self._metrics is not None:
+                    self._metrics.record_job_event(status="failed", error_code="comfy_unreachable")
+                raise
+            inject_init_image(graph, filename)
+
+        current_model = validated.model.name
+        if self._last_model_name is not None and self._last_model_name != current_model:
+            unloaded = await self._adapter.unload_models(verify_timeout_s=30.0)
+            if not unloaded:
+                if await self._has_swap_headroom(validated.model):
+                    log.warning(
+                        "queue_worker.swap_unload_unverified_but_headroom_ok",
+                        previous_model=self._last_model_name,
+                        next_model=current_model,
+                    )
+                else:
+                    msg = (
+                        "model swap refused: /free did not increase vram_free within 30s "
+                        f"({self._last_model_name} -> {current_model})"
+                    )
+                    await set_failed(
+                        self._store,
+                        job.id,
+                        error_code="vram_budget_exceeded",
+                        error_message=msg,
+                    )
+                    if self._metrics is not None:
+                        self._metrics.record_job_event(
+                            status="failed", error_code="vram_budget_exceeded"
+                        )
+                    raise ComfyNodeError(msg)
+
+        try:
+            prompt_id = await self._adapter.submit(graph)
+        except ComfyUnreachableError as exc:
+            await set_failed(
+                self._store, job.id, error_code="comfy_unreachable", error_message=str(exc)
+            )
+            if self._metrics is not None:
+                self._metrics.record_job_event(status="failed", error_code="comfy_unreachable")
+            raise
+        except ComfyNodeError as exc:
+            await set_failed(self._store, job.id, error_code="comfy_error", error_message=str(exc))
+            if self._metrics is not None:
+                self._metrics.record_job_event(status="failed", error_code="comfy_error")
+            raise
+
+        try:
+            await set_running(
+                self._store,
+                job.id,
+                prompt_id=prompt_id,
+                client_id=getattr(self._adapter, "client_id", "unknown"),
+            )
+            if self._metrics is not None:
+                self._metrics.record_job_event(status="running")
+        except Exception as exc:
+            log.exception("queue_worker.set_running_failed", job_id=job.id, prompt_id=prompt_id)
+            await self._safe_cancel(prompt_id)
+            raise ComfyNodeError(f"set_running failed: {exc}") from exc
+
+        start_gen = time.perf_counter()
+        wait_timeout_s = float(
+            validated.timeout_s
+            if validated.timeout_s is not None
+            else validated.model.defaults.get("job_timeout_s", self._job_timeout_s)
+        )
+        try:
+            await self._adapter.wait_for_completion(prompt_id, timeout_s=wait_timeout_s)
+        except ComfyTimeoutError as exc:
+            await self._safe_cancel(prompt_id)
+            await self._safe_free()
+            await set_failed(
+                self._store, job.id, error_code="comfy_timeout", error_message=str(exc)
+            )
+            if self._metrics is not None:
+                self._metrics.record_job_event(status="failed", error_code="comfy_timeout")
+            raise
+        except ComfyUnreachableError as exc:
+            await set_failed(
+                self._store, job.id, error_code="comfy_unreachable", error_message=str(exc)
+            )
+            if self._metrics is not None:
+                self._metrics.record_job_event(status="failed", error_code="comfy_unreachable")
+            raise
+
+        fetch_media = getattr(self._adapter, "fetch_media_outputs", None)
+        if not callable(fetch_media):
+            msg = "backend adapter missing fetch_media_outputs — cannot complete ltxv video job"
+            await set_failed(self._store, job.id, error_code="comfy_error", error_message=msg)
+            raise ComfyNodeError(msg)
+
+        try:
+            media_rows = await fetch_media(prompt_id)
+        except ComfyUnreachableError as exc:
+            await set_failed(
+                self._store, job.id, error_code="comfy_unreachable", error_message=str(exc)
+            )
+            if self._metrics is not None:
+                self._metrics.record_job_event(status="failed", error_code="comfy_unreachable")
+            raise
+
+        if not media_rows:
+            msg = "ComfyUI returned zero media outputs for ltxv job"
+            await set_failed(self._store, job.id, error_code="comfy_error", error_message=msg)
+            if self._metrics is not None:
+                self._metrics.record_job_event(status="failed", error_code="comfy_error")
+            raise ComfyNodeError(msg)
+
+        output_keys: list[str] = []
+        uploaded_blobs: list[tuple[bytes, str]] = []
+        try:
+            for idx, (blob, ext) in enumerate(media_rows):
+                ext = ext.lower().lstrip(".") or "mp4"
+                ctype = _MEDIA_CONTENT_TYPES.get(ext, "application/octet-stream")
+                upload_fn = getattr(self._s3, "upload_generation_blob", None)
+                if callable(upload_fn):
+                    bucket, key = await upload_fn(
+                        job.id, idx, blob, ext=ext, content_type=ctype
+                    )
+                else:
+                    bucket, key = await self._s3.upload_png(job.id, idx, blob)
+                output_keys.append(f"{bucket}/{key}")
+                uploaded_blobs.append((blob, ext))
+        except StorageError as exc:
+            await set_failed(
+                self._store, job.id, error_code="storage_error", error_message=str(exc)
+            )
+            if self._metrics is not None:
+                self._metrics.record_job_event(status="failed", error_code="storage_error")
+            raise
+
+        data: list[dict[str, Any]] = []
+        if validated.response_format == "b64_json":
+            for blob, _ext in uploaded_blobs:
+                data.append({"b64_json": base64.b64encode(blob).decode("ascii")})
+        else:
+            for idx, (_blob, ext) in enumerate(uploaded_blobs):
+                data.append(
+                    {"url": f"{self._public_base_url}/v1/videos/{job.id}/{idx}.{ext}"}
+                )
+
+        duration_ms = (time.perf_counter() - start_gen) * 1000
+        await set_completed(
+            self._store,
+            job.id,
+            output_keys=output_keys,
+            result_json=json.dumps(
+                {
+                    "data": data,
+                    "duration_ms": duration_ms,
+                    "resolved_seed": actual_seed,
+                }
+            ),
+        )
+        self._last_model_name = current_model
+
+        return JobResult(data=data, duration_ms=duration_ms, resolved_seed=actual_seed)
+
     async def _run_video_pipeline(self, job: Job, envelope: dict[str, Any]) -> JobResult:
         """WAN22 text/image-to-video via ComfyUI-WanVideoWrapper API workflows."""
         video_task = envelope.get("video_task")
@@ -647,12 +886,28 @@ class QueueWorker:
             s_in["cfg"] = validated.cfg
             scheduler = _CORE_WAN_SCHEDULER_MAP.get(validated.scheduler, validated.scheduler)
             s_in["scheduler"] = scheduler
+            # Pass 1 of 2-pass NAG: run first half of steps, return noisy latent
+            # for the KSamplerWithNAG second pass to refine.
+            half_steps = max(1, validated.steps // 2)
+            s_in["end_at_step"] = half_steps
+            s_in["return_with_leftover_noise"] = "enable"
             # Shift lives on ModelSamplingSD3 (%WAN_SHIFT%) in core workflows.
             try:
                 shift_id = find_anchor(graph, "%WAN_SHIFT%")
                 graph[shift_id]["inputs"]["shift"] = validated.shift
             except KeyError:
                 pass
+            # NAG pass 2: inject matching seed/steps/cfg/scheduler and start_at_step.
+            try:
+                nag_id = find_anchor(graph, "%WAN_NAG_SAMPLER%")
+                nag_in = graph[nag_id]["inputs"]
+                nag_in["noise_seed"] = actual_seed
+                nag_in["steps"] = validated.steps
+                nag_in["cfg"] = validated.cfg
+                nag_in["scheduler"] = scheduler
+                nag_in["start_at_step"] = half_steps
+            except KeyError:
+                pass  # legacy workflows without NAG pass
         else:
             # Legacy WanVideoSampler (Kijai).
             s_in["seed"] = actual_seed

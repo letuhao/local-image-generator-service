@@ -324,3 +324,79 @@ def test_apply_wan_advanced_decode_silently_skipped_for_core() -> None:
     apply_wan_advanced_patches(graph, opts, video_task="t2v")
     dec_id = find_anchor(graph, "%WAN_DECODE%")
     assert "enable_vae_tiling" not in graph[dec_id]["inputs"]
+
+
+# ---------------------------------------------------------------------------
+# 2-pass NAG sampling — structural tests on workflow templates
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("filename", "video_task"),
+    [
+        ("wan22_i2v_api.json", "i2v"),
+        ("wan22_t2v_api.json", "t2v"),
+        ("wan22_i2v_audio_api.json", "i2v"),
+        ("wan22_t2v_audio_api.json", "t2v"),
+    ],
+)
+def test_nag_node_present_and_correct_class(filename: str, video_task: str) -> None:
+    """Every WAN API workflow must contain a KSamplerWithNAG (Advanced) node."""
+    graph = load_workflow(REPO_ROOT / "workflows" / filename)
+    nag_id = find_anchor(graph, "%WAN_NAG_SAMPLER%")
+    assert graph[nag_id]["class_type"] == "KSamplerWithNAG (Advanced)"
+
+
+@pytest.mark.parametrize(
+    ("filename", "video_task"),
+    [
+        ("wan22_i2v_api.json", "i2v"),
+        ("wan22_t2v_api.json", "t2v"),
+        ("wan22_i2v_audio_api.json", "i2v"),
+        ("wan22_t2v_audio_api.json", "t2v"),
+    ],
+)
+def test_ksampler_pass1_template_values(filename: str, video_task: str) -> None:
+    """KSamplerAdvanced pass-1 template: end_at_step == steps // 2, return_noise == enable."""
+    graph = load_workflow(REPO_ROOT / "workflows" / filename)
+    sampler_id = find_anchor(graph, "%WAN_SAMPLER%")
+    inputs = graph[sampler_id]["inputs"]
+    assert inputs["end_at_step"] == inputs["steps"] // 2
+    assert inputs["return_with_leftover_noise"] == "enable"
+
+
+@pytest.mark.parametrize(
+    ("filename", "video_task"),
+    [
+        ("wan22_i2v_api.json", "i2v"),
+        ("wan22_t2v_api.json", "t2v"),
+        ("wan22_i2v_audio_api.json", "i2v"),
+        ("wan22_t2v_audio_api.json", "t2v"),
+    ],
+)
+def test_nag_pass2_start_equals_pass1_end(filename: str, video_task: str) -> None:
+    """NAG start_at_step must equal KSamplerAdvanced end_at_step (seamless handoff)."""
+    graph = load_workflow(REPO_ROOT / "workflows" / filename)
+    sampler_id = find_anchor(graph, "%WAN_SAMPLER%")
+    nag_id = find_anchor(graph, "%WAN_NAG_SAMPLER%")
+    assert graph[nag_id]["inputs"]["start_at_step"] == graph[sampler_id]["inputs"]["end_at_step"]
+    assert graph[nag_id]["inputs"]["add_noise"] == "disable"
+
+
+@pytest.mark.parametrize(
+    ("filename", "video_task"),
+    [
+        ("wan22_i2v_api.json", "i2v"),
+        ("wan22_t2v_api.json", "t2v"),
+        ("wan22_i2v_audio_api.json", "i2v"),
+        ("wan22_t2v_audio_api.json", "t2v"),
+    ],
+)
+def test_vae_decode_wired_to_nag_output(filename: str, video_task: str) -> None:
+    """VAEDecode must take its samples from the NAG node, not from KSamplerAdvanced."""
+    graph = load_workflow(REPO_ROOT / "workflows" / filename)
+    decode_id = find_anchor(graph, "%WAN_DECODE%")
+    nag_id = find_anchor(graph, "%WAN_NAG_SAMPLER%")
+    samples_wire = graph[decode_id]["inputs"]["samples"]
+    assert samples_wire[0] == nag_id
+    assert samples_wire[1] == 0

@@ -26,6 +26,7 @@ ORDER=(
   ComfyUI-VideoHelperSuite
   ComfyUI-WanVideoWrapper
   ComfyUI-MMAudio
+  ComfyUI-AudioTools
   ComfyUI-NAG
   comfyui-adaptiveprompts
   ComfyUI-VFI
@@ -33,6 +34,15 @@ ORDER=(
   ComfyUI_Comfyroll_CustomNodes
   ComfyUI-mxToolkit
   rgthree-comfy
+  ComfyUI-LTXVideo
+  10S-Comfy-nodes
+  ComfyUI-Custom-Scripts
+  ComfyMath
+  ComfyUI-Detail-Daemon
+  Nvidia_RTX_Nodes_ComfyUI
+  ComfyUI-DaSiWa-Nodes
+  comfyui-WhiteRabbit
+  RES4LYF
   ComfyUI-Easy-Use
 )
 
