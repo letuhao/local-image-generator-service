@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from urllib.parse import parse_qs, urlparse
 
 # Two hosts share Civitai's backend — `.com` is the main site, `.red` is the
-# NSFW-permissive split. API + download calls always go to `.com` regardless of
+# API + download calls always go to `.com` regardless of
 # which page URL the admin pasted.
 _ALLOWED_HOSTS: frozenset[str] = frozenset({"civitai.com", "civitai.red"})
 API_HOST: str = "civitai.com"

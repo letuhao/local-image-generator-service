@@ -228,3 +228,5 @@ docker-build.log.err
 
 workflows/
 docs/specs/
+
+.tmp_chibi_nodes_head

@@ -471,7 +471,7 @@ models:
     backend: comfyui
     family: qwen
     workflow: workflows/qwen_aio_eps.json
-    checkpoint: checkpoints/2167203_Qwen-Rapid-AIO-NSFW-v23.safetensors
+    checkpoint: checkpoints/2167203_Qwen-Rapid-AIO-v23.safetensors
     prediction: eps
     # Baked VAE in AIO checkpoint — VAEDecode uses CheckpointLoaderSimple output [2].
     capabilities:

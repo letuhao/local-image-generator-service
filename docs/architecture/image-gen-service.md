@@ -270,7 +270,7 @@ Or via URL (the service parses `civitai.com/models/<id>(?modelVersionId=<vid>)?`
 
 1. Host allowlist: only `civitai.com` and its CDN redirect hosts (resolved from the metadata endpoint's response); reject anything else.
 2. `version_id` is **required** — no implicit "latest".
-3. Fetch is a two-step: first `GET https://civitai.com/api/v1/models/<model_id>` with `Authorization: Bearer ${CIVITAI_API_TOKEN}` (NSFW-gated assets require auth), then pick `files[]` where `primary == true` and `downloadUrl` is used with `follow_redirects=True`.
+3. Fetch is a two-step: first `GET https://civitai.com/api/v1/models/<model_id>` with `Authorization: Bearer ${CIVITAI_API_TOKEN}` (assets require auth), then pick `files[]` where `primary == true` and `downloadUrl` is used with `follow_redirects=True`.
 4. SHA-256 verification: downloaded bytes are hashed and compared against `files[].hashes.SHA256` from the metadata response (or the explicit `expected_sha256`). Mismatch → quarantine directory, 422 response.
 5. Extension allowlist: `.safetensors` only.
 6. File-size cap: `LORA_MAX_SIZE_BYTES` (default 2 GiB).
