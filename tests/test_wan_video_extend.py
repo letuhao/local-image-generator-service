@@ -16,6 +16,7 @@ from app.backends.base import ModelConfig
 from app.registry.wan_advanced import apply_wan_advanced_patches
 from app.registry.workflows import (
     ResolvedLoraRef,
+    WorkflowValidationError,
     find_anchor,
     inject_video_weights,
     inject_wan_core_loras,
@@ -76,6 +77,7 @@ def _make_core_model_cfg(**overrides) -> ModelConfig:
         prediction="eps",
         workflow_path="workflows/wan22_i2v_api.json",
         checkpoint="diffusion_models/SmoothMix_I2V_v2_High.safetensors",
+        wan_unet_low="diffusion_models/SmoothMix_I2V_v2_Low.safetensors",
         vae="vae/Wan2_1_VAE_fp32.safetensors",
         vram_estimate_gb=11.0,
         wan_t5_encoder="text_encoders/umt5-xxl-enc-bf16.safetensors",
@@ -83,6 +85,13 @@ def _make_core_model_cfg(**overrides) -> ModelConfig:
     )
     base.update(overrides)
     return ModelConfig(**base)
+
+
+def test_inject_video_weights_missing_wan_unet_low_raises() -> None:
+    graph = load_workflow(REPO_ROOT / "workflows" / "wan22_i2v_api.json")
+    cfg = _make_core_model_cfg(wan_unet_low=None)
+    with pytest.raises(WorkflowValidationError, match="wan_unet_low"):
+        inject_video_weights(graph, model_cfg=cfg)
 
 
 def test_inject_video_weights_core_unet_uses_unet_name() -> None:
@@ -93,6 +102,8 @@ def test_inject_video_weights_core_unet_uses_unet_name() -> None:
     assert graph[model_id]["class_type"] == "UNETLoader"
     assert graph[model_id]["inputs"]["unet_name"] == "SmoothMix_I2V_v2_High.safetensors"
     assert "model" not in graph[model_id]["inputs"]
+    low_id = find_anchor(graph, "%WAN_MODEL_LOW%")
+    assert graph[low_id]["inputs"]["unet_name"] == "SmoothMix_I2V_v2_Low.safetensors"
 
 
 def test_inject_video_weights_core_vae_uses_vae_name() -> None:
@@ -113,6 +124,7 @@ def test_inject_video_weights_core_t5_uses_clip_name() -> None:
     inject_video_weights(graph, model_cfg=_make_core_model_cfg(
         workflow_path="workflows/wan22_t2v_api.json",
         checkpoint="diffusion_models/SmoothMix_T2V_High_v3.safetensors",
+        wan_unet_low="diffusion_models/SmoothMix_T2V_Low_v3.safetensors",
         capabilities={"video_gen": True, "video_task": "t2v"},
     ))
     t5_id = find_anchor(graph, "%WAN_T5%")
@@ -182,7 +194,7 @@ def test_inject_wan_core_loras_shift_rewired() -> None:
 
 
 def test_inject_wan_core_loras_chain_order() -> None:
-    """First LoRA feeds from UNETLoader; second feeds from first."""
+    """Dual high/low: first LoRA on high chain; second LoRA on low chain (SmoothMix-style)."""
     graph = load_workflow(REPO_ROOT / "workflows" / "wan22_t2v_api.json")
     inject_wan_core_loras(
         graph,
@@ -197,14 +209,18 @@ def test_inject_wan_core_loras_chain_order() -> None:
     )
     assert len(lora_nodes) == 2
 
-    # First node must pull from UNETLoader.
-    unet_id = find_anchor(graph, "%WAN_MODEL%")
-    first_nid, first_node = lora_nodes[0]
-    assert str(first_node["inputs"]["model"][0]) == str(unet_id)
+    unet_high = find_anchor(graph, "%WAN_MODEL%")
+    unet_low = find_anchor(graph, "%WAN_MODEL_LOW%")
 
-    # Second node must pull from first node.
-    second_nid, second_node = lora_nodes[1]
-    assert str(second_node["inputs"]["model"][0]) == first_nid
+    hi = next(n for n in lora_nodes if n[1]["inputs"]["lora_name"] == "first.safetensors")
+    lo = next(n for n in lora_nodes if n[1]["inputs"]["lora_name"] == "second.safetensors")
+
+    _, hi_node = hi
+    _, lo_node = lo
+    assert str(hi_node["inputs"]["model"][0]) == str(unet_high)
+    assert str(lo_node["inputs"]["model"][0]) == str(unet_low)
+    assert hi_node["inputs"]["strength_model"] == pytest.approx(0.5)
+    assert lo_node["inputs"]["strength_model"] == pytest.approx(0.7)
 
 
 # ---------------------------------------------------------------------------
@@ -400,3 +416,19 @@ def test_vae_decode_wired_to_nag_output(filename: str, video_task: str) -> None:
     samples_wire = graph[decode_id]["inputs"]["samples"]
     assert samples_wire[0] == nag_id
     assert samples_wire[1] == 0
+
+
+@pytest.mark.parametrize(
+    ("filename",),
+    [
+        ("wan22_i2v_api.json",),
+        ("wan22_t2v_api.json",),
+        ("wan22_i2v_audio_api.json",),
+        ("wan22_t2v_audio_api.json",),
+    ],
+)
+def test_nag_sampler_model_wired_to_low_shift(filename: str) -> None:
+    graph = load_workflow(REPO_ROOT / "workflows" / filename)
+    nag_id = find_anchor(graph, "%WAN_NAG_SAMPLER%")
+    shift_low_id = find_anchor(graph, "%WAN_SHIFT_LOW%")
+    assert graph[nag_id]["inputs"]["model"][0] == shift_low_id

@@ -8,6 +8,7 @@ import yaml
 from app.backends.base import ModelConfig
 from app.registry.workflows import (
     WorkflowValidationError,
+    find_anchor,
     load_workflow,
     required_anchors_for_family,
     required_anchors_for_ltxv_task,
@@ -69,6 +70,7 @@ def _parse_entry(raw: dict) -> ModelConfig:
         limits=raw.get("limits") or {},
         wan_t5_encoder=raw.get("wan_t5_encoder"),
         wan_clip_vision=raw.get("wan_clip_vision"),
+        wan_unet_low=raw.get("wan_unet_low"),
         skip_asset_validation=bool(raw.get("skip_asset_validation", False)),
         default_loras=list(raw.get("default_loras") or []),
         workflow_with_audio=raw.get("workflow_with_audio"),
@@ -242,6 +244,12 @@ def load_registry(
                 raise RegistryValidationError(
                     "wan_clip_missing", f"{cfg.name}: {cv_path} not found"
                 )
+        if cfg.wan_unet_low is not None:
+            wul_path = models_root / cfg.wan_unet_low
+            if not skip_assets and not wul_path.exists():
+                raise RegistryValidationError(
+                    "wan_unet_low_missing", f"{cfg.name}: {wul_path} not found"
+                )
         if cfg.ltxv_text_encoder is not None:
             lte_path = models_root / cfg.ltxv_text_encoder
             if not skip_assets and not lte_path.exists():
@@ -276,6 +284,21 @@ def load_registry(
             if cfg.family == "wan22":
                 vt = (cfg.capabilities or {}).get("video_task")
                 validate_anchors(graph, required_anchors_for_video_task(str(vt)))
+                try:
+                    find_anchor(graph, "%WAN_MODEL_LOW%")
+                    need_low = True
+                except KeyError:
+                    need_low = False
+                if need_low and not cfg.wan_unet_low:
+                    raise RegistryValidationError(
+                        "wan22_wan_unet_low_missing",
+                        f"{cfg.name}: workflow has %WAN_MODEL_LOW% but wan_unet_low is not set",
+                    )
+                if cfg.wan_unet_low and not need_low:
+                    raise RegistryValidationError(
+                        "wan22_wan_unet_low_unused",
+                        f"{cfg.name}: wan_unet_low is set but workflow has no %WAN_MODEL_LOW%",
+                    )
             elif cfg.family == "ltxv":
                 vt = (cfg.capabilities or {}).get("video_task")
                 validate_anchors(graph, required_anchors_for_ltxv_task(str(vt)))
@@ -295,6 +318,22 @@ def load_registry(
                 ag = load_workflow(wf_audio_path)
                 vt = (cfg.capabilities or {}).get("video_task")
                 validate_anchors(ag, required_anchors_for_wan22_audio_task(str(vt)))
+                if cfg.family == "wan22":
+                    try:
+                        find_anchor(ag, "%WAN_MODEL_LOW%")
+                        audio_need_low = True
+                    except KeyError:
+                        audio_need_low = False
+                    try:
+                        find_anchor(graph, "%WAN_MODEL_LOW%")
+                        silent_need_low = True
+                    except KeyError:
+                        silent_need_low = False
+                    if audio_need_low != silent_need_low:
+                        raise RegistryValidationError(
+                            "wan22_audio_low_mismatch",
+                            f"{cfg.name}: audio workflow %WAN_MODEL_LOW% must match primary workflow",
+                        )
             except WorkflowValidationError as exc:
                 raise RegistryValidationError(
                     "anchors_audio_missing", f"{cfg.name}: {exc}"

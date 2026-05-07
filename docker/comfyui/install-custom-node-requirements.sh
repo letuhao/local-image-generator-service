@@ -30,6 +30,7 @@ ORDER=(
   ComfyUI-NAG
   comfyui-adaptiveprompts
   ComfyUI-VFI
+  ComfyUI-frame-interpolation
   comfy_mtb
   ComfyUI_Comfyroll_CustomNodes
   ComfyUI-mxToolkit
@@ -45,12 +46,18 @@ ORDER=(
   RES4LYF
   comfyui_controlnet_aux
   ComfyUI-segment-anything-2
+  ComfyUI-Florence2
+  ComfyUI-DepthAnythingV2
   ComfyUI_essentials
   ComfyUI_LayerStyle
   ComfyUI_LayerStyle_Advance
   ComfyUI-Impact-Pack
+  ComfyUI-Impact-Subpack
+  ComfyUI_UltimateSDUpscale
+  ComfyUI_JPS-Nodes
   ComfyUI-Logic
   ComfyUI-RMBG
+  ComfyUI-Inspyrenet-Rembg
   ComfyUI-SeedVR2_VideoUpscaler
   comfyui-ollama
   comfyui-openai-api
@@ -60,6 +67,7 @@ ORDER=(
   ComfyUI_Fill-Nodes
   ComfyUI-PainterI2Vadvanced
   ComfyUI-PainterLongVideo
+  ComfyUI-Wan22FMLF
   was-node-suite-comfyui
   ComfyUI-Easy-Use
 )

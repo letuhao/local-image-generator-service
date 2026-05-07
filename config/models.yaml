@@ -532,6 +532,7 @@ models:
     mmaudio_clip: mmaudio/apple_DFN5B-CLIP-ViT-H-14-384_fp16.safetensors
     mmaudio_diffusion: mmaudio/mmaudio_large_44k_v2_fp16.safetensors
     checkpoint: diffusion_models/SmoothMix_T2V_High_v3.safetensors
+    wan_unet_low: diffusion_models/SmoothMix_T2V_Low_v3.safetensors
     vae: vae/Wan2_1_VAE_fp32.safetensors
     wan_t5_encoder: text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors
     skip_asset_validation: true
@@ -568,6 +569,7 @@ models:
     mmaudio_clip: mmaudio/apple_DFN5B-CLIP-ViT-H-14-384_fp16.safetensors
     mmaudio_diffusion: mmaudio/mmaudio_large_44k_v2_fp16.safetensors
     checkpoint: diffusion_models/SmoothMix_I2V_v2_High.safetensors
+    wan_unet_low: diffusion_models/SmoothMix_I2V_v2_Low.safetensors
     vae: vae/Wan2_1_VAE_fp32.safetensors
     wan_t5_encoder: text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors
     wan_clip_vision: clip_vision/clip_vision_h.safetensors

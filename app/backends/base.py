@@ -53,6 +53,8 @@ class ModelConfig:
     # WAN / ComfyUI-WanVideoWrapper (API workflows with %WAN_*% anchors).
     wan_t5_encoder: str | None = None  # models/text_encoders relative path
     wan_clip_vision: str | None = None  # models/clip_vision (I2V)
+    # Second UNET (low-noise expert) when workflow uses %WAN_MODEL_LOW% / KSamplerWithNAG.
+    wan_unet_low: str | None = None  # models/ relative path (same layout as checkpoint)
     skip_asset_validation: bool = False  # skip on-disk checks (dev/CI without weights)
     # LoRAs that are always prepended to user-specified loras for this model.
     # Each entry is {"name": "<relative-to-loras-root>", "weight": <float>}.

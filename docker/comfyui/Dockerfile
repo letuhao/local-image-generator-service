@@ -38,12 +38,19 @@ ARG COMFYUI_WHITERABBIT_REF=178156241b29b7cf0fb540a9688e1d9c375e8608
 ARG RES4LYF_REF=0dc91c00c4c3fb38e7874fcd7a2a327765e8882c
 ARG COMFYUI_CONTROLNET_AUX_REF=e8b689a513c3e6b63edc44066560ca5919c0576e
 ARG COMFYUI_SEGMENT_ANYTHING_2_REF=0c35fff5f382803e2310103357b5e985f5437f32
+ARG COMFYUI_FLORENCE2_REF=d8cb44d9c89ba03e807734aa310b72468770fb8b
+ARG COMFYUI_DEPTH_ANYTHING_V2_REF=553187872eeb1d52e50dc53209fa57e569609a72
+ARG COMFYUI_FRAME_INTERPOLATION_REF=26545cc2dd95bc3d27f056016300673bdeee78f5
 ARG COMFYUI_ESSENTIALS_REF=9d9f4bedfc9f0321c19faf71855e228c93bd0dc9
 ARG COMFYUI_LAYERSTYLE_REF=d94bef1ee5ed3656f5ff1bb2830a4ffd94f40935
 ARG COMFYUI_LAYERSTYLE_ADV_REF=7b678b401a38307a4a7e99ef6630bd48f9cecedb
 ARG COMFYUI_IMPACT_PACK_REF=429d0159ad429e64d2b3916e6e7be9c22d025c3c
+ARG COMFYUI_IMPACT_SUBPACK_REF=50c7b71a6a224734cc9b21963c6d1926816a97f1
+ARG COMFYUI_ULTIMATE_SD_UPSCALE_REF=bebd5696fddd61cb0d08949a222c508898ab5577
+ARG COMFYUI_JPS_NODES_REF=0e2a9aca02b17dde91577bfe4b65861df622dcaf
 ARG COMFYUI_LOGIC_REF=f82d46766b26788c17dbbbd6f2421af23c267666
 ARG COMFYUI_RMBG_REF=d7402513f23f58db7d56754b02a4f51a148b4941
+ARG COMFYUI_INSPYRENET_REMBG_REF=87ac452ef1182e8f35f59b04010158d74dcefd06
 ARG COMFYUI_SEEDVR2_REF=4490bd1f482e026674543386bb2a4d176da245b9
 ARG COMFYUI_OLLAMA_REF=6db7560576e5a59488708e6be13e07b5aba2432a
 ARG COMFYUI_OPENAI_API_REF=efb68c42291ae77df665423e02d6885a3f556bd1
@@ -53,6 +60,7 @@ ARG COMFYUI_FIND_PERFECT_RES_REF=b8ee6c1872e796329bffbcbf53a5207aaf964bdb
 ARG COMFYUI_FILL_NODES_REF=5bae402eadb57a795541825c3fa7fdf4457aee59
 ARG COMFYUI_PAINTER_I2V_ADV_REF=a044ac7b2a33565343ddc75283c94a41371b4352
 ARG COMFYUI_PAINTER_LONG_VIDEO_REF=889b4ff67909561e52d6ae023f5b9e8c33fdba94
+ARG COMFYUI_WAN22FMLF_REF=7140cd224396aff9fd909ab0041c3fbf81b92b0c
 ARG WAS_NODE_SUITE_REF=ea935d1044ae5a26efa54ebeb18fe9020af49a45
 
 FROM nvidia/cuda:12.4.1-runtime-ubuntu22.04 AS base
@@ -107,12 +115,19 @@ ARG COMFYUI_WHITERABBIT_REF
 ARG RES4LYF_REF
 ARG COMFYUI_CONTROLNET_AUX_REF
 ARG COMFYUI_SEGMENT_ANYTHING_2_REF
+ARG COMFYUI_FLORENCE2_REF
+ARG COMFYUI_DEPTH_ANYTHING_V2_REF
+ARG COMFYUI_FRAME_INTERPOLATION_REF
 ARG COMFYUI_ESSENTIALS_REF
 ARG COMFYUI_LAYERSTYLE_REF
 ARG COMFYUI_LAYERSTYLE_ADV_REF
 ARG COMFYUI_IMPACT_PACK_REF
+ARG COMFYUI_IMPACT_SUBPACK_REF
+ARG COMFYUI_ULTIMATE_SD_UPSCALE_REF
+ARG COMFYUI_JPS_NODES_REF
 ARG COMFYUI_LOGIC_REF
 ARG COMFYUI_RMBG_REF
+ARG COMFYUI_INSPYRENET_REMBG_REF
 ARG COMFYUI_SEEDVR2_REF
 ARG COMFYUI_OLLAMA_REF
 ARG COMFYUI_OPENAI_API_REF
@@ -122,6 +137,7 @@ ARG COMFYUI_FIND_PERFECT_RES_REF
 ARG COMFYUI_FILL_NODES_REF
 ARG COMFYUI_PAINTER_I2V_ADV_REF
 ARG COMFYUI_PAINTER_LONG_VIDEO_REF
+ARG COMFYUI_WAN22FMLF_REF
 ARG WAS_NODE_SUITE_REF
 
 # Clone ComfyUI at the pinned tag/commit.
@@ -179,6 +195,12 @@ RUN git clone https://github.com/city96/ComfyUI-GGUF.git && \
     (cd comfyui_controlnet_aux && git checkout ${COMFYUI_CONTROLNET_AUX_REF}) && \
     git clone https://github.com/kijai/ComfyUI-segment-anything-2.git && \
     (cd ComfyUI-segment-anything-2 && git checkout ${COMFYUI_SEGMENT_ANYTHING_2_REF}) && \
+    git clone https://github.com/kijai/ComfyUI-Florence2.git && \
+    (cd ComfyUI-Florence2 && git checkout ${COMFYUI_FLORENCE2_REF}) && \
+    git clone https://github.com/kijai/ComfyUI-DepthAnythingV2.git && \
+    (cd ComfyUI-DepthAnythingV2 && git checkout ${COMFYUI_DEPTH_ANYTHING_V2_REF}) && \
+    git clone https://github.com/Fannovel16/ComfyUI-frame-interpolation.git && \
+    (cd ComfyUI-frame-interpolation && git checkout ${COMFYUI_FRAME_INTERPOLATION_REF}) && \
     git clone https://github.com/cubiq/ComfyUI_essentials.git && \
     (cd ComfyUI_essentials && git checkout ${COMFYUI_ESSENTIALS_REF}) && \
     git clone https://github.com/chflame163/ComfyUI_LayerStyle.git && \
@@ -187,10 +209,18 @@ RUN git clone https://github.com/city96/ComfyUI-GGUF.git && \
     (cd ComfyUI_LayerStyle_Advance && git checkout ${COMFYUI_LAYERSTYLE_ADV_REF}) && \
     git clone https://github.com/ltdrdata/ComfyUI-Impact-Pack.git && \
     (cd ComfyUI-Impact-Pack && git checkout ${COMFYUI_IMPACT_PACK_REF}) && \
+    git clone https://github.com/ltdrdata/ComfyUI-Impact-Subpack.git && \
+    (cd ComfyUI-Impact-Subpack && git checkout ${COMFYUI_IMPACT_SUBPACK_REF}) && \
+    git clone https://github.com/ssitu/ComfyUI_UltimateSDUpscale.git && \
+    (cd ComfyUI_UltimateSDUpscale && git checkout ${COMFYUI_ULTIMATE_SD_UPSCALE_REF}) && \
+    git clone https://github.com/JPS-GER/ComfyUI_JPS-Nodes.git && \
+    (cd ComfyUI_JPS-Nodes && git checkout ${COMFYUI_JPS_NODES_REF}) && \
     git clone https://github.com/theUpsider/ComfyUI-Logic.git && \
     (cd ComfyUI-Logic && git checkout ${COMFYUI_LOGIC_REF}) && \
     git clone https://github.com/1038lab/ComfyUI-RMBG.git && \
     (cd ComfyUI-RMBG && git checkout ${COMFYUI_RMBG_REF}) && \
+    git clone https://github.com/john-mnz/ComfyUI-Inspyrenet-Rembg.git && \
+    (cd ComfyUI-Inspyrenet-Rembg && git checkout ${COMFYUI_INSPYRENET_REMBG_REF}) && \
     git clone https://github.com/numz/ComfyUI-SeedVR2_VideoUpscaler.git && \
     (cd ComfyUI-SeedVR2_VideoUpscaler && git checkout ${COMFYUI_SEEDVR2_REF}) && \
     git clone https://github.com/stavsap/comfyui-ollama.git && \
@@ -209,6 +239,8 @@ RUN git clone https://github.com/city96/ComfyUI-GGUF.git && \
     (cd ComfyUI-PainterI2Vadvanced && git checkout ${COMFYUI_PAINTER_I2V_ADV_REF}) && \
     git clone https://github.com/princepainter/ComfyUI-PainterLongVideo.git && \
     (cd ComfyUI-PainterLongVideo && git checkout ${COMFYUI_PAINTER_LONG_VIDEO_REF}) && \
+    git clone https://github.com/wallen0322/ComfyUI-Wan22FMLF.git && \
+    (cd ComfyUI-Wan22FMLF && git checkout ${COMFYUI_WAN22FMLF_REF}) && \
     git clone https://github.com/WASasquatch/was-node-suite-comfyui.git && \
     (cd was-node-suite-comfyui && git checkout ${WAS_NODE_SUITE_REF})
 
@@ -266,6 +298,14 @@ RUN bash -c 'grep -q "\"DWPreprocessor\"" /workspace/ComfyUI/custom_nodes/comfyu
 RUN bash -c 'grep -q "DownloadAndLoadSAM2Model" /workspace/ComfyUI/custom_nodes/ComfyUI-segment-anything-2/nodes.py && \
     grep -q "Sam2Segmentation" /workspace/ComfyUI/custom_nodes/ComfyUI-segment-anything-2/nodes.py || \
     (echo "ComfyUI-segment-anything-2 smoke test: DownloadAndLoadSAM2Model / Sam2Segmentation missing" && exit 1)'
+RUN bash -c 'grep -q "DownloadAndLoadFlorence2Model" /workspace/ComfyUI/custom_nodes/ComfyUI-Florence2/nodes.py && \
+    grep -q "Florence2Run" /workspace/ComfyUI/custom_nodes/ComfyUI-Florence2/nodes.py || \
+    (echo "ComfyUI-Florence2 smoke test: DownloadAndLoadFlorence2Model / Florence2Run missing" && exit 1)'
+RUN bash -c 'grep -q "class DownloadAndLoadDepthAnythingV2Model" /workspace/ComfyUI/custom_nodes/ComfyUI-DepthAnythingV2/nodes.py && \
+    grep -q "class DepthAnything_V2" /workspace/ComfyUI/custom_nodes/ComfyUI-DepthAnythingV2/nodes.py || \
+    (echo "ComfyUI-DepthAnythingV2 smoke test: DownloadAndLoadDepthAnythingV2Model / DepthAnything_V2 missing" && exit 1)'
+RUN bash -c 'grep -q "\"RIFE VFI\"" /workspace/ComfyUI/custom_nodes/ComfyUI-frame-interpolation/__init__.py || \
+    (echo "ComfyUI-frame-interpolation smoke test: RIFE VFI mapping missing" && exit 1)'
 RUN bash -c 'grep -q "SimpleMath+" /workspace/ComfyUI/custom_nodes/ComfyUI_essentials/misc.py || \
     (echo "ComfyUI_essentials smoke test: SimpleMath+ missing" && exit 1)'
 RUN bash -c 'grep -rq "ImageScaleByAspectRatio V2" /workspace/ComfyUI/custom_nodes/ComfyUI_LayerStyle --include="*.py" || \
@@ -274,11 +314,20 @@ RUN bash -c 'grep -rq "GeminiV2" /workspace/ComfyUI/custom_nodes/ComfyUI_LayerSt
     (echo "ComfyUI_LayerStyle_Advance smoke test: GeminiV2 missing" && exit 1)'
 RUN bash -c 'grep -rq "ImpactSwitch" /workspace/ComfyUI/custom_nodes/ComfyUI-Impact-Pack --include="*.py" || \
     (echo "ComfyUI-Impact-Pack smoke test: ImpactSwitch missing" && exit 1)'
+RUN bash -c 'grep -q "class UltralyticsDetectorProvider" /workspace/ComfyUI/custom_nodes/ComfyUI-Impact-Subpack/modules/subpack_nodes.py || \
+    (echo "ComfyUI-Impact-Subpack smoke test: UltralyticsDetectorProvider missing" && exit 1)'
+RUN bash -c 'grep -q "class UltimateSDUpscale" /workspace/ComfyUI/custom_nodes/ComfyUI_UltimateSDUpscale/usdu_nodes.py && \
+    grep -q "class UltimateSDUpscaleCustomSample" /workspace/ComfyUI/custom_nodes/ComfyUI_UltimateSDUpscale/usdu_nodes.py || \
+    (echo "ComfyUI_UltimateSDUpscale smoke test: UltimateSDUpscale / UltimateSDUpscaleCustomSample missing" && exit 1)'
+RUN bash -c 'grep -q "class SDXL_Resolutions" /workspace/ComfyUI/custom_nodes/ComfyUI_JPS-Nodes/jps_nodes.py || \
+    (echo "ComfyUI_JPS-Nodes smoke test: SDXL_Resolutions missing" && exit 1)'
 RUN bash -c 'grep -rq "\"Float\"" /workspace/ComfyUI/custom_nodes/ComfyUI-Logic --include="*.py" && \
     grep -rq "\"Int\"" /workspace/ComfyUI/custom_nodes/ComfyUI-Logic --include="*.py" || \
     (echo "ComfyUI-Logic smoke test: Float / Int missing" && exit 1)'
 RUN bash -c 'grep -rq "RMBG" /workspace/ComfyUI/custom_nodes/ComfyUI-RMBG --include="*.py" || \
     (echo "ComfyUI-RMBG smoke test: RMBG missing" && exit 1)'
+RUN bash -c 'grep -q "InspyrenetRembg" /workspace/ComfyUI/custom_nodes/ComfyUI-Inspyrenet-Rembg/__init__.py || \
+    (echo "ComfyUI-Inspyrenet-Rembg smoke test: InspyrenetRembg mapping missing" && exit 1)'
 RUN bash -c 'grep -rq "SeedVR2" /workspace/ComfyUI/custom_nodes/ComfyUI-SeedVR2_VideoUpscaler --include="*.py" || \
     (echo "ComfyUI-SeedVR2 smoke test: SeedVR2 missing" && exit 1)'
 RUN bash -c 'grep -rq "OllamaConnectivityV2" /workspace/ComfyUI/custom_nodes/comfyui-ollama --include="*.py" && \
@@ -298,9 +347,11 @@ RUN bash -c 'grep -rq "PainterI2VAdvanced" /workspace/ComfyUI/custom_nodes/Comfy
     (echo "ComfyUI-PainterI2Vadvanced smoke test: PainterI2VAdvanced missing" && exit 1)'
 RUN bash -c 'grep -rq "PainterLongVideo" /workspace/ComfyUI/custom_nodes/ComfyUI-PainterLongVideo --include="*.py" || \
     (echo "ComfyUI-PainterLongVideo smoke test: PainterLongVideo missing" && exit 1)'
+RUN bash -c 'grep -rq "WanAdvancedI2V" /workspace/ComfyUI/custom_nodes/ComfyUI-Wan22FMLF --include="*.py" || \
+    (echo "ComfyUI-Wan22FMLF smoke test: WanAdvancedI2V missing" && exit 1)'
 RUN bash -c 'grep -rq "Text Concatenate" /workspace/ComfyUI/custom_nodes/was-node-suite-comfyui --include="*.py" || \
     (echo "was-node-suite smoke test: Text Concatenate missing" && exit 1)'
-RUN echo "Smoke tests OK: GGUF + Wan stack + RTX/DaSiWa/WhiteRabbit/RES4LYF + controlnet_aux + SAM2 + essentials + layerstyle + impact + logic + rmbg + seedvr2 + ollama + openai-api + openai-workflow + chibi + perfect-resolution + fill-nodes + painter-i2v + painter-longvideo + WAS"
+RUN echo "Smoke tests OK: GGUF + Wan stack + RTX/DaSiWa/WhiteRabbit/RES4LYF + controlnet_aux + SAM2 + Florence2 + depth-anything-v2 + frame-interpolation + essentials + layerstyle + impact + impact-subpack + ultimatesdupscale + jps-nodes + logic + rmbg + inspyrenet-rembg + seedvr2 + ollama + openai-api + openai-workflow + chibi + perfect-resolution + fill-nodes + painter-i2v + painter-longvideo + wan22fmlf + WAS"
 
 # extra_model_paths.yaml: let LTXVAudioVAELoader find standalone audio VAE files.
 # ComfyUI-LTXVideo's LTXVAudioVAELoader only searches the "checkpoints" folder_paths

@@ -35,12 +35,19 @@ comfyui-WhiteRabbit            178156241b29b7cf0fb540a9688e1d9c375e8608  # Artif
 RES4LYF                        0dc91c00c4c3fb38e7874fcd7a2a327765e8882c  # ClownsharkBatwing/RES4LYF — samplers / sigmas / Wan patchers (opencv, matplotlib, pywavelets)
 comfyui_controlnet_aux         e8b689a513c3e6b63edc44066560ca5919c0576e  # Fannovel16/comfyui_controlnet_aux — AIO_Preprocessor, DepthAnythingV2Preprocessor
 ComfyUI-segment-anything-2     0c35fff5f382803e2310103357b5e985f5437f32  # kijai/ComfyUI-segment-anything-2 — DownloadAndLoadSAM2Model, Sam2Segmentation
+ComfyUI-Florence2              d8cb44d9c89ba03e807734aa310b72468770fb8b  # kijai/ComfyUI-Florence2 (Manager: comfyui-florence2) — DownloadAndLoadFlorence2Model, Florence2Run
+ComfyUI-DepthAnythingV2        553187872eeb1d52e50dc53209fa57e569609a72  # kijai/ComfyUI-DepthAnythingV2 (Manager: comfyui-depthanythingv2) — DownloadAndLoadDepthAnythingV2Model, DepthAnything_V2 (distinct from controlnet_aux DepthAnythingV2Preprocessor)
+ComfyUI-frame-interpolation    26545cc2dd95bc3d27f056016300673bdeee78f5  # Fannovel16/ComfyUI-frame-interpolation — RIFE VFI, IFRNet VFI, etc.
 ComfyUI_essentials             9d9f4bedfc9f0321c19faf71855e228c93bd0dc9  # cubiq/ComfyUI_essentials — SimpleMath+
 ComfyUI_LayerStyle             d94bef1ee5ed3656f5ff1bb2830a4ffd94f40935  # chflame163/ComfyUI_LayerStyle — LayerUtility: ImageScaleByAspectRatio V2
 ComfyUI_LayerStyle_Advance     7b678b401a38307a4a7e99ef6630bd48f9cecedb  # chflame163/ComfyUI_LayerStyle_Advance — LayerUtility: GeminiV2
 ComfyUI-Impact-Pack            429d0159ad429e64d2b3916e6e7be9c22d025c3c  # ltdrdata/ComfyUI-Impact-Pack — ImpactSwitch
+ComfyUI-Impact-Subpack         50c7b71a6a224734cc9b21963c6d1926816a97f1  # ltdrdata/ComfyUI-Impact-Subpack — UltralyticsDetectorProvider (YOLO bbox/segm; requires Impact-Pack)
+ComfyUI_UltimateSDUpscale      bebd5696fddd61cb0d08949a222c508898ab5577  # ssitu/ComfyUI_UltimateSDUpscale — UltimateSDUpscale, UltimateSDUpscaleNoUpscale, UltimateSDUpscaleCustomSample
+ComfyUI_JPS-Nodes              0e2a9aca02b17dde91577bfe4b65861df622dcaf  # JPS-GER/ComfyUI_JPS-Nodes — SDXL Resolutions (JPS) and related SDXL helpers
 ComfyUI-Logic                  f82d46766b26788c17dbbbd6f2421af23c267666  # theUpsider/ComfyUI-Logic — plain Float / Int (graphs before 🔬 rename); newer HEAD uses Float-🔬 / Int-🔬 and breaks older workflows
 ComfyUI-RMBG                   d7402513f23f58db7d56754b02a4f51a148b4941  # 1038lab/ComfyUI-RMBG — RMBG
+ComfyUI-Inspyrenet-Rembg       87ac452ef1182e8f35f59b04010158d74dcefd06  # john-mnz/ComfyUI-Inspyrenet-Rembg (Manager: comfyui-inspyrenet-rembg) — InspyrenetRembg (+ Advanced)
 ComfyUI-SeedVR2_VideoUpscaler  4490bd1f482e026674543386bb2a4d176da245b9  # numz/ComfyUI-SeedVR2_VideoUpscaler — V3 nodes (SeedVR2VideoUpscaler, …). Legacy graphs (e.g. Rapid-Wan2.2… Motion Transfer) expect types SeedVR2 + SeedVR2BlockSwap → pin build ARG to workflow ver 4df5cef5937001bcef056d5508c6a884849ffe13 if you need that JSON unchanged
 comfyui-ollama                6db7560576e5a59488708e6be13e07b5aba2432a  # stavsap/comfyui-ollama — latest HEAD with OllamaConnectivityV2 / OllamaGenerateV2
 comfyui-openai-api            efb68c42291ae77df665423e02d6885a3f556bd1  # hekmon/comfyui-openai-api — lightweight OpenAI chat + vision nodes
@@ -50,6 +57,7 @@ comfyui-find-perfect-resolution b8ee6c1872e796329bffbcbf53a5207aaf964bdb  # asht
 comfyui_fill-nodes            5bae402eadb57a795541825c3fa7fdf4457aee59  # filliptm/ComfyUI_Fill-Nodes — FL_RIFE and related video/image utilities
 ComfyUI-PainterI2Vadvanced    a044ac7b2a33565343ddc75283c94a41371b4352  # princepainter/ComfyUI-PainterI2Vadvanced — PainterI2VAdvanced node
 ComfyUI-PainterLongVideo      889b4ff67909561e52d6ae023f5b9e8c33fdba94  # princepainter/ComfyUI-PainterLongVideo — PainterLongVideo node
+ComfyUI-Wan22FMLF             7140cd224396aff9fd909ab0041c3fbf81b92b0c  # wallen0322/ComfyUI-Wan22FMLF — includes WanAdvancedI2V (latest HEAD at bump time)
 was-node-suite-comfyui         ea935d1044ae5a26efa54ebeb18fe9020af49a45  # WASasquatch/was-node-suite-comfyui — Text Concatenate
 
 # --- LTX-Video 2.x / 10Eros stack ---

@@ -82,6 +82,7 @@ models:
     workflow: workflows/wan22_t2v_api.json
     workflow_with_audio: workflows/wan22_t2v_audio_api.json
     checkpoint: diffusion_models/x.safetensors
+    wan_unet_low: diffusion_models/low.safetensors
     vae: vae/y.safetensors
     wan_t5_encoder: text_encoders/t5.safetensors
     skip_asset_validation: true
@@ -142,6 +143,7 @@ models:
     mmaudio_clip: mmaudio/c.safetensors
     mmaudio_diffusion: mmaudio/d.safetensors
     checkpoint: diffusion_models/x.safetensors
+    wan_unet_low: diffusion_models/low.safetensors
     vae: vae/y.safetensors
     wan_t5_encoder: text_encoders/t5.safetensors
     skip_asset_validation: true

@@ -41,6 +41,8 @@ BASE_ANCHORS_WAN22: tuple[str, ...] = (
     "%WAN_DIMS%",
     "%WAN_MODEL%",
     "%WAN_SHIFT%",
+    "%WAN_MODEL_LOW%",
+    "%WAN_SHIFT_LOW%",
     "%WAN_VAE%",
     "%WAN_SAMPLER%",
     "%WAN_NAG_SAMPLER%",
@@ -455,6 +457,29 @@ def inject_video_weights(graph: dict[str, dict], *, model_cfg) -> None:
         # Legacy WanVideoModelLoader or any other class with a "model" key.
         model_inputs["model"] = ckpt_basename
 
+    # --- optional second diffusion (low-noise expert; NAG second pass) ---
+    try:
+        low_model_id = find_anchor(graph, "%WAN_MODEL_LOW%")
+    except KeyError:
+        low_model_id = None
+    if low_model_id is not None:
+        low_path = getattr(model_cfg, "wan_unet_low", None)
+        if not low_path:
+            raise WorkflowValidationError(
+                "inject_video_weights: %WAN_MODEL_LOW% present but model_cfg.wan_unet_low is unset"
+            )
+        low_node = graph.get(low_model_id) or {}
+        low_inputs = low_node.get("inputs")
+        if not isinstance(low_inputs, dict):
+            raise WorkflowValidationError(
+                f"inject_video_weights: node {low_model_id} has invalid inputs"
+            )
+        low_basename = _basename(low_path)
+        if low_node.get("class_type") == "UNETLoader":
+            low_inputs["unet_name"] = low_basename
+        else:
+            low_inputs["model"] = low_basename
+
     # --- VAE ---
     vae_node = graph.get(vae_id) or {}
     vae_inputs = vae_node.get("inputs")
@@ -612,28 +637,19 @@ def inject_wan_lora_multi(
         _disconnect_wan_model_loader_lora_from_multi(graph, node_id)
 
 
-def inject_wan_core_loras(
+def _inject_wan_core_loras_between(
     graph: dict[str, dict],
     loras: Sequence[ResolvedLoraRef],
+    *,
+    model_anchor: str,
+    shift_anchor: str,
 ) -> None:
-    """Insert ``LoraLoaderModelOnly`` chain between ``%WAN_MODEL%`` and ``%WAN_SHIFT%``.
-
-    Core ComfyUI workflow LoRA injection (replaces ``inject_wan_lora_multi`` for
-    workflows using ``UNETLoader`` + ``WanImageToVideo``).
-
-    Strategy:
-    - When ``loras`` is empty: no-op — the UNETLoader → ModelSamplingSD3 wire
-      in the template stays intact.
-    - When LoRAs are provided: dynamically insert ``LoraLoaderModelOnly`` nodes
-      in sequence between the two anchor nodes. Each node takes the MODEL output
-      of the previous node. The last node's MODEL output feeds ``%WAN_SHIFT%``.
-    """
+    """Append ``LoraLoaderModelOnly`` chain between loader and ModelSampling anchors."""
     if not loras:
         return
-
     try:
-        model_id = find_anchor(graph, "%WAN_MODEL%")
-        shift_id = find_anchor(graph, "%WAN_SHIFT%")
+        model_id = find_anchor(graph, model_anchor)
+        shift_id = find_anchor(graph, shift_anchor)
     except KeyError as exc:
         raise WorkflowValidationError(f"inject_wan_core_loras: {exc}") from exc
 
@@ -641,7 +657,6 @@ def inject_wan_core_loras(
     next_id = max(int_keys) + 1 if int_keys else 100
 
     prev_model_ref: list = [model_id, 0]
-    chain_ids: list[str] = []
     for lora in loras[:WAN_MAX_LORAS]:
         node_id = str(next_id)
         next_id += 1
@@ -654,14 +669,57 @@ def inject_wan_core_loras(
             },
             "_meta": {"title": f"wan_lora:{lora.name}"},
         }
-        chain_ids.append(node_id)
         prev_model_ref = [node_id, 0]
 
-    # Rewire ModelSamplingSD3's "model" input to the tail of the chain.
     shift_node = graph.get(shift_id) or {}
     shift_inputs = shift_node.get("inputs")
     if isinstance(shift_inputs, dict):
         shift_inputs["model"] = prev_model_ref
+
+
+def inject_wan_core_loras(
+    graph: dict[str, dict],
+    loras: Sequence[ResolvedLoraRef],
+) -> None:
+    """Insert ``LoraLoaderModelOnly`` chain(s) for WAN 2.2 core graphs.
+
+    Single-expert graphs: chain between ``%WAN_MODEL%`` and ``%WAN_SHIFT%``.
+
+    Dual high/low graphs (``%WAN_MODEL_LOW%`` + ``%WAN_SHIFT_LOW%`` present):
+    - ``loras[0]`` and ``loras[2:]`` apply to the high path (first pass).
+    - ``loras[1]`` applies to the low path (NAG second pass) when at least two
+      LoRAs are provided — matches SmoothMix default_loras (3.0 on high, 1.5 on low).
+    """
+    if not loras:
+        return
+
+    try:
+        find_anchor(graph, "%WAN_MODEL_LOW%")
+        find_anchor(graph, "%WAN_SHIFT_LOW%")
+        dual = True
+    except KeyError:
+        dual = False
+
+    if not dual:
+        _inject_wan_core_loras_between(
+            graph, loras, model_anchor="%WAN_MODEL%", shift_anchor="%WAN_SHIFT%"
+        )
+        return
+
+    high_loras: list[ResolvedLoraRef] = (
+        [loras[0], *list(loras[2:])] if len(loras) >= 2 else list(loras)
+    )
+    low_loras: list[ResolvedLoraRef] = [loras[1]] if len(loras) >= 2 else []
+
+    _inject_wan_core_loras_between(
+        graph, high_loras, model_anchor="%WAN_MODEL%", shift_anchor="%WAN_SHIFT%"
+    )
+    _inject_wan_core_loras_between(
+        graph,
+        low_loras,
+        model_anchor="%WAN_MODEL_LOW%",
+        shift_anchor="%WAN_SHIFT_LOW%",
+    )
 
 
 def inject_init_image(graph: dict[str, dict], filename: str) -> None:
