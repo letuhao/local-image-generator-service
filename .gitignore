@@ -230,3 +230,36 @@ workflows/
 docs/specs/
 
 .tmp_chibi_nodes_head
+
+# comfyui-sage — ComfyUI-Manager runtime under docker/comfyui-sage/manager-runtime/ (config.ini is committed)
+docker/comfyui-sage/manager-runtime/cache/
+docker/comfyui-sage/manager-runtime/snapshots/
+docker/comfyui-sage/manager-runtime/startup-scripts/
+docker/comfyui-sage/manager-runtime/components/
+docker/comfyui-sage/manager-runtime/channels.list
+docker/comfyui-sage/manager-runtime/pip_overrides.json
+docker/comfyui-sage/manager-runtime/pip_blacklist.list
+docker/comfyui-sage/manager-runtime/batch_history/
+
+# comfyui — ComfyUI-Manager runtime under docker/comfyui/manager-runtime/ (config.ini is committed)
+docker/comfyui/manager-runtime/cache/
+docker/comfyui/manager-runtime/snapshots/
+docker/comfyui/manager-runtime/startup-scripts/
+docker/comfyui/manager-runtime/components/
+docker/comfyui/manager-runtime/channels.list
+docker/comfyui/manager-runtime/pip_overrides.json
+docker/comfyui/manager-runtime/pip_blacklist.list
+docker/comfyui/manager-runtime/batch_history/
+
+# comfyui-clean — Manager runtime (config.ini committed)
+docker/comfyui-clean/manager-runtime/cache/
+docker/comfyui-clean/manager-runtime/snapshots/
+docker/comfyui-clean/manager-runtime/startup-scripts/
+docker/comfyui-clean/manager-runtime/components/
+docker/comfyui-clean/manager-runtime/channels.list
+docker/comfyui-clean/manager-runtime/pip_overrides.json
+docker/comfyui-clean/manager-runtime/pip_blacklist.list
+docker/comfyui-clean/manager-runtime/batch_history/
+
+# comfyui-clean — server-side user data (settings, workflows, asset DB)
+data/comfyui-clean-user/

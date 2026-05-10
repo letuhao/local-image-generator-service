@@ -1,0 +1,28 @@
+# Install ONLY inside ComfyUI venv (never system pip — PEP 668):
+#   cd /workspace/ComfyUI && . .venv/bin/activate
+#   pip install -r /opt/comfyui-clean/pip-extras-essentials.txt
+# Or: /workspace/ComfyUI/.venv/bin/pip install -r /opt/comfyui-clean/pip-extras-essentials.txt
+#
+# ComfyUI-Manager (pip): enable with COMFY_EXTRA_ARGS="--enable-manager" (see compose).
+# Do NOT git-clone ComfyUI-Manager into custom_nodes when using that flag — core blocks it.
+#
+# If the web UI still says to install Manager / use `pip install -U --pre comfyui-manager`:
+# that is generic copy; this repo matches the main `comfyui` image (stable >=4.2.1). Verify:
+#   python -c "import importlib.metadata as m; print(m.version('comfyui-manager'))"
+# Restart ComfyUI from the same venv you pip-installed into (`which python`).
+#
+# Windows Docker Desktop + bind-mounted workspace:
+# - Pip Permission denied / EPERM on `.venv`: `.venv` may have root-owned files from `-u root` shells.
+# - Prefer fixing WITHOUT wiping `.venv`: one-shot root pip into existing venv:
+#     docker compose --profile clean run --rm -it --user root comfyui-clean bash
+#     /workspace/ComfyUI/.venv/bin/pip install -r /opt/comfyui-clean/pip-extras-essentials.txt
+# - `chown -R` inside the container often FAILS (Operation not permitted) on bind mounts — do not rely on it.
+# - Delete `.venv` only as a last resort (forces full torch + requirements reinstall).
+#
+# Permission denied on `/workspace/ComfyUI/user/` (e.g. comfyui.db.lock, user/default):
+# - Ensure compose mounts `./data/comfyui-clean-user` → `ComfyUI/user` (see docker-compose).
+# - On host: `mkdir -p data/comfyui-clean-user` then restart the container.
+#
+# Launch ComfyUI: `bash /opt/comfyui-clean/run-comfyui-entry.sh` (entry strips CRLF from the host-mounted script).
+
+comfyui-manager>=4.2.1

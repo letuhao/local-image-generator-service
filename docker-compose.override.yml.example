@@ -16,6 +16,9 @@ services:
     ports:
       - "127.0.0.1:8188:8188"     # local-only: ComfyUI web UI for debugging
 
+  # `comfyui-sage` publishes 127.0.0.1:8190→8188 by default in docker-compose.yml.
+  # Override bind/port here only if you need something different from COMFY_SAGE_* in `.env`.
+
   minio:
     ports:
       # Host ports are configurable via .env (defaults avoid clashing with other

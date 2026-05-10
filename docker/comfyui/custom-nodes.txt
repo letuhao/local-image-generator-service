@@ -9,6 +9,7 @@
 # ComfyUI-mxToolkit is pinned to upstream HEAD at image bump time (no ver in graph).
 
 comfyui                        v0.20.1  # comfyanonymous/ComfyUI — includes core Wan nodes (e.g. WanImageToVideo in comfy_extras/nodes_wan.py)
+# ComfyUI-Manager: not cloned under custom_nodes (core blocks it when using pip comfyui-manager + --enable-manager). Pin via Dockerfile: manager_requirements + comfyui-manager>=4.2.1
 comfyui-gguf                   6ea2651e7df66d7585f6ffee804b20e92fb38b8a  # city96/ComfyUI-GGUF
 
 # --- WAN 2.2 Smooth stack (video / audio / UI helpers) ---
@@ -62,5 +63,5 @@ was-node-suite-comfyui         ea935d1044ae5a26efa54ebeb18fe9020af49a45  # WASas
 
 # --- LTX-Video 2.x / 10Eros stack ---
 ComfyUI-LTXVideo               2acf7af8991f33b5cc06ec26753cb6e88e057d04  # Lightricks/ComfyUI-LTXVideo — LTXAVTextEncoderLoader, LTXVConditioning, STGGuiderAdvanced, etc.
-10S-Comfy-nodes                f5f8221d9745166e79de775af0949817283f2ea0  # TenStrip/10S-Comfy-nodes — LatentTemporalInpainter, LatentMotionSharpener, ResizeImageMaskNode
+10S-Comfy-nodes                47852934037fbf96ed6b6572dded3c1da37bf36d  # TenStrip/10S-Comfy-nodes — LatentTemporalInpainter, LatentMotionSharpener, ResizeImageMaskNode
 ComfyUI-Custom-Scripts         609f3afaa74b2f88ef9ce8d939626065e3247469  # pythongosssss/ComfyUI-Custom-Scripts — SetNode, GetNode, PrimitiveInt, PrimitiveFloat, CM_FloatToInt

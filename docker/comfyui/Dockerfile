@@ -10,6 +10,9 @@
 # not nvcc-compiled extensions. Size target grows with WAN/video custom nodes.
 
 ARG COMFYUI_REF=v0.20.1
+ARG TORCH_INDEX_URL=https://download.pytorch.org/whl/cu130
+ARG TORCH_PACKAGES="torch torchvision torchaudio"
+ARG SAGEATTENTION_VERSION=1.0.6
 ARG COMFYUI_GGUF_REF=6ea2651e7df66d7585f6ffee804b20e92fb38b8a
 # WAN 2.2 Smooth Workflow v5.0 — pins duplicated in docker/comfyui/custom-nodes.txt
 ARG COMFYUI_WAN_VIDEO_REF=df8f3e49daaad117cf3090cc916c83f3d001494c
@@ -26,7 +29,7 @@ ARG COMFYUI_COMFYROLL_REF=d78b780ae43fcf8c6b7c6505e6ffb4584281ceca
 ARG COMFYUI_MXTOOLKIT_REF=7f7a0e584f12078a1c589645d866ae96bad0cc35
 # LTX-Video 2.x (10Eros / LTXV family) stack
 ARG COMFYUI_LTXVIDEO_REF=2acf7af8991f33b5cc06ec26753cb6e88e057d04
-ARG COMFYUI_10S_NODES_REF=f5f8221d9745166e79de775af0949817283f2ea0
+ARG COMFYUI_10S_NODES_REF=47852934037fbf96ed6b6572dded3c1da37bf36d
 ARG COMFYUI_CUSTOM_SCRIPTS_REF=609f3afaa74b2f88ef9ce8d939626065e3247469
 ARG COMFYUI_COMFYMATH_REF=c01177221c31b8e5fbc062778fc8254aeb541638
 ARG COMFYUI_DETAIL_DAEMON_REF=39206d10849584e0b6ded943faca4dcd8747beb7
@@ -76,7 +79,7 @@ RUN --mount=type=cache,id=comfy-apt-cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,id=comfy-apt-lists,target=/var/lib/apt/lists,sharing=locked \
     apt-get update && apt-get install -y --no-install-recommends \
       python3.11 python3.11-venv python3.11-dev python3-pip \
-      git curl ca-certificates libgl1 libglib2.0-0 ffmpeg libsndfile1 \
+      git curl ca-certificates libgl1 libopengl0 libglib2.0-0 ffmpeg libsndfile1 \
       build-essential && \
     update-alternatives --install /usr/bin/python python /usr/bin/python3.11 1
 
@@ -91,6 +94,9 @@ WORKDIR /workspace
 
 ARG COMFYUI_REF
 ARG COMFYUI_GGUF_REF
+ARG TORCH_INDEX_URL
+ARG TORCH_PACKAGES
+ARG SAGEATTENTION_VERSION
 ARG COMFYUI_WAN_VIDEO_REF
 ARG COMFYUI_MMAUDIO_REF
 ARG COMFYUI_VHS_REF
@@ -145,6 +151,8 @@ RUN git clone --depth 1 --branch ${COMFYUI_REF} https://github.com/comfyanonymou
 
 # Clone custom nodes (GGUF + WAN 2.2 Smooth stack). Checkouts are full SHAs from custom-nodes.txt.
 WORKDIR /workspace/ComfyUI/custom_nodes
+# ComfyUI-Manager ships as pip package (comfyui-manager + manager_requirements);
+# cloning it under custom_nodes is blocked by core policy when --enable-manager runs.
 RUN git clone https://github.com/city96/ComfyUI-GGUF.git && \
     (cd ComfyUI-GGUF && git checkout ${COMFYUI_GGUF_REF}) && \
     git clone https://github.com/kijai/ComfyUI-WanVideoWrapper.git && \
@@ -254,14 +262,40 @@ USER comfy
 WORKDIR /workspace/ComfyUI
 RUN --mount=type=cache,id=comfy-uv-cache,target=/home/comfy/.cache/uv,uid=1000,gid=1000 \
     uv venv /workspace/.venv --python 3.11 && \
+    /workspace/.venv/bin/python -m ensurepip --upgrade && \
+    # Install the upstream-recommended CUDA 13.0 torch stack as a matched trio.
+    uv pip install --python /workspace/.venv/bin/python --index-url ${TORCH_INDEX_URL} \
+      ${TORCH_PACKAGES} && \
     uv pip install --python /workspace/.venv/bin/python -r requirements.txt && \
+    # Manager moved to package-based enablement path in newer ComfyUI releases.
+    uv pip install --python /workspace/.venv/bin/python -r manager_requirements.txt && \
+    uv pip install --python /workspace/.venv/bin/python "comfyui-manager>=4.2.1" && \
     /workspace/install-custom-node-requirements.sh /workspace/.venv/bin/python && \
+    # Re-assert torch trio in case transitive custom-node requirements bump it.
+    uv pip install --python /workspace/.venv/bin/python --index-url ${TORCH_INDEX_URL} \
+      ${TORCH_PACKAGES} && \
     uv pip install --python /workspace/.venv/bin/python \
-      sageattention \
+      sageattention==${SAGEATTENTION_VERSION} \
       onnx \
       onnxruntime-gpu
 
+# Optional accelerators for extra performance/feature coverage.
+# Keep this best-effort so image builds remain stable across GPU/toolchain variants.
+RUN --mount=type=cache,id=comfy-uv-cache,target=/home/comfy/.cache/uv,uid=1000,gid=1000 \
+    bash -lc 'set -euo pipefail; \
+      uv pip install --python /workspace/.venv/bin/python wheel packaging ninja || \
+        echo "optional flash-attn build helpers skipped: wheel/packaging/ninja"; \
+      uv pip install --python /workspace/.venv/bin/python flash-attn --no-build-isolation --no-deps || \
+        echo "optional dependency skipped: flash-attn"'
+
+# Final guardrail: force core torch stack back to pinned versions after optional installs.
+RUN --mount=type=cache,id=comfy-uv-cache,target=/home/comfy/.cache/uv,uid=1000,gid=1000 \
+    uv pip install --python /workspace/.venv/bin/python --index-url ${TORCH_INDEX_URL} \
+      --reinstall \
+      ${TORCH_PACKAGES}
+
 # Build-time smoke tests — fail fast if pins drift or repos reorganize.
+RUN /workspace/.venv/bin/python -c "import importlib.metadata as m; print('comfyui-manager', m.version('comfyui-manager'))"
 RUN bash -c 'grep -q "UnetLoaderGGUF" /workspace/ComfyUI/custom_nodes/ComfyUI-GGUF/nodes.py && \
     grep -q "NODE_CLASS_MAPPINGS" /workspace/ComfyUI/custom_nodes/ComfyUI-GGUF/nodes.py || \
     (echo "GGUF smoke test: expected class names missing from ComfyUI-GGUF/nodes.py" && exit 1)'
@@ -351,7 +385,7 @@ RUN bash -c 'grep -rq "WanAdvancedI2V" /workspace/ComfyUI/custom_nodes/ComfyUI-W
     (echo "ComfyUI-Wan22FMLF smoke test: WanAdvancedI2V missing" && exit 1)'
 RUN bash -c 'grep -rq "Text Concatenate" /workspace/ComfyUI/custom_nodes/was-node-suite-comfyui --include="*.py" || \
     (echo "was-node-suite smoke test: Text Concatenate missing" && exit 1)'
-RUN echo "Smoke tests OK: GGUF + Wan stack + RTX/DaSiWa/WhiteRabbit/RES4LYF + controlnet_aux + SAM2 + Florence2 + depth-anything-v2 + frame-interpolation + essentials + layerstyle + impact + impact-subpack + ultimatesdupscale + jps-nodes + logic + rmbg + inspyrenet-rembg + seedvr2 + ollama + openai-api + openai-workflow + chibi + perfect-resolution + fill-nodes + painter-i2v + painter-longvideo + wan22fmlf + WAS"
+RUN echo "Smoke tests OK: comfyui-manager (pip) + GGUF + Wan stack + RTX/DaSiWa/WhiteRabbit/RES4LYF + controlnet_aux + SAM2 + Florence2 + depth-anything-v2 + frame-interpolation + essentials + layerstyle + impact + impact-subpack + ultimatesdupscale + jps-nodes + logic + rmbg + inspyrenet-rembg + seedvr2 + ollama + openai-api + openai-workflow + chibi + perfect-resolution + fill-nodes + painter-i2v + painter-longvideo + wan22fmlf + WAS"
 
 # extra_model_paths.yaml: let LTXVAudioVAELoader find standalone audio VAE files.
 # ComfyUI-LTXVideo's LTXVAudioVAELoader only searches the "checkpoints" folder_paths
