@@ -544,3 +544,411 @@ Name pattern heuristic: any SDXL base with "anime", "character", "japanese", "ko
 **Recommendation:** REJECT iter 9. **Working baseline remains iter 6 (`terrain-realisticfantasy-v30` + iter 6 prompt + zero LoRA).** Future base-model probes should restrict to *content-focused* training (realistic-fantasy mix, dreamshaper, terrain-tuned, photorealistic-fantasy, etc.) — never character/portrait/anime bases.
 
 Artifacts: `experiments/tmp_009/hezi-static-v1-bush-spike-pack.json`, `outputs/spike-hezi-v1/`, alias `hezi-ultimate-jp-kr-v10` in models.yaml kept as experimental record. Checkpoint file was moved from `models/checkpoints/SDXL1.0/` to `models/checkpoints/` to work around the service's `_basename()` flattening.
+
+---
+
+## 2026-05-23 — iteration 10: PO-request — DreamShaper XL Lightning (REJECT — diorama + sprite-sheet bias)
+
+- **Trigger:** PO suggested testing DreamShaper XL. Found `dreamshaperXL_lightningDPMSDE.safetensors` (Lightning distilled variant); `terrain-dreamshaper` alias in models.yaml turned out to wrap SD1.5 `dreamshaper_8.safetensors`, not XL. Registered NEW alias `dreamshaper-xl-lightning` with appropriate Lightning defaults (CFG=2.0, 6 steps, DPM++ SDE Karras).
+- **Change vs iter 6:** ONLY the base + sampler/CFG (Lightning requires its own settings). Same iter 6 prompt template + zero LoRA + same fixture + same hardened negative.
+- **Pack:** `experiments/tmp_009/dreamshaperxl-lightning-v1-bush-spike-pack.json`
+- **Reviewer:** cold-start sub-agent per §12.4.
+
+| Biome | Seed | C1 | C2 | C3 | C4 | V | Notes |
+|---|---|:-:|:-:|:-:|:-:|:-:|---|
+| chaos | 101 | ✅ | ⚠ | ❌ | ✅ | 0 | stone-edged grass disc platform + inset thumbnail top-left; tree-like trunk |
+| chaos | 202 | ✅ | ⚠ | ❌ | ✅ | 0 | stone disc platform + sprite-sheet of inset thumbnails around subject |
+| chaos | 303 | ✅ | ⚠ | ❌ | ✅ | 0 | grass disc + surrounding shrub-sheet tile spread |
+| grassland | 101 | ✅ | ❌ | ❌ | ✅ | 0 | tall conifer-like tree, not low shrub; stone-rim ground disc + scene |
+| grassland | 202 | ✅ | ❌ | ❌ | ✅ | 0 | tree with trunk + repeating shrub-sheet on ground patches |
+| grassland | 303 | ✅ | ⚠ | ❌ | ⚠ | 0 | pink/magenta flowers (off-palette) + scene with multiple discs |
+| snow | 101 | ✅ | ⚠ | ❌ | ✅ | 0 | stone-rim grass disc platform + surrounding discs |
+| snow | 202 | ✅ | ⚠ | ❌ | ✅ | 0 | full sprite-sheet of trees, central pale-blue tree-form |
+| snow | 303 | ✅ | ⚠ | ❌ | ✅ | 0 | succulent-like mass on grass mound + sheet of neighbors incl. red |
+
+**Aggregate:** C1 9/9 · C2 0/9 (7 ⚠, 2 ❌) · **C3 0/9 (all ❌)** · C4 8/9 · Verdict **0 clean / 0 partial / 9 fail**.
+
+**Failure modes (sub-agent verbatim):**
+> Two compounding patterns. (1) Iso platform/diorama: nearly every subject sits on a stone-rimmed grass-and-soil disc with visible trunk/roots — treated as a bonsai/tree diorama rather than a shrub prop. (2) Sprite-sheet collapse: 7/9 render the central subject ringed by smaller tiled copies (inset thumbnails or full grid). Grassland additionally drifts to tall conifer/tree morphology.
+
+**Reviewer note (sub-agent verbatim):**
+> None usable. No image is close to a single isolated prop on white BG — every one carries an explicit ground disc and most carry tiled neighbors. This is worse than a "0 clean / 9 partial / 0 fail" baseline.
+
+**Speed:** 38.8s for 9 imgs = ~4.3 s/img. Marginally faster than iter 6 (6 s/img) but not the ~3 s/img I projected for Lightning.
+
+### Lesson: distilled Lightning variants amplify training-set composition tendencies
+
+DreamShaper XL Lightning is content-focused (escapes iter 3/9 character-collapse trap) but introduces a NEW failure mode — its training set evidently contains many bonsai-on-stone-disc and asset-sheet images, and the distilled variant amplifies these compositional priors. Low CFG=2.0 also weakens the prompt's "single specimen" directive somewhat. Net: dreamshaper XL **passes the character test** but **fails the diorama+sheet test**.
+
+This adds a *5th heuristic* on top of the prior 4:
+
+> Distilled / Lightning / Turbo SDXL variants may amplify base-model composition priors regardless of how clean the prompt is, because their low CFG makes negative prompts weaker (cf Flux dev CFG=1.0). For prop-isolation work, prefer NON-distilled SDXL bases.
+
+**Recommendation:** REJECT iter 10. **Working baseline remains iter 6** (`terrain-realisticfantasy-v30` + iter 6 prompt + zero LoRA + CFG=6.0 + 28 steps). Next candidates from BENCHMARK "what might work" list — preferably non-Lightning content-focused SDXL bases (`terrain-sdxl-base`, `chroma-hd-q8`) OR pivot to Phase B (Flux refiner on iter 6 outputs) / ControlNet base-plate.
+
+Artifacts: `experiments/tmp_009/dreamshaperxl-lightning-v1-bush-spike-pack.json`, `outputs/spike-dreamshaperxl-lightning-v1/`, alias `dreamshaper-xl-lightning` in models.yaml kept as experimental record.
+
+---
+
+## 2026-05-23 — iteration 11: PO-request — Pony Diffusion V6 XL (REJECT — character collapse 3rd confirmation)
+
+- **Trigger:** PO suggested testing Pony Diffusion before pivoting away from base-model probes. PO explicitly framed as "thử Pony Diffusion xem sao, sau đó chúng ta suy nghĩ theo hướng khác" — last base probe before pivot.
+- **Risk flagged before run:** Pony V6 XL is the canonical anime/character SDXL fine-tune. Per BENCHMARK heuristic #1, certain character collapse (iter 3 + iter 9 already confirmed twice).
+- **Change vs iter 6:** ONLY the base. Iter 6 prompt verbatim (no pony score tags) + zero LoRA + same fixture. Negative extended with `anime girl, anime boy, pony, my little pony, cartoon character, mascot, furry, anthropomorphic animal, equine` as defensive probe (risk negation paradox but worth testing).
+- **Pack:** `experiments/tmp_009/pony-v6-xl-bush-spike-pack.json`
+- **Reviewer:** cold-start sub-agent per §12.4.
+
+| Biome | Seed | C1 | C2 | C3 | C4 | V | Notes |
+|---|---|:-:|:-:|:-:|:-:|:-:|---|
+| chaos | 101 | ❌ | ❌ | ⚠ | ❌ | 0 | Sketch of busty female humanoid, grayscale |
+| chaos | 202 | ❌ | ❌ | ⚠ | ⚠ | 0 | Cartoon girl with pink hair, dress |
+| chaos | 303 | ⚠ | ⚠ | ⚠ | ✅ | 0 | Stylized purple bat-wing/leaf shape on stem, not shrub |
+| grassland | 101 | ❌ | ❌ | ⚠ | ⚠ | 0 | Hooded humanoid character w/ green accents |
+| grassland | 202 | ❌ | ❌ | ⚠ | ⚠ | 0 | Green human hand/arm reaching up |
+| grassland | 303 | ⚠ | ⚠ | ⚠ | ❌ | 0 | Purple spiky bat-wing shape on stem, wrong palette+form |
+| snow | 101 | ❌ | ❌ | ⚠ | ❌ | 0 | Anime boy w/ syringe, bare midriff |
+| snow | 202 | ❌ | ❌ | ⚠ | ❌ | 0 | Chibi character (red/green/yellow) holding object |
+| snow | 303 | ⚠ | ❌ | ❌ | ❌ | 0 | Purple spiky blob on paper/card, depicted ground |
+
+**Aggregate:** C1 **0/9** · C2 0/9 · C3 0/9 · C4 1/9 · **Verdict: 0 clean / 0 partial / 9 fail.**
+
+**Per-biome:** chaos 0/0/3 · grassland 0/0/3 · snow 0/0/3
+
+**What the model drew (sub-agent verbatim):**
+> Img1: female humanoid bust sketch. Img2: cartoon pink-haired girl. Img3: purple bat-wing leaf-shape. Img4: hooded humanoid creature. Img5: green human hand reaching. Img6: purple spiky wing-shape on stem. Img7: anime boy with syringe, half-undressed. Img8: chibi character in red/green dress holding tool. Img9: purple spiky abstract shape on paper card. Zero shrubs. Five characters/bodies/hands, three bat-wing abstractions, one decorative blob.
+
+**Reviewer note (sub-agent verbatim):**
+> Total character-collapse. Pony V6 XL with zero LoRAs treats "alpine dwarf shrub cluster" as anime-character prompt — 5/9 are humanoids, the rest are stylized non-shrub shapes. Base model unusable for prop sprites without botanical LoRA or different checkpoint.
+
+**Speed:** 55.4s for 9 imgs = ~6.2 s/img (similar to iter 6).
+
+### Lesson: heuristic #1 confirmed THRICE
+
+Character-trained SDXL bases collapse for non-character subjects regardless of prompt strength, anti-character negatives, or specialty defensive terms. Pony V6 XL is the strongest demonstration: 5/9 explicit humanoid characters (one half-undressed) on a plant prompt. Even iter 9 hezi was less extreme (some plant-creature hybrids); Pony went straight to portrait sketches and chibi figures.
+
+**Pattern is now durable** — three independent character-base failures (Illustrious-XL, heziJP-KR, Pony V6 XL) on the same prompt is conclusive. The BENCHMARK heuristic #1 is locked. Stop probing character bases.
+
+### Base-model probe phase: closing
+
+After 4 distinct base-model probes (iter 3, 9, 10, 11) plus the original iter 6 baseline, the search space for non-character SDXL bases is mostly exhausted from the user's local catalog. Remaining content-focused candidates (`terrain-sdxl-base`, `chroma-hd-q8`) are MIGHT-work entries in BENCHMARK but lower confidence after iter 10 (DreamShaper XL Lightning, content-focused, also failed via diorama bias).
+
+PO framed iter 11 as the LAST base probe before pivoting. Pivot directions live in BENCHMARK "what might work" + a few new options surfaced this session:
+- Phase B: Flux+dark_fantasy refiner img2img on iter 6 outputs (style polish, untested)
+- ControlNet base-plate (canny iso-diamond outline, structural enforcement, untested)
+- SAM2 text-prompted post-process (semantic cutout, untested)
+- Iter 6 + minimal color-only biome hint (cheap last prompt tweak)
+- Build entry library at iter 6 config (accept "tạm dùng được" bar, scale to multiple entries/biomes)
+- Multi-stage hybrid: iter 6 (gen) → Flux refiner → composite — true multi-model pipeline matching user's original vision
+
+**Recommendation:** REJECT iter 11. Working baseline iter 6 stands. Move conversation to non-base-probe direction per PO framing.
+
+Artifacts: `experiments/tmp_009/pony-v6-xl-bush-spike-pack.json`, `outputs/spike-pony-v6-xl/`, alias `pony-diffusion-v6-xl` in models.yaml kept as experimental record.
+
+---
+
+## 2026-05-23 — iteration 12: Stage 1 sanity check for the "decouple gen + projection" pivot (REJECT — undergrowth bias is entry-level not camera-level)
+
+- **Trigger:** PO proposed a multi-stage architectural pivot — "use the best base (rFantasy) to gen front-view assets, then a separate workflow with NVS / image-to-3D for projection to 2.5D iso." Insight: diffusion does front-view easily, 3D pipelines do rotation well. Decouple the two.
+- **Honest pre-spike assessment:** clean front-view inputs are necessary for Stage 2 (NVS or image-to-3D). If Stage 1 already has multi-object / depicted-ground / sprite-sheet failure modes, Stage 2 inherits them (a 3D lifter reconstructs ground/secondary plants as part of the asset → contaminated mesh). So Stage 1 sanity check first — at zero install cost — before committing to Zero123++/SV3D/TRELLIS install (~30-45 min for cheapest NVS, ~1-2 hr for TRELLIS).
+- **Change vs iter 6:** ONLY the positive prompt — "isometric 2.5D camera angle" → "front view, straight-on camera angle at eye-level". Dropped iso-specific anti-terms (`iso platform, isometric tile base, diamond base`) from negative since they don't apply to front-view. Same base + zero LoRA + same fixture.
+- **Pack:** `experiments/tmp_009/frontview-v1-bush-spike-pack.json`
+- **Reviewer:** cold-start sub-agent per §12.4.
+
+| Biome | Seed | C1 | C2 | C3 | C4 | V | Notes |
+|---|---|:-:|:-:|:-:|:-:|:-:|---|
+| chaos | 101 | ✅ | ⚠ | ❌ | ✅ | 0 | tree-like trunk; soil mound + grass/rock base |
+| chaos | 202 | ✅ | ⚠ | ❌ | ✅ | 0 | multi-pom bonsai tree on stone platform + grass tuft |
+| chaos | 303 | ✅ | ⚠ | ❌ | ✅ | 0 | trunked tree on rock platform + red secondary grass |
+| grassland | 101 | ✅ | ⚠ | ❌ | ⚠ | 0 | tree w/ trunk; moss/grass patch base; magenta not green |
+| grassland | 202 | ✅ | ❌ | ❌ | ⚠ | 0 | sprite-sheet: center tree + ~12 surrounding bushes |
+| grassland | 303 | ✅ | ⚠ | ❌ | ⚠ | 0 | teardrop tree on grassy hill scene; magenta not green |
+| snow | 101 | ✅ | ⚠ | ❌ | ✅ | 0 | trunked tree + green moss base patch |
+| snow | 202 | ✅ | ⚠ | ❌ | ✅ | 0 | trunked tree + large green grass tuft at base |
+| snow | 303 | ✅ | ⚠ | ❌ | ✅ | 0 | trunked tree + grass/soil mound base |
+
+**Aggregate:** C1 9/9 · C2 0/9 · **C3 0/9 (all ❌)** · C4 6/9 · **Verdict: 0 clean / 0 partial / 9 fail** — REGRESSION vs iter 6's 0/9/0.
+
+**Per-biome:** chaos 0/0/3 · grassland 0/0/3 · snow 0/0/3
+
+**Composition pattern (sub-agent verbatim):**
+> None are single isolated front-view shrubs on white BG. All 9 are trunked tree/bonsai forms rather than rounded shrub masses (C2 fail). Every image depicts ground: stone platforms, grass/moss patches, full grassy-hill scene, or a 13-bush sprite-sheet. Secondary plants (grass tufts, red spikes) appear in chaos 202/303 and all snow seeds. Front-view framing succeeded; isolation and shrub-morphology did not.
+
+**Reviewer note (sub-agent verbatim, KEY FINDING):**
+> Worse than the "0/9/0" baseline for image-to-3D / NVS use. Every frame contains a depicted ground plane and most have secondary foliage — a 3D lifter will reconstruct the platform/grass as part of the asset, contaminating the mesh. Trunked-tree morphology also violates the rounded-shrub target. Hard background-mask + base-crop preprocessing required before any image is pipeline-usable.
+
+**Speed:** 60.4s for 9 imgs = ~6.7 s/img.
+
+### Lesson: undergrowth/ground bias is at the SUBJECT level, not the camera level
+
+The hypothesis was that "isometric 2.5D" in iter 6's prompt was triggering the diorama/undergrowth pattern, and front-view would escape it. Empirically false. Same `realisticfantasy_v30` base + same `alpine_dwarf_shrub_cluster` subject + iter 6 prompt structure produces the same trunked-tree + undergrowth + occasional sprite-sheet patterns whether the camera-angle word is "isometric 2.5D" or "front view straight-on".
+
+**Mechanism:** the model's training data associates "alpine dwarf shrub cluster" (the subject phrase) with botanical-illustration / nature-photography compositions where the shrub naturally sits on ground and has visible trunk + base foliage. The camera-angle adjective is a thin modifier on top of a STRONG subject-level prior. Front-view framing doesn't unbind that subject prior.
+
+### Implication for the "decouple gen + projection" pivot
+
+The proposed architecture (Stage 1: clean front-view gen → Stage 2: NVS to iso → Stage 3: composite) **requires clean isolated subject as Stage 1 input**. This iteration empirically shows Stage 1 is NOT cleaner than iter 6's iso attempts — same C3 problem (worse on verdict distribution because outright platforms returned). A Stage 2 NVS/image-to-3D pipeline would inherit the dirty input: it would lift the stone platform + grass tuft as part of the mesh, producing a "bush-with-ground" 3D asset that defeats the purpose of compositing onto a canonical tile.
+
+**Recommendation: ABANDON the decouple pivot as currently conceived.** Do NOT invest in Zero123++ / SV3D / TRELLIS install — they would not address the actual bottleneck.
+
+The bottleneck is **subject-level prompt-prior bias**, not camera-angle. Possible attacks (untested, ranked by structural strength):
+
+| Attack | Mechanism | Cost |
+|---|---|---|
+| Different `prompt_subject` framing | Use language that bypasses botanical-illustration prior — e.g. "studio product photo of an isolated topiary specimen on white seamless background" instead of "alpine dwarf shrub cluster" | ~1 min, free |
+| ControlNet base-plate (canny outline of just a rounded blob, no ground) | Structural enforcement: model can only fill the masked region with foliage, no room to draw ground | ~20 min build, untested |
+| SAM2 text-prompted post-process ("shrub only, exclude ground") | Trim the depicted ground at post-process time | ~30 min build, untested |
+| Phase B Flux refiner img2img on iter 6 outputs | Doesn't address C3 but might polish style | ~30 min build, partial benefit |
+
+Iter 6 remains peak. After 12 iterations, the working pipeline is unchanged but the search space is meaningfully narrowed.
+
+Artifacts: `experiments/tmp_009/frontview-v1-bush-spike-pack.json`, `outputs/spike-frontview-v1/`.
+
+---
+
+## 2026-05-23 — iteration 13: subject-prompt rewrite "topiary + product photography" (REJECT — language ceiling confirmed)
+
+- **Trigger:** Iter 12 surfaced "undergrowth bias is subject-level". Cheapest attack: rewrite ONLY `prompt_subject` with language patterns from isolated-product-photo priors. Hypothesis: replace botanical-illustration prior with studio-product-photo prior → less ground.
+- **Change vs iter 6:** ONLY `prompt_subject` — "compact alpine dwarf low rounded shrub mass no trunk ground-level cluster wind hardy needles fantasy bush" → "a single decorative cultivated **topiary specimen** hand-pruned into a compact rounded dome of foliage, **studio product photography** style isolated on **seamless white backdrop** with no soil and no roots visible". Everything else verbatim iter 6.
+- **Pack:** `experiments/tmp_009/realisticfantasy-subjectv2-bush-spike-pack.json`
+- **Reviewer:** cold-start sub-agent per §12.4.
+
+| Biome | Seed | C1 | C2 | C3 | C4 | V | Notes |
+|---|---|:-:|:-:|:-:|:-:|:-:|---|
+| chaos | 101 | ✅ | ⚠ | ❌ | ✅ | 0 | Topiary tree (single trunk), violet dome; explicit moss-mound platform |
+| chaos | 202 | ✅ | ⚠ | ❌ | ✅ | 0 | Bonsai-style tree with trunk in dark ceramic dish/pot — explicit planter |
+| chaos | 303 | ✅ | ⚠ | ❌ | ✅ | 0 | Violet topiary in deep blue ceramic bonsai pot — explicit pot |
+| grassland | 101 | ✅ | ⚠ | ❌ | ✅ | 0 | Standard-trained tree on green moss-mound base; not a shrub mass |
+| grassland | 202 | ✅ | ⚠ | ❌ | ✅ | 0 | Tree on moss mound + sprite-sheet of bushes flanking |
+| grassland | 303 | ✅ | ⚠ | ❌ | ✅ | 0 | Topiary tree on large green hedge/mound platform |
+| snow | 101 | ✅ | ⚠ | ❌ | ✅ | 0 | Pale-blue topiary on moss mound atop white saucer/pedestal |
+| snow | 202 | ✅ | ⚠ | ❌ | ✅ | 0 | Tree on moss mound + sprite-sheet of surrounding bushes |
+| snow | 303 | ✅ | ⚠ | ❌ | ✅ | 0 | Pale-blue topiary in blue ceramic bonsai pot — explicit planter |
+
+**Aggregate:** C1 9/9 · C2 0/9 · **C3 0/9 (all ❌)** · C4 **9/9 ⭐** · **Verdict: 0 clean / 0 partial / 9 fail** — REGRESSION vs iter 6's 0/9/0.
+
+**Composition pattern (sub-agent verbatim):**
+> The topiary/product-photo rewrite introduced NEW failure modes on top of the old. Explicit pots/planters appeared in chaos-202, chaos-303, snow-303 (ceramic bonsai dishes). Pedestal/saucer in snow-101. Sprite-sheet tiling re-emerged in grassland-202 and snow-202. Every image is a standard-trained tree (single trunk + canopy), not a rounded shrub mass — "topiary specimen" reframed the subject as a trained tree-form. Moss-mound platform persists universally beneath the trunk.
+
+**Reviewer verdict (sub-agent verbatim, THE conclusion):**
+> Worse than the "0/9/0 partial-everywhere" baseline. The subject rewrite traded diffuse undergrowth-tuft ⚠ for hard ❌ failures (pots, pedestals, sprite-sheets) AND broke C2 by training the model toward bonsai/topiary trees. Language-level intervention has overshot — "topiary specimen" + "product photography" pulled SDXL's strongest priors (bonsai studio shots). **Ceiling hit; needs structural intervention (negatives, ControlNet, or LoRA).**
+
+**Speed:** 41.6s for 9 imgs = ~4.6 s/img.
+
+### Lesson: language-only intervention has hit a ceiling
+
+13 iterations confirmed: rotating prompt words / negative terms / subject framings either matches iter 6 (0/9/0 partial-everywhere) or regresses (introduces new failure modes by activating different SDXL priors). Pure language engineering cannot break past V=2 clean.
+
+- Iter 7 over-tightened (anti-X clauses) → negation paradox 0/0/9
+- Iter 8 hybrid (iter 6 + iter 7 hints) → long-hint destabilization 0/4/5
+- Iter 12 front-view → undergrowth bias is subject-level not camera-level 0/0/9
+- Iter 13 subject rewrite → "topiary studio photo" → pots/planters/bonsai 0/0/9
+
+Each language move TRADES one failure mode for another. The model has strong learned priors that any language token activates SOMETHING in that prior space. The space of "plant subjects on white BG with absolutely no implied context" is essentially absent from SDXL training data — every plant token brings situational context.
+
+**Path forward = structural** (per sub-agent + accumulated evidence):
+
+| Intervention | Mechanism | Why it should work beyond language ceiling |
+|---|---|---|
+| **ControlNet base-plate** (canny outline of rounded blob, no ground) | Spatially restricts where pixels can be drawn | Bypasses prior at the structural level — model fills only the masked region |
+| **SAM2 text-prompted post-process** ("shrub only, exclude ground/pot/moss") | Semantic cutout at post-process time | Trims whatever the model drew, regardless of why |
+| **Custom LoRA** trained on isolated-plant-on-white data | Learns the missing distribution | Highest effort, highest ceiling |
+| **Phase B Flux refiner img2img on iter 6 outputs** | Style polish, leaves composition alone | Doesn't address C3 but might lift other quality |
+
+C4 palette discipline 9/9 ⭐ in this iteration IS a positive — it confirms that the iter 7 color-hint pattern works when applied consistently. Worth backporting to iter 6 IF iter 6 is locked as production baseline.
+
+Artifacts: `experiments/tmp_009/realisticfantasy-subjectv2-bush-spike-pack.json`, `outputs/spike-realisticfantasy-subjectv2/`.
+
+---
+
+## 2026-05-23 — iteration 14: FIRST STRUCTURAL INTERVENTION — ControlNet canny base-plate (DIRECTIONALLY RIGHT, hint design wrong)
+
+- **Trigger:** Iter 13 closed the language-only intervention era. Sub-agent prescribed structural intervention. ControlNet research picked `xinsir-controlnet-union-sdxl-1.0-promax` (canny mode) as the safe SDXL-compatible candidate.
+- **Setup (all NEW):**
+  - Hint image: `experiments/tmp_009/hint_dome_canny_1024.png` — 1024×1024 black canvas + centred 720×520 white ellipse outline (~2px). Generated by `experiments/tmp_009/gen_hint_dome_canny.py`.
+  - Workflow: `workflows/sdxl_eps_canny_union.json` — sdxl_eps.json + 4 NEW nodes (LoadImage, ControlNetLoader, SetUnionControlNetType type="canny/lineart/anime_lineart/mlsd", ControlNetApplyAdvanced strength=0.7 start=0.0 end=0.5).
+  - Model alias: `realisticfantasy-controlnet-canny` (same `realisticFantasyMix_v30.safetensors` checkpoint, new workflow).
+  - Hint also copied to `data/comfyui-clean-workspace/ComfyUI/input/` so LoadImage can find it.
+- **Change vs iter 6:** ONLY added ControlNet (+ hint image + new workflow). Same base + zero LoRA + iter 6 prompt verbatim + same fixture.
+- **Pack:** `experiments/tmp_009/realisticfantasy-controlnet-canny-v1-bush-spike-pack.json`
+- **Reviewer:** cold-start sub-agent per §12.4.
+
+| Biome | Seed | C1 | C2 | C3 | C4 | V | Notes |
+|---|---|:-:|:-:|:-:|:-:|:-:|---|
+| chaos | 101 | ✅ | ❌ | ❌ | ✅ | 0 | Two stacked violet urchin-shrubs sitting in explicit grey ceramic bowl with moss lining |
+| chaos | 202 | ✅ | ❌ | ✅ | ✅ | 0 | Two violet pom shrubs stacked vertically on green moss mound; no container but multi-mass |
+| chaos | 303 | ✅ | ✅ | ⚠ | ✅ | 1 | Single violet spiky dome; faint white horizontal smear under reads as oval platform/sheet remnant |
+| grassland | 101 | ✅ | ⚠ | ✅ | ⚠ | 1 | Single teardrop mass but red "flame" top + green leafy lower reads as two-tone stacked composition |
+| grassland | 202 | ✅ | ❌ | ✅ | ⚠ | 0 | Two clearly separated red-berry shrubs stacked (small on top of larger) |
+| grassland | 303 | ✅ | ⚠ | ⚠ | ⚠ | 1 | Single red pom but small green grass tuft at base; faint oval halo behind reads as plate/dish rim |
+| snow | 101 | ✅ | ✅ | ❌ | ✅ | 0 | Single pale-blue dome shrub sitting in explicit pale-blue ceramic saucer/dish |
+| snow | 202 | ✅ | ⚠ | ❌ | ✅ | 0 | Pale-blue dome with woody spider-legs base sitting on explicit blue snow/ice mound platform |
+| snow | 303 | ✅ | ✅ | ⚠ | ✅ | 1 | Single pale-blue dome; small woody root cluster at base + faint white oval smear behind |
+
+**Aggregate:** C1 9/9 · **C2 4/9 ✅** (improved from iter 6's 0/9) · **C3 3/9 ✅** (improved from iter 6's 0/9) · C4 6/9 · **Verdict: 0 clean / 4 partial / 5 fail**.
+
+**Per-biome:** chaos 0/1/2 · grassland 0/2/1 · snow 0/1/2
+
+**Spatial enforcement assessment (sub-agent verbatim):**
+> The dome hint partially constrained outer silhouette — chaos-303, grassland-303, snow-101, snow-303 all show a recognisable centred elliptical mass matching the hint. But the model frequently interpreted the ellipse as a container outline rather than foliage boundary (chaos-101 bowl, snow-101 saucer). When it didn't, stacking still broke single-mass (chaos-202, grassland-202).
+
+**New failure mode (sub-agent verbatim, KEY DIAGNOSIS):**
+> The model reads the elliptical OUTLINE as a ceramic bowl/saucer/dish rim ... Consistent across all three biomes — the model treats a closed ellipse near the base as "vessel the plant sits in", which is the exact opposite of intent.
+
+**Reviewer prescription (sub-agent verbatim):**
+> Sideways from baseline 0/9/0 — gained 4 partials (C3 single-mass shape held more often) but introduced a new bowl/saucer failure mode that wasn't present before. Structural intervention is directionally right (silhouette control works) but a closed-ellipse canny hint is the wrong shape — it semantically reads as container. Try an open-top dome arc (no bottom closure) or a foliage-cluster cloud silhouette instead. ControlNet alone is insufficient without prompt-level container negatives.
+
+**Speed:** 55.1s for 9 imgs = ~6.1 s/img (ControlNet added negligible overhead).
+
+### KEY FINDING: structural intervention is directionally right; closed-ellipse hint is semantically wrong
+
+This is the first iteration since iter 6 to gain ✅ on C2 (4/9) and C3 (3/9) — both improvements. The structural attack works at the silhouette level: 4 outputs (chaos-303, grassland-303, snow-101, snow-303) DID center foliage in a single dome consistent with the hint. The remaining failures break down as:
+
+1. **Bowl/saucer interpretation (3/9 — chaos-101, snow-101, snow-202):** closed-ellipse outline near canvas bottom reads as "ceramic container rim". The model places foliage IN the bowl, not AS the bowl. Hint shape is the culprit.
+2. **Vertical stacking (chaos-202, grassland-202):** ControlNet constrains silhouette but doesn't enforce single instance within it — model fills the dome with 2 stacked smaller shrubs instead of 1 mass.
+3. **Halo/sheet ghosts (3/9 partial):** faint oval shapes behind subject suggest ControlNet attention still partially leaks the "frame" pattern.
+
+### Path forward — iter 15 spike
+
+Per sub-agent prescription, change hint shape to break the bowl reading. Two candidates:
+- **Open-top arc** — just the top semicircle (180°) of the dome, no bottom closure. Removes "container rim" reading.
+- **Foliage-cluster cloud silhouette** — multiple overlapping puffy arcs simulating actual bush canopy.
+
+Open-top arc is simpler and isolates the variable cleanly. Iter 15.
+
+Other adjustments under consideration (defer to iter 16+ if needed):
+- Lower ControlNet `strength` 0.7 → 0.5 (less rigid)
+- Extend `end_percent` 0.5 → 0.7 (more late-step detail freedom)
+- Add `bowl, dish, saucer, plate, ceramic, planter` to negative as defensive container-suppression
+- Switch SetUnionControlNetType from "canny" → "depth" with a depth-map hint
+
+Artifacts: `experiments/tmp_009/realisticfantasy-controlnet-canny-v1-bush-spike-pack.json`, `outputs/spike-controlnet-canny-v1/`, `workflows/sdxl_eps_canny_union.json` (canonical ref at `experiments/tmp_009/sdxl_eps_canny_union.workflow.json`), `experiments/tmp_009/hint_dome_canny_1024.png` + generator script `experiments/tmp_009/gen_hint_dome_canny.py`, alias `realisticfantasy-controlnet-canny` in models.yaml.
+
+---
+
+## 2026-05-23 — iteration 15: 🎉 FIRST V=2 CLEAN — open-top arc hint (1/5/3, snow s303 ship-ready)
+
+- **Trigger:** Iter 14 sub-agent prescription "open-top arc (no bottom closure) to break the container reading".
+- **Change vs iter 14:** ONLY the hint shape — closed ellipse outline → 180° top-arc only (no bottom curve). Generated by `experiments/tmp_009/gen_hint_dome_arc.py`. Hint at `experiments/tmp_009/hint_dome_arc_1024.png` (also copied to ComfyUI input/). New workflow `workflows/sdxl_eps_canny_arc.json` (clone of canny_union, swap hint filename). New alias `realisticfantasy-controlnet-canny-arc`. Everything else verbatim iter 14.
+- **Pack:** `experiments/tmp_009/realisticfantasy-controlnet-arc-v1-bush-spike-pack.json`
+- **Reviewer:** cold-start sub-agent per §12.4.
+
+| Biome | Seed | C1 | C2 | C3 | C4 | V | Notes |
+|---|---|:-:|:-:|:-:|:-:|:-:|---|
+| chaos | 101 | ✅ | ⚠ | ✅ | ✅ | 1 | 3-pom cluster stacked on grass-like base, not single dome |
+| chaos | 202 | ✅ | ⚠ | ❌ | ✅ | 0 | Dome shape good, but sits on explicit black rock pile/platform |
+| chaos | 303 | ✅ | ⚠ | ⚠ | ✅ | 1 | Mushroom/parasol canopy on visible black root-clump base |
+| grassland | 101 | ✅ | ⚠ | ✅ | ⚠ | 1 | Conical tree-spire not rounded dome; red+green+yellow mix |
+| grassland | 202 | ✅ | ❌ | ✅ | ⚠ | 0 | 3 separate thistle blooms on single stem, not a shrub mass |
+| grassland | 303 | ✅ | ✅ | ❌ | ⚠ | 0 | Rounded shrub but sits on explicit grass patch/ground |
+| snow | 101 | ✅ | ⚠ | ✅ | ✅ | 1 | Multi-pom-flower cluster bouquet on brown stems, not single dome |
+| snow | 202 | ✅ | ⚠ | ❌ | ✅ | 0 | Dome-ish but sits on second blue saucer/disc base |
+| **snow** | **303** | ✅ | ✅ | ✅ | ✅ | **2 ⭐** | **Clean rounded dome shrub on trunk, white bg + shadow halo** |
+
+**Aggregate:** C1 9/9 · C2 2/9 · **C3 5/9 ✅** (improved from iter 14's 3) · C4 7/9 · **Verdict: 1 clean / 5 partial / 3 fail ⭐ FIRST V=2 CLEAN.**
+
+**Per-biome:** chaos 0/2/1 · grassland 0/1/2 · **snow 1/1/1**
+
+**Bowl/saucer check (sub-agent verbatim):**
+> Partially. No ceramic bowls remain (iter 14's main failure is gone), but the arc still gets reinterpreted as a saucer/disc base (snow 202), explicit rock pile (chaos 202), or grass patch (grass 303) — base-substrate bias persists.
+
+**New failure modes (sub-agent verbatim):**
+> Open-arc hint is no longer read as a closed vessel, but the model fills the dome with whatever round-mass token wins: (a) **multi-pom bouquet/umbrella canopy** on visible stems (chaos 101, chaos 303, snow 101) — 3/9; (b) **stacked-on-base** where the arc bottom is reinterpreted as a substrate disc/rocks/grass (chaos 202, grass 303, snow 202) — 3/9; (c) **conical spire** (grass 101); (d) **3-thistle stem** (grass 202). Only snow 303 reads as the intended single rounded shrub.
+
+**Reviewer note (sub-agent verbatim):**
+> Sideways vs iter 14 (0/4/5). Bowls gone (real win), but partial count rose because new failure modes (multi-pom canopy, substrate disc, conical spire) replaced them. **Best-of-9 is snow s303 — drop-in tile-ready.** Iter 16: keep open arc, add negative prompts for "cluster of flowers, multiple blooms, base, disc, platform, rocks, grass patch", and consider strengthening single-trunk cue.
+
+**Speed:** 49.5s for 9 imgs = ~5.5 s/img.
+
+### KEY FINDING: structural intervention can produce ship-ready outputs
+
+**snow s303 is the first V=2 clean output in 15 iterations.** All four criteria pass, sub-agent calls it "tile-ready" — droppable on a canonical iso tile as-is. The structural attack (ControlNet) plus the right hint shape (open arc, not closed ellipse) plus the right base (rFantasy) plus the iter 6 prompt = converged on a viable single output.
+
+The remaining 8 outputs cluster into two failure families now:
+1. **Multi-pom bouquet** (3/9) — arc canopy reads as "umbrella under which flowers/poms grow on stems"
+2. **Substrate disc/platform** (3/9) — arc bottom-edge area reinterpreted as ground
+
+Both are weaker than iter 14's ceramic bowls but still kill 6/9 outputs.
+
+### Path forward — iter 16 hypothesis
+
+The arc tells ControlNet "this curve is an edge". Canny ControlNet is fundamentally an **edge-control** mechanism — the model is told "preserve these edges" and fills the rest freely. The multi-pom failure shows the model fills inside the arc with whatever its trained prior suggests (poms, bouquets, conical spires).
+
+**The architectural mismatch:** for "single solid object" attack, **DEPTH mode** is the semantically correct ControlNet variant. xinsir union-promax supports depth in the same model file. Depth map of a dome (white = close foreground, black = far background) tells the model "object volume occupies this region", not "edge curve passes through these pixels". Depth pulls a fundamentally different prior than canny.
+
+This is a "1 logical variable" change ("canny mode → depth mode") that necessarily entails hint format change (arc → depth map). Documented as such.
+
+Iter 16 = DEPTH MODE with dome depth-map hint.
+
+Artifacts: `experiments/tmp_009/realisticfantasy-controlnet-arc-v1-bush-spike-pack.json`, `outputs/spike-controlnet-arc-v1/`, `workflows/sdxl_eps_canny_arc.json` (canonical ref `experiments/tmp_009/sdxl_eps_canny_arc.workflow.json`), `experiments/tmp_009/hint_dome_arc_1024.png` + generator `gen_hint_dome_arc.py`, alias `realisticfantasy-controlnet-canny-arc` in models.yaml.
+
+---
+
+## 2026-05-23 — iteration 16: DEPTH mode + filled-dome hint (TRADE pom→vessel, net neutral)
+
+- **Trigger:** Iter 15 sub-agent insight that canny + arc had multi-pom failure because canny gives model free fill space inside silhouette. Architectural hypothesis: depth mode = volume control → "object volume at this location" → suppresses multi-pom canopy.
+- **Change vs iter 15:** ControlNet mode `canny/lineart/anime_lineart/mlsd` → `depth`. Hint format necessarily changes from open-top arc → filled white solid dome (depth-map convention: white=near foreground). Same xinsir union-promax model (single model supports both modes via SetUnionControlNetType). Strength/timing/everything else verbatim iter 15.
+- **Pack:** `experiments/tmp_009/realisticfantasy-controlnet-depth-v1-bush-spike-pack.json`
+- **Reviewer:** cold-start sub-agent per §12.4.
+
+| Biome | Seed | C1 | C2 | C3 | C4 | V | Notes |
+|---|---|:-:|:-:|:-:|:-:|:-:|---|
+| chaos | 101 | ✅ | ✅ | ❌ | ✅ | 0 | dark ceramic bowl + moss substrate |
+| chaos | 202 | ✅ | ✅ | ❌ | ✅ | 0 | white oval saucer/platter, moss base |
+| **chaos** | **303** | ✅ | ✅ | ✅ | ✅ | **2 ⭐** | clean — sea-urchin form, drop shadow only |
+| grassland | 101 | ⚠ | ✅ | ❌ | ⚠ | 0 | white shallow bowl; berries dominate (strawberry plant, not shrub) |
+| grassland | 202 | ⚠ | ✅ | ❌ | ✅ | 0 | moss/dirt platform substrate; reads tulip-bud cluster |
+| grassland | 303 | ⚠ | ✅ | ⚠ | ⚠ | 1 | oval base disc, grass tuft below; magenta not green |
+| snow | 101 | ✅ | ⚠ | ❌ | ✅ | 0 | glass dish/bowl with snow + driftwood inside |
+| snow | 202 | ✅ | ✅ | ❌ | ✅ | 0 | moss/turf substrate platform |
+| snow | 303 | ❌ | ✅ | ❌ | ✅ | 0 | depicted as tree with brown trunk; oval platform base |
+
+**Aggregate:** C1 6/9 · **C2 8/9 ✅** (big jump from iter 15's 2/9 — filled volume DID enforce single mass) · C3 1/9 · C4 7/9 · **Verdict: 1 clean / 0 partial / 8 fail.**
+
+**Per-biome:** chaos 1/0/2 · grassland 0/1/2 · snow 0/0/3
+
+**Failure mode catalog (sub-agent verbatim):**
+> Ceramic bowl ×1 (chaos101). White saucer/oval platter ×3 (chaos202, grass303, snow303). Glass dish ×1 (snow101). Moss/turf substrate platform ×3 (grass202, snow202, plus moss inside chaos101). Single trunk/tree ×1 (snow303). Subject drift: berries instead of foliage ×1 (grass101), tulip-bud cluster ×1 (grass202), magenta palette ×1 (grass303). **Multi-pom cluster: 0 instances — filled-dome hint successfully collapsed pom-clusters into single mass.**
+
+**Reviewer note (sub-agent verbatim):**
+> Sideways from iter 15. Filled-volume hint solved the multi-pom failure (0 vs presumably several in iter 15) and produced one genuinely clean image (chaos303). But it reintroduced iter 14's bowl/saucer problem: 5 explicit vessels (bowl/saucer/glass-dish) plus 3 substrate platforms. **Net: trade pom-cluster for vessel; clean-rate ~unchanged (1/9 vs 1/9).**
+
+**Speed:** 56.7s for 9 imgs = ~6.3 s/img.
+
+### KEY FINDING: shape position triggers bowl prior independent of ControlNet mode
+
+| Mode | Hint shape | Bowl/vessel rate | Multi-pom rate |
+|---|---|:-:|:-:|
+| Canny | Closed ellipse (iter 14) | 3/9 | low |
+| Canny | Open arc (iter 15) | 0 (gone!) | 3/9 |
+| **Depth** | **Filled dome (iter 16)** | **5/9 (worst)** | **0** |
+
+The TRADE-OFF pattern is now empirical: filled-region hints (closed ellipse / filled dome) trigger bowl/vessel reading by SDXL prior. Open-top arc breaks the gestalt but introduces multi-pom because canny gives model free fill inside arc. **Both failure modes are tied to dome being positioned at canvas mid-low where bowls/saucers naturally appear in training data**.
+
+C2 ✅ jumped 2/9 → 8/9 — confirming depth mode IS effective at enforcing single-mass (the architectural intent worked). The problem is C3 base/vessel persistence.
+
+### Comparison after 16 iterations
+
+Best variants for "ship rate" (clean + partial = acceptable for post-process composite):
+
+| Iter | Config | Clean | Partial | Fail | Acceptable | Best for |
+|---|---|:-:|:-:|:-:|:-:|---|
+| 6 | rFantasy + language peak | 0 | 9 | 0 | **9/9** | most-pickable for composite |
+| **15** | + arc ControlNet | **1** | **5** | **3** | **6/9** | **ship-ready outputs exist** |
+| 16 | + depth ControlNet | 1 | 0 | 8 | 1/9 | bimodal (clean or fail) |
+| 14 | + closed-ellipse ControlNet | 0 | 4 | 5 | 4/9 | obsolete (bowls) |
+
+**Iter 15 (arc) remains the strongest structural variant for ship rate** — has the same clean count as iter 16 (1) but 5 more partials. If goal is "max output through post-process composite", iter 15 wins. If goal is "100% reliable single output", neither is there yet.
+
+### Path forward — iter 17 options
+
+The empirical insight is that **dome SHAPE + POSITION near canvas-bottom triggers bowl prior**. Three orthogonal levers:
+
+| Lever | Mechanism | Risk |
+|---|---|---|
+| **Reposition hint upward** (center_y 600 → 400 or 350) | Bowls/saucers are bottom-of-frame elements in training; moving the foliage volume to upper canvas should suppress bowl prior | Composition might feel "floating" if too high |
+| **Cloud/blob irregular silhouette** | Geometric oval/dome triggers vessel prior; organic blob doesn't | Harder to get stable shape across seeds |
+| **Multi-ControlNet stack** (canny arc + depth filled) | Combine the strengths — arc breaks bowl, depth enforces single mass | More workflow complexity, may double-constrain too tightly |
+
+OR lock iter 15 as production and pivot to entry-library expansion.
+
+Artifacts: `experiments/tmp_009/realisticfantasy-controlnet-depth-v1-bush-spike-pack.json`, `outputs/spike-controlnet-depth-v1/`, `workflows/sdxl_eps_depth_union.json` (canonical ref `experiments/tmp_009/sdxl_eps_depth_union.workflow.json`), `experiments/tmp_009/hint_dome_depth_1024.png` + generator `gen_hint_dome_depth.py`, alias `realisticfantasy-controlnet-depth` in models.yaml.

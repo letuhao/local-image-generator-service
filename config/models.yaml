@@ -379,6 +379,146 @@ models:
       size_max_pixels: 1572864
     vram_estimate_gb: 10
 
+  # TMP_009 iteration 14 (2026-05-23) — ControlNet base-plate structural
+  # intervention. Same base as iter 6 (terrain-realisticfantasy-v30) but routed
+  # through `sdxl_eps_canny_union.json` which adds xinsir-union-promax canny
+  # ControlNet keyed to a centred dome silhouette hint
+  # (experiments/tmp_009/hint_dome_canny_1024.png, also copied to ComfyUI
+  # input/). Strength 0.7, end_percent 0.5 (locks composition early). Goal:
+  # break the language ceiling identified at iter 13 by enforcing spatial
+  # constraint structurally — model can only render foliage inside the dome
+  # mask, no pixel space for ground/pot/sprite-sheet outside.
+  # TMP_009 iteration 16 (2026-05-23) — depth-mode variant. Iter 15 arc gave
+  # FIRST V=2 clean (snow s303 ship-ready) but multi-pom + substrate-disc
+  # failure modes on 6/9. Architectural diagnosis: canny ControlNet is
+  # edge-control (model fills inside freely → multi-pom from training prior);
+  # depth ControlNet is volume-control (model places object AT depth-map
+  # location). Single logical variable change canny→depth (entails hint
+  # format change arc→filled-volume). Same workflow plumbing as canny variant.
+  - name: realisticfantasy-controlnet-depth
+    backend: comfyui
+    family: sdxl
+    workflow: workflows/sdxl_eps_depth_union.json
+    checkpoint: checkpoints/realisticFantasyMix_v30.safetensors
+    prediction: eps
+    vae: vae/sdxl.vae.safetensors
+    capabilities:
+      image_gen: true
+    defaults:
+      size: "1024x1024"
+      steps: 28
+      cfg: 6.0
+      sampler: euler_ancestral
+      scheduler: karras
+      negative_prompt: "person, human, character, face, body, anatomy, creature, monster, nsfw, nude"
+    limits:
+      steps_max: 50
+      n_max: 2
+      size_max_pixels: 1572864
+    vram_estimate_gb: 10
+
+  # TMP_009 iteration 15 (2026-05-23) — open-top arc variant. Iter 14 closed
+  # ellipse read as bowl rim; arc removes bottom closure → "leaf cluster top"
+  # semantic instead of "container".
+  - name: realisticfantasy-controlnet-canny-arc
+    backend: comfyui
+    family: sdxl
+    workflow: workflows/sdxl_eps_canny_arc.json
+    checkpoint: checkpoints/realisticFantasyMix_v30.safetensors
+    prediction: eps
+    vae: vae/sdxl.vae.safetensors
+    capabilities:
+      image_gen: true
+    defaults:
+      size: "1024x1024"
+      steps: 28
+      cfg: 6.0
+      sampler: euler_ancestral
+      scheduler: karras
+      negative_prompt: "person, human, character, face, body, anatomy, creature, monster, nsfw, nude"
+    limits:
+      steps_max: 50
+      n_max: 2
+      size_max_pixels: 1572864
+    vram_estimate_gb: 10
+
+  - name: realisticfantasy-controlnet-canny
+    backend: comfyui
+    family: sdxl
+    workflow: workflows/sdxl_eps_canny_union.json
+    checkpoint: checkpoints/realisticFantasyMix_v30.safetensors
+    prediction: eps
+    vae: vae/sdxl.vae.safetensors
+    capabilities:
+      image_gen: true
+    defaults:
+      size: "1024x1024"
+      steps: 28
+      cfg: 6.0
+      sampler: euler_ancestral
+      scheduler: karras
+      negative_prompt: "person, human, character, face, body, anatomy, creature, monster, nsfw, nude"
+    limits:
+      steps_max: 50
+      n_max: 2
+      size_max_pixels: 1572864
+    vram_estimate_gb: 10
+
+  # TMP_009 iteration 11 (2026-05-23) — Pony Diffusion V6 XL probe.
+  # Pony V6 XL is heavily character/anime-trained ("score_9 score_8_up" tag
+  # convention). Per BENCHMARK lesson #1 (character-trained bases collapse),
+  # high risk of same trap as iter 3 (Illustrious) and iter 9 (hezi).
+  # Cheap to test before pivoting away from base-model probes entirely.
+  # Iter 6 prompt verbatim (no pony-specific score tags) for A/B vs peak.
+  - name: pony-diffusion-v6-xl
+    backend: comfyui
+    family: sdxl
+    workflow: workflows/sdxl_eps.json
+    checkpoint: checkpoints/ponyDiffusionV6XL_v6StartWithThisOne.safetensors
+    prediction: eps
+    vae: vae/sdxl.vae.safetensors
+    capabilities:
+      image_gen: true
+    defaults:
+      size: "1024x1024"
+      steps: 28
+      cfg: 7.0
+      sampler: euler_ancestral
+      scheduler: karras
+      negative_prompt: "person, human, character, face, body, anatomy, creature, monster, nsfw, nude"
+    limits:
+      steps_max: 50
+      n_max: 2
+      size_max_pixels: 1572864
+    vram_estimate_gb: 8
+
+  # TMP_009 iteration 10 (2026-05-23) — DreamShaper XL Lightning probe.
+  # Lightning = distilled fast variant: CFG≈2.0, ~6 steps, DPM++ SDE Karras.
+  # Speed expectation: ~3 s/img vs iter 6 baseline ~6 s. Content-focused base
+  # (NOT character-trained), so should escape the iter 3/9 character collapse.
+  # Same iter 6 prompt config + zero LoRA for A/B vs current peak.
+  - name: dreamshaper-xl-lightning
+    backend: comfyui
+    family: sdxl
+    workflow: workflows/sdxl_eps.json
+    checkpoint: checkpoints/dreamshaperXL_lightningDPMSDE.safetensors
+    prediction: eps
+    vae: vae/sdxl.vae.safetensors
+    capabilities:
+      image_gen: true
+    defaults:
+      size: "1024x1024"
+      steps: 6
+      cfg: 2.0
+      sampler: dpmpp_sde
+      scheduler: karras
+      negative_prompt: "person, human, character, face, body, anatomy, creature, monster, nsfw, nude"
+    limits:
+      steps_max: 12
+      n_max: 2
+      size_max_pixels: 1572864
+    vram_estimate_gb: 8
+
   # TMP_009 iteration 9 (2026-05-23) — try heziUltimate Japanese-Korean SDXL
   # checkpoint for static-prop. Name suggests character/portrait training so
   # high risk of person-face collapse (cf iter 3 with Illustrious), but cheap

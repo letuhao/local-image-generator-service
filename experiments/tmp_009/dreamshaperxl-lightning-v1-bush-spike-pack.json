@@ -1,0 +1,39 @@
+{
+  "_readme": "TMP_009 iteration 10 — DreamShaper XL Lightning probe (Phase A continuation, content-focused SDXL not character-trained). Same iter 6 prompt verbatim (proven peak 0/9/0), zero LoRA, same fixture. Lightning settings: CFG=2.0, 6 steps, DPM++ SDE Karras. Speed expectation ~3 s/img (≈half iter 6's 6 s). Hypotheses: (a) content-focused dreamshaper base should escape iter 3/9 character collapse trap; (b) Lightning's low CFG=2.0 may weaken negative prompt enforcement somewhat (cf Flux CFG=1.0 needed NAG). A/B target: iter 6 0/9/0 on the same fixture.",
+  "lane": "bush",
+  "model": "dreamshaper-xl-lightning",
+  "size": "1024x1024",
+  "steps": 6,
+  "cfg": 2.0,
+  "sampler": "dpmpp_sde",
+  "scheduler": "karras",
+  "transparent_background": true,
+  "loras": [],
+  "seeds": [101, 202, 303],
+  "prompt_template": "A single isolated bush sprite asset for a fantasy game, ONE specimen alone, the {subject}, centered on a pure white empty background with nothing else, no landscape, no scene, no multiple plants, no other objects, no ground tile, viewed from an isometric 2.5D camera angle, Heroes of Might and Magic III inspired hand-painted readability, biome palette cue applied only to foliage colours: {biome_hint}",
+  "negative_prompt": "multiple objects, sprite sheet, asset pack, character sheet, collection, catalog, grid layout, forest, grove, landscape, scene, panorama, multiple plants, two plants, three plants, many plants, ground, soil, dirt, rocks, stones, pebbles, gravel, sand patch, mud puddle, grass tuft, grass carpet, grass patch, moss patch, dirt mound, snow patch, iso platform, isometric tile base, diamond base, plinth, pedestal, base, terrain, floor, paving, brick, stone wall, fence, border, frame, cast shadow on ground, dropped shadow, ambient occlusion patch beneath prop, exposed roots in soil, root ball, foreground debris, wooden tray, planter box, blurry, soft focus, oversharpen, noisy texture, seamless terrain tile panorama, aerial satellite, tree taller than canvas, person, human, character, face, body, anatomy, creature, monster, nsfw, nude, dragon, mounted unit, army, watermark, logo, text",
+  "biomes": [
+    {
+      "id": "abyss_chaos_rift",
+      "hint": "chaos cavern palette, bruised violet fungal shrub curls twisted charcoal stems angular thorn knots readable fantasy"
+    },
+    {
+      "id": "grassland_temperate",
+      "hint": "temperate palette, healthy leafy bundle masses readable berry tint accents"
+    },
+    {
+      "id": "snow_frost",
+      "hint": "cold palette, frost rimmed dormant twig bundles pale blue needle accents"
+    }
+  ],
+  "bush_entries": [
+    {
+      "id": "alpine_dwarf_shrub_cluster",
+      "prompt_subject": "compact alpine dwarf low rounded shrub mass no trunk ground-level cluster wind hardy needles fantasy bush",
+      "asset_summary": "Alpine dwarf evergreen shrub cluster.",
+      "asset_tags": ["bush", "alpine", "evergreen"],
+      "composition": "single_tile",
+      "category": "flora"
+    }
+  ]
+}

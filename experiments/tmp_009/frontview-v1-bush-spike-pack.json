@@ -1,0 +1,39 @@
+{
+  "_readme": "TMP_009 iteration 12 — Stage 1 sanity check for the 'decouple gen + projection' pivot (PO 2026-05-23 after iter 11). Hypothesis: gen front-view bushes (easier prompt, no diorama bias from iso/map words) → confirm Stage 1 outputs are cleaner than iter 6's iso attempts → justify investing 30-45 min to install Zero123++/SV3D NVS node for Stage 2. Same base + zero LoRA + same fixture + same iter 6 prompt structure, with TWO targeted swaps: (a) positive 'isometric 2.5D camera angle' → 'front view, straight-on camera angle'; (b) drop iso-specific anti-terms from negative (iso platform, isometric tile base, diamond base — these don't apply to front-view).",
+  "lane": "bush",
+  "model": "terrain-realisticfantasy-v30",
+  "size": "1024x1024",
+  "steps": 28,
+  "cfg": 6.0,
+  "sampler": "euler_ancestral",
+  "scheduler": "karras",
+  "transparent_background": true,
+  "loras": [],
+  "seeds": [101, 202, 303],
+  "prompt_template": "A single isolated bush sprite asset for a fantasy game, ONE specimen alone, the {subject}, centered on a pure white empty background with nothing else, no landscape, no scene, no multiple plants, no other objects, no ground tile, viewed from the front, straight-on camera angle at eye-level, Heroes of Might and Magic III inspired hand-painted readability, biome palette cue applied only to foliage colours: {biome_hint}",
+  "negative_prompt": "multiple objects, sprite sheet, asset pack, character sheet, collection, catalog, grid layout, forest, grove, landscape, scene, panorama, multiple plants, two plants, three plants, many plants, ground, soil, dirt, rocks, stones, pebbles, gravel, sand patch, mud puddle, grass tuft, grass carpet, grass patch, moss patch, dirt mound, snow patch, plinth, pedestal, base, terrain, floor, paving, brick, stone wall, fence, border, frame, cast shadow on ground, dropped shadow, ambient occlusion patch beneath prop, exposed roots in soil, root ball, foreground debris, wooden tray, planter box, blurry, soft focus, oversharpen, noisy texture, seamless terrain tile panorama, aerial satellite, tree taller than canvas, person, human, character, face, body, anatomy, creature, monster, nsfw, nude, dragon, mounted unit, army, watermark, logo, text",
+  "biomes": [
+    {
+      "id": "abyss_chaos_rift",
+      "hint": "chaos cavern palette, bruised violet fungal shrub curls twisted charcoal stems angular thorn knots readable fantasy"
+    },
+    {
+      "id": "grassland_temperate",
+      "hint": "temperate palette, healthy leafy bundle masses readable berry tint accents"
+    },
+    {
+      "id": "snow_frost",
+      "hint": "cold palette, frost rimmed dormant twig bundles pale blue needle accents"
+    }
+  ],
+  "bush_entries": [
+    {
+      "id": "alpine_dwarf_shrub_cluster",
+      "prompt_subject": "compact alpine dwarf low rounded shrub mass no trunk ground-level cluster wind hardy needles fantasy bush",
+      "asset_summary": "Alpine dwarf evergreen shrub cluster.",
+      "asset_tags": ["bush", "alpine", "evergreen"],
+      "composition": "single_tile",
+      "category": "flora"
+    }
+  ]
+}
