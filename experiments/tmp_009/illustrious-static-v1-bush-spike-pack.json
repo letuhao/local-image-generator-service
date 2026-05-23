@@ -1,0 +1,48 @@
+{
+  "_readme": "TMP_009 iteration 3 spike — Phase A of the multi-model pipeline pivot (PO direction 2026-05-23 after Flux quality+cost rejected). Swaps Flux dev Q8 → terrain-illustrious-xl-v1 (SDXL family) for Stage 1 content generation. Same §12 fixture (1 entry × 3 biomes × 3 seeds = 9 imgs). Key architectural differences vs the Flux baseline: (a) CFG=5.5 native — negative prompt bites without NAG ceremony, (b) SDXL ~5-10× faster than Flux Q8 GGUF expected, (c) `dark_fantasy_digital_v11` LoRA does NOT apply (Flux-specific) — replaced with the SDXL-compat LoRA stack below. Compares against the baseline NAG entry in experiments/tmp_009/REVIEW.md (cold-start tally 0/3/6, 57 s/img, n=9).",
+  "lane": "bush",
+  "model": "terrain-illustrious-xl-v1",
+  "size": "1024x1024",
+  "steps": 26,
+  "cfg": 5.5,
+  "sampler": "euler_ancestral",
+  "scheduler": "karras",
+  "transparent_background": true,
+  "loras": [
+    {
+      "name": "game/asset/491023_isometric_isty03_style",
+      "weight": 0.7
+    },
+    {
+      "name": "fantasy/NewFantasyCoreV4_ILL_by_VisionaryAI_",
+      "weight": 0.5
+    }
+  ],
+  "seeds": [101, 202, 303],
+  "prompt_template": "isometric 2.5D fantasy strategy map flora sprite, single centered shrub cluster {subject}, Heroes of Might and Magic III inspired hand-painted readability, isolated bush prop only no terrain tile panorama, white neutral backdrop for alpha extraction, biome foliage cue accents only not backdrop scenery: {biome_hint}",
+  "negative_prompt": "ground, soil, dirt, rocks, stones, pebbles, gravel, sand patch, mud puddle, grass tuft, grass carpet, grass patch, moss patch, dirt mound, snow patch, iso platform, isometric tile base, diamond base, plinth, pedestal, base, terrain, floor, paving, brick, cast shadow on ground, dropped shadow, ambient occlusion patch beneath prop, exposed roots in soil, root ball, foreground debris, blurry, soft focus, oversharpen, noisy texture, seamless terrain tile panorama, aerial satellite, tree taller than canvas, forest panorama, person, human, character, face, body, anatomy, creature, monster, dragon, mounted unit, army, watermark, logo, text",
+  "biomes": [
+    {
+      "id": "abyss_chaos_rift",
+      "hint": "chaos cavern palette, bruised violet fungal shrub curls twisted charcoal stems angular thorn knots readable fantasy"
+    },
+    {
+      "id": "grassland_temperate",
+      "hint": "temperate palette, healthy leafy bundle masses readable berry tint accents"
+    },
+    {
+      "id": "snow_frost",
+      "hint": "cold palette, frost rimmed dormant twig bundles pale blue needle accents"
+    }
+  ],
+  "bush_entries": [
+    {
+      "id": "alpine_dwarf_shrub_cluster",
+      "prompt_subject": "compact alpine dwarf evergreen shrub cluster wind hardy needles isolated bush silhouette fantasy",
+      "asset_summary": "Alpine dwarf evergreen shrub cluster.",
+      "asset_tags": ["bush", "alpine", "evergreen"],
+      "composition": "single_tile",
+      "category": "flora"
+    }
+  ]
+}

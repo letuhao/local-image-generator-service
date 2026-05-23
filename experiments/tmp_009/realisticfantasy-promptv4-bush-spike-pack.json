@@ -1,0 +1,39 @@
+{
+  "_readme": "TMP_009 iteration 8 — Phase A.v6 hybrid. Iter 6 was peak (0/9/0). Iter 7 over-tightened with anti-X clauses → 0/0/9 regression via negation paradox (forbidden concepts amplified). This iteration takes iter 6's working prompt verbatim + ONE thing from iter 7: the explicit per-biome color hints (which lifted C4 6→9/9 with no downside). Goal: lift C4 to 9/9 while preserving iter 6's 0/9/0 (zero outright fails). Same base, same zero LoRA, same fixture.",
+  "lane": "bush",
+  "model": "terrain-realisticfantasy-v30",
+  "size": "1024x1024",
+  "steps": 28,
+  "cfg": 6.0,
+  "sampler": "euler_ancestral",
+  "scheduler": "karras",
+  "transparent_background": true,
+  "loras": [],
+  "seeds": [101, 202, 303],
+  "prompt_template": "A single isolated bush sprite asset for a fantasy game, ONE specimen alone, the {subject}, centered on a pure white empty background with nothing else, no landscape, no scene, no multiple plants, no other objects, no ground tile, viewed from an isometric 2.5D camera angle, Heroes of Might and Magic III inspired hand-painted readability, foliage colour for this biome: {biome_hint}",
+  "negative_prompt": "multiple objects, sprite sheet, asset pack, character sheet, collection, catalog, grid layout, forest, grove, landscape, scene, panorama, multiple plants, two plants, three plants, many plants, ground, soil, dirt, rocks, stones, pebbles, gravel, sand patch, mud puddle, grass tuft, grass carpet, grass patch, moss patch, dirt mound, snow patch, iso platform, isometric tile base, diamond base, plinth, pedestal, base, terrain, floor, paving, brick, stone wall, fence, border, frame, cast shadow on ground, dropped shadow, ambient occlusion patch beneath prop, exposed roots in soil, root ball, foreground debris, wooden tray, planter box, blurry, soft focus, oversharpen, noisy texture, seamless terrain tile panorama, aerial satellite, tree taller than canvas, person, human, character, face, body, anatomy, creature, monster, nsfw, nude, dragon, mounted unit, army, watermark, logo, text",
+  "biomes": [
+    {
+      "id": "abyss_chaos_rift",
+      "hint": "bruised violet purple coloured foliage entirely, twisted thorn-knot leaves, chaos cavern palette, NO green leaves"
+    },
+    {
+      "id": "grassland_temperate",
+      "hint": "healthy temperate green coloured foliage entirely, leafy bundle masses, NO red, NO magenta, NO pink, all leaves green"
+    },
+    {
+      "id": "snow_frost",
+      "hint": "pale frost-blue coloured foliage entirely, frost-rimmed dormant twigs, cold palette, NO green leaves"
+    }
+  ],
+  "bush_entries": [
+    {
+      "id": "alpine_dwarf_shrub_cluster",
+      "prompt_subject": "compact alpine dwarf low rounded shrub mass no trunk ground-level cluster wind hardy needles fantasy bush",
+      "asset_summary": "Alpine dwarf evergreen shrub cluster.",
+      "asset_tags": ["bush", "alpine", "evergreen"],
+      "composition": "single_tile",
+      "category": "flora"
+    }
+  ]
+}

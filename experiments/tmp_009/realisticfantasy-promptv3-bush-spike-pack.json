@@ -1,0 +1,39 @@
+{
+  "_readme": "TMP_009 iteration 7 — Phase A.v5. Iter 6 broke through to 0/9/0 (zero outright fails). Two residual issues identified by sub-agent: (a) universal undergrowth tuft at base (9/9 — reads as 2nd plant), (b) grassland palette inversion (magenta foliage on green undergrowth). Both prompt-side. This iteration tightens positive + negative against undergrowth/bonsai/visible-trunk while keeping the working composition-isolation pattern from iter 6. Same base, same zero LoRA, same fixture. Target: lift ≥3 imgs from V=1 partial to V=2 clean.",
+  "lane": "bush",
+  "model": "terrain-realisticfantasy-v30",
+  "size": "1024x1024",
+  "steps": 28,
+  "cfg": 6.0,
+  "sampler": "euler_ancestral",
+  "scheduler": "karras",
+  "transparent_background": true,
+  "loras": [],
+  "seeds": [101, 202, 303],
+  "prompt_template": "A single isolated bush sprite asset for a fantasy game, ONE compact specimen alone, the {subject}, the entire plant is ONE unified rounded mass with NO separate undergrowth at the base, NO second plant beneath it, NO visible trunk, NO bonsai tree silhouette, centered on a pure white empty background with nothing else around it, no landscape, no scene, no other plants, no ground tile, viewed from an isometric 2.5D camera angle, Heroes of Might and Magic III inspired hand-painted readability, foliage colour for this biome: {biome_hint}",
+  "negative_prompt": "undergrowth, moss tuft, base tuft, secondary plant, two plants, three plants, many plants, plant on top of plant, plant pile, stacked plants, bonsai, bonsai tree, visible trunk, exposed trunk, tall trunk, tree shape, tree silhouette, conifer, pine, multiple objects, sprite sheet, asset pack, character sheet, collection, catalog, grid layout, forest, grove, landscape, scene, panorama, ground, soil, dirt, rocks, stones, pebbles, gravel, sand patch, mud puddle, grass tuft, grass carpet, grass patch, moss patch, dirt mound, snow patch, iso platform, isometric tile base, diamond base, plinth, pedestal, base, terrain, floor, paving, brick, stone wall, fence, border, frame, cast shadow on ground, dropped shadow, ambient occlusion patch beneath prop, exposed roots in soil, root ball, foreground debris, wooden tray, planter box, blurry, soft focus, oversharpen, noisy texture, seamless terrain tile panorama, aerial satellite, tree taller than canvas, person, human, character, face, body, anatomy, creature, monster, nsfw, nude, dragon, mounted unit, army, watermark, logo, text",
+  "biomes": [
+    {
+      "id": "abyss_chaos_rift",
+      "hint": "bruised violet purple coloured foliage entirely, twisted thorn-knot leaves, chaos cavern palette, NO green leaves"
+    },
+    {
+      "id": "grassland_temperate",
+      "hint": "healthy temperate green coloured foliage entirely, leafy bundle masses, NO red, NO magenta, NO pink, all leaves green"
+    },
+    {
+      "id": "snow_frost",
+      "hint": "pale frost-blue coloured foliage entirely, frost-rimmed dormant twigs, cold palette, NO green leaves, NO base undergrowth"
+    }
+  ],
+  "bush_entries": [
+    {
+      "id": "alpine_dwarf_shrub_cluster",
+      "prompt_subject": "compact dwarf low rounded shrub forming a single dome of foliage no trunk no branches visible just one unified leafy mass",
+      "asset_summary": "Alpine dwarf evergreen shrub cluster.",
+      "asset_tags": ["bush", "alpine", "evergreen"],
+      "composition": "single_tile",
+      "category": "flora"
+    }
+  ]
+}

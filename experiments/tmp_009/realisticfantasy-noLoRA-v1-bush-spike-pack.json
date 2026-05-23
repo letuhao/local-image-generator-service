@@ -1,0 +1,39 @@
+{
+  "_readme": "TMP_009 iteration 5 spike — Phase A.v3 after iter 4 showed `realisticFantasy_v30 + isty03 LoRA` produced shrubs but isty03 forced multi-object dioramas with explicit tile/tray bases (8/9 fail on C3). Snow_frost s303 in iter 4 produced a single isolated subject despite the LoRA — evidence the base alone may handle isolated-prop output. This iteration drops the LoRA entirely to isolate base model behaviour: ZERO LoRAs, same base, same hardened negative, same fixture. If base alone produces single isolated shrubs → we have a working pipeline at 0-LoRA cost and ~7 s/img.",
+  "lane": "bush",
+  "model": "terrain-realisticfantasy-v30",
+  "size": "1024x1024",
+  "steps": 28,
+  "cfg": 6.0,
+  "sampler": "euler_ancestral",
+  "scheduler": "karras",
+  "transparent_background": true,
+  "loras": [],
+  "seeds": [101, 202, 303],
+  "prompt_template": "isometric 2.5D fantasy strategy map flora sprite, single centered shrub cluster {subject}, Heroes of Might and Magic III inspired hand-painted readability, isolated bush prop only no terrain tile panorama, white neutral backdrop for alpha extraction, biome foliage cue accents only not backdrop scenery: {biome_hint}",
+  "negative_prompt": "ground, soil, dirt, rocks, stones, pebbles, gravel, sand patch, mud puddle, grass tuft, grass carpet, grass patch, moss patch, dirt mound, snow patch, iso platform, isometric tile base, diamond base, plinth, pedestal, base, terrain, floor, paving, brick, cast shadow on ground, dropped shadow, ambient occlusion patch beneath prop, exposed roots in soil, root ball, foreground debris, multiple objects, grid, diorama, scene, multiple plants, wooden tray, planter box, blurry, soft focus, oversharpen, noisy texture, seamless terrain tile panorama, aerial satellite, tree taller than canvas, forest panorama, person, human, character, face, body, anatomy, creature, monster, nsfw, nude, dragon, mounted unit, army, watermark, logo, text",
+  "biomes": [
+    {
+      "id": "abyss_chaos_rift",
+      "hint": "chaos cavern palette, bruised violet fungal shrub curls twisted charcoal stems angular thorn knots readable fantasy"
+    },
+    {
+      "id": "grassland_temperate",
+      "hint": "temperate palette, healthy leafy bundle masses readable berry tint accents"
+    },
+    {
+      "id": "snow_frost",
+      "hint": "cold palette, frost rimmed dormant twig bundles pale blue needle accents"
+    }
+  ],
+  "bush_entries": [
+    {
+      "id": "alpine_dwarf_shrub_cluster",
+      "prompt_subject": "compact alpine dwarf evergreen shrub cluster wind hardy needles isolated bush silhouette fantasy",
+      "asset_summary": "Alpine dwarf evergreen shrub cluster.",
+      "asset_tags": ["bush", "alpine", "evergreen"],
+      "composition": "single_tile",
+      "category": "flora"
+    }
+  ]
+}

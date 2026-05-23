@@ -1,6 +1,18 @@
 # TMP_009 — Isometric Asset Pipeline spike (2026-05-23)
 
-Off-production exploratory artifacts for [TMP_009 — Isometric Asset Pipeline](https://github.com/letuhao1994/lore-weave-zone-map-design) in the sister design repo. Everything here is **spike / experimental**. The validated implementation lives in the production paths:
+Off-production exploratory artifacts for [TMP_009 — Isometric Asset Pipeline](https://github.com/letuhao1994/lore-weave-zone-map-design) in the sister design repo. Everything here is **spike / experimental**.
+
+## Where to look
+
+| File | Purpose |
+|---|---|
+| **[`BENCHMARK.md`](BENCHMARK.md)** ⭐ | **Start here.** Single-page dashboard: working baseline pin, 9-iteration tally, lessons confirmed twice, what doesn't work, what to try next. |
+| [`REVIEW.md`](REVIEW.md) | Canonical log: full sub-agent table + commentary per iteration. Detailed; read when you need the WHY behind the BENCHMARK numbers. |
+| `*-spike-pack.json` (9 files) | Iteration packs (1 per attempt). Working baseline = `realisticfantasy-promptv2-bush-spike-pack.json`. |
+| `*.workflow.json` | Reference copies of gitignored `workflows/*.json` (NAG variant + upscale variant). |
+| `poc_*.py`, `rmbg_cutout.py` | Post-process scripts (composite spike, A/B compare, biome grid). |
+
+The validated implementation lives in the production paths:
 
 | Production artifact | Purpose |
 |---|---|

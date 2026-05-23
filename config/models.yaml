@@ -379,6 +379,32 @@ models:
       size_max_pixels: 1572864
     vram_estimate_gb: 10
 
+  # TMP_009 iteration 9 (2026-05-23) — try heziUltimate Japanese-Korean SDXL
+  # checkpoint for static-prop. Name suggests character/portrait training so
+  # high risk of person-face collapse (cf iter 3 with Illustrious), but cheap
+  # to test through the §12 workflow. Same SDXL eps workflow as other terrain
+  # aliases. Anti-character defaults baked in.
+  - name: hezi-ultimate-jp-kr-v10
+    backend: comfyui
+    family: sdxl
+    workflow: workflows/sdxl_eps.json
+    checkpoint: checkpoints/heziUltimateJapaneseAndKorean_v10.safetensors
+    prediction: eps
+    vae: vae/sdxl.vae.safetensors
+    capabilities:
+      image_gen: true
+    defaults:
+      size: "1024x1024"
+      steps: 28
+      cfg: 6.0
+      sampler: euler_ancestral
+      scheduler: karras
+      negative_prompt: "person, human, character, face, body, anatomy, creature, monster, nsfw, nude"
+    limits:
+      steps_max: 50
+      n_max: 2
+    vram_estimate_gb: 8
+
   # TMP_009 iteration 2 (2026-05-23): NAG + post-VAE upscale chain.
   # flux_gguf_nag_upscale.json adds UpscaleModelLoader (2x-AnimeSharpV4) +
   # ImageUpscaleWithModel + ImageScale-lanczos-to-1024 after VAEDecode. Goal:
