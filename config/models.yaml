@@ -379,6 +379,37 @@ models:
       size_max_pixels: 1572864
     vram_estimate_gb: 10
 
+  # TMP_009 iteration 2 (2026-05-23): NAG + post-VAE upscale chain.
+  # flux_gguf_nag_upscale.json adds UpscaleModelLoader (2x-AnimeSharpV4) +
+  # ImageUpscaleWithModel + ImageScale-lanczos-to-1024 after VAEDecode. Goal:
+  # sharpen the soft/blurry character of the Q8 + CFG=1.0 baseline outputs
+  # without changing output canvas size or the gen-time chain. ~+1-2 s/image
+  # over the plain NAG variant. Driven by the §12 iteration review workflow.
+  - name: flux1-dev-q8-tree-nag-upscale
+    backend: comfyui
+    family: flux
+    workflow: workflows/flux_gguf_nag_upscale.json
+    checkpoint: unet/flux1-dev-Q8_0.gguf
+    prediction: eps
+    vae: vae/ae.safetensors
+    clip_l: text_encoders/clip_l.safetensors
+    t5xxl: text_encoders/t5xxl_fp8_e4m3fn.safetensors
+    dual_clip_type: flux
+    capabilities:
+      image_gen: true
+    defaults:
+      size: "1024x1024"
+      steps: 24
+      cfg: 1.0
+      sampler: euler
+      scheduler: simple
+      negative_prompt: "blurry, soft focus, low detail, watercolor wash, fog, haze, terrain tile, platform, pedestal, scene background, multiple objects, dark ground, colored ground, person, human, character, face"
+    limits:
+      steps_max: 60
+      n_max: 2
+      size_max_pixels: 1572864
+    vram_estimate_gb: 10
+
   - name: flux1-dev-q8-tree-vae-bfl
     backend: comfyui
     family: flux
