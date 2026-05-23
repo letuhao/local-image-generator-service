@@ -1,0 +1,44 @@
+{
+  "_readme": "TMP_009 spike — gen-side fix for the 'baked-in ground' problem via NAG (Normalized Attention Guidance, in-tree ComfyUI core node). Same Flux dev Q8 + dark_fantasy LoRA + sampler + sizes + seeds as homm3-flux-bush-biome-pack, but: (1) model routed to `flux1-dev-q8-tree-nag` whose workflow inserts NAGuidance between UnetLoaderGGUF and KSampler so the negative prompt biting works at CFG=1.0 on distilled Flux; (2) negative prompt HARDENED with no-ground/no-rocks/no-platform terms. Positive template kept at the ORIGINAL bush phrasing so the A/B isolates NAG's effect from a positive-prompt rewrite. 1 biome (abyss_chaos_rift) × 1 entry (alpine_dwarf_shrub_cluster) × 3 seeds → direct A/B with outputs/homm3-bundle/pass-full-001/homm3/bush/abyss_chaos_rift/bush/alpine_dwarf_shrub_cluster__1024_1024__s{101,202,303}.png.",
+  "lane": "bush",
+  "model": "flux1-dev-q8-tree-nag",
+  "size": "1024x1024",
+  "steps": 28,
+  "cfg": 1.0,
+  "sampler": "euler",
+  "scheduler": "simple",
+  "transparent_background": true,
+  "loras": [
+    {
+      "name": "flux/dark_fantasy_digital_v11",
+      "weight": 0.8
+    }
+  ],
+  "seeds": [101, 202, 303],
+  "prompt_template": "isometric 2.5D fantasy strategy map flora sprite, single centered shrub cluster {subject}, Heroes of Might and Magic III inspired hand-painted readability, isolated bush prop only no terrain tile panorama, white neutral backdrop for alpha extraction, biome foliage cue accents only not backdrop scenery: {biome_hint}",
+  "negative_prompt": "ground, soil, dirt, rocks, stones, pebbles, gravel, sand patch, mud puddle, grass tuft, grass carpet, grass patch, moss patch, dirt mound, snow patch, iso platform, isometric tile base, diamond base, plinth, pedestal, base, terrain, floor, paving, brick, cast shadow on ground, dropped shadow, ambient occlusion patch beneath prop, exposed roots in soil, root ball, foreground debris, blurry, soft focus, oversharpen, noisy texture, seamless terrain tile panorama, aerial satellite, tree taller than canvas, forest panorama, person, human, character, face, dragon, mounted unit, army, watermark, logo, text",
+  "biomes": [
+    {
+      "id": "abyss_chaos_rift",
+      "hint": "chaos cavern palette, bruised violet fungal shrub curls twisted charcoal stems angular thorn knots readable fantasy"
+    },
+    {
+      "id": "grassland_temperate",
+      "hint": "temperate palette, healthy leafy bundle masses readable berry tint accents"
+    },
+    {
+      "id": "snow_frost",
+      "hint": "cold palette, frost rimmed dormant twig bundles pale blue needle accents"
+    }
+  ],
+  "bush_entries": [
+    {
+      "id": "alpine_dwarf_shrub_cluster",
+      "prompt_subject": "compact alpine dwarf evergreen shrub cluster wind hardy needles isolated bush silhouette fantasy",
+      "asset_summary": "Alpine dwarf evergreen shrub cluster.",
+      "asset_tags": ["bush", "alpine", "evergreen"],
+      "composition": "single_tile",
+      "category": "flora"
+    }
+  ]
+}
