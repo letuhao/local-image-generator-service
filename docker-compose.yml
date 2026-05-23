@@ -25,8 +25,11 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       LOG_PROMPTS: ${LOG_PROMPTS:-false}
       DATABASE_PATH: ${DATABASE_PATH:-/app/data/jobs.db}
-      COMFYUI_URL: http://comfyui:8188
-      COMFYUI_WS_URL: ws://comfyui:8188/ws
+      # Default backend: comfyui-clean (user-managed venv + custom_nodes under
+      # ./data/comfyui-clean-workspace). The pinned WAN 2.2 `comfyui` service is
+      # available via `--profile wan22-legacy` when that stack is needed.
+      COMFYUI_URL: http://comfyui-clean:8188
+      COMFYUI_WS_URL: ws://comfyui-clean:8188/ws
       STARTUP_SMOKE_ENABLED: ${STARTUP_SMOKE_ENABLED:-true}
       STARTUP_SMOKE_TIMEOUT_S: ${STARTUP_SMOKE_TIMEOUT_S:-120}
       ASYNC_MODE_ENABLED: ${ASYNC_MODE_ENABLED:-false}
@@ -61,16 +64,20 @@ services:
     depends_on:
       minio:
         condition: service_healthy
-      comfyui:
+      comfyui-clean:
         condition: service_healthy
     networks:
       - internal
     restart: unless-stopped
 
   comfyui:
-    # Real sidecar — pinned ComfyUI + GGUF + WAN 2.2 Smooth workflow custom nodes.
+    # LEGACY (not default since 2026-05-23). Pinned ComfyUI + GGUF + WAN 2.2 Smooth
+    # custom nodes — kept available for the legacy WAN 2.2 workflows. Default
+    # backend is `comfyui-clean` (see image-gen-service.COMFYUI_URL).
+    #
+    # Start:  docker compose --profile wan22-legacy up -d comfyui
     # Pin source of truth: docker/comfyui/custom-nodes.txt (WAN SHAs + Dockerfile ARG defaults).
-    # Override only COMFYUI_REF / COMFYUI_GGUF_REF here unless you fork the Dockerfile ARG set.
+    profiles: ["wan22-legacy"]
     build:
       context: ./docker/comfyui
       args:
@@ -186,17 +193,25 @@ services:
       retries: 3
     restart: unless-stopped
 
-  # Minimal Ubuntu 24.04 + Python — no ComfyUI preinstalled. For DIY stacks you own.
-  # Build:   docker compose --profile clean build comfyui-clean
-  # Shell:   docker compose --profile clean run --rm --service-ports -it comfyui-clean bash
-  # Launch:   docker compose --profile clean run --rm --service-ports -it comfyui-clean bash /opt/comfyui-clean/run-comfyui-entry.sh
-  # Up:      docker compose --profile clean up -d comfyui-clean
-  # Export:  docker commit <id> my-comfyui:custom
+  # DEFAULT comfy backend (since 2026-05-23). Minimal Ubuntu 24.04 + Python base
+  # image; the actual ComfyUI install + venv + custom_nodes live in the
+  # ./data/comfyui-clean-workspace/ComfyUI/ bind-mount (user-managed, reproducible
+  # via git pulls inside that workspace). image-gen-service points at this via
+  # COMFYUI_URL=http://comfyui-clean:8188.
+  #
+  # Build base:  docker compose build comfyui-clean
+  # Shell:       docker compose run --rm -u root -it comfyui-clean bash       # one-off apt
+  # Up (auto):   docker compose up -d                                         # auto-runs ComfyUI
+  # Up (manual): docker compose run --rm --service-ports -it comfyui-clean bash
+  # Stop:        docker compose stop comfyui-clean
+  # Export:      docker commit <id> my-comfyui:custom
   comfyui-clean:
     build:
       context: ./docker/comfyui-clean
     image: comfyui-clean-base:cuda13.1-devel-ubuntu24
-    profiles: ["clean"]
+    # Auto-launch ComfyUI through the CRLF-safe entry script baked into the image.
+    # Override at the CLI (e.g. `docker compose run ... bash`) when you need a shell.
+    command: ["bash", "/opt/comfyui-clean/run-comfyui-entry.sh"]
     environment:
       NVIDIA_VISIBLE_DEVICES: ${COMFY_CLEAN_GPUS:-all}
       # RTX Video / NvVFX (comfyui_nvidia_rtx_nodes) needs NGX from the driver stack.
@@ -245,9 +260,18 @@ services:
     # 0.0.0.0 = LAN + localhost. Set COMFY_CLEAN_HOST_BIND=127.0.0.1 to block remote.
     # ComfyUI has no built-in auth — use firewall/VPN if exposing beyond trusted LAN.
     ports:
-      - "${COMFY_CLEAN_HOST_BIND:-0.0.0.0}:${COMFY_CLEAN_HOST_PORT:-8192}:8188"
+      - "${COMFY_CLEAN_HOST_BIND:-127.0.0.1}:${COMFY_CLEAN_HOST_PORT:-8188}:8188"
     networks:
       - internal
+    healthcheck:
+      # ComfyUI boot in the clean stack is slow — user-managed venv has 40+ custom
+      # nodes (Crystools, GGUF, Nunchaku, Impact, RMBG, AlekPet, …). Cold start
+      # observed at ~5-7 minutes; start_period 600s gives 3-min margin.
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8188/system_stats > /dev/null || exit 1"]
+      interval: 10s
+      timeout: 3s
+      start_period: 600s
+      retries: 3
     restart: unless-stopped
 
   minio:

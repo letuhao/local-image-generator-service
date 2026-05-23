@@ -348,6 +348,37 @@ models:
       size_max_pixels: 1572864
     vram_estimate_gb: 10
 
+  # TMP_009 spike alias (2026-05-23): same Flux dev Q8 + dark_fantasy LoRA, but
+  # routed through flux_gguf_nag.json which inserts the in-tree `NAGuidance`
+  # node between UnetLoaderGGUF and KSampler. NAG calls
+  # disable_model_cfg1_optimization() so the negative prompt path actually runs
+  # at CFG=1.0 (Flux dev distilled). Use this model name in pack JSONs that
+  # need a biting negative without bumping CFG.
+  - name: flux1-dev-q8-tree-nag
+    backend: comfyui
+    family: flux
+    workflow: workflows/flux_gguf_nag.json
+    checkpoint: unet/flux1-dev-Q8_0.gguf
+    prediction: eps
+    vae: vae/ae.safetensors
+    clip_l: text_encoders/clip_l.safetensors
+    t5xxl: text_encoders/t5xxl_fp8_e4m3fn.safetensors
+    dual_clip_type: flux
+    capabilities:
+      image_gen: true
+    defaults:
+      size: "1024x1024"
+      steps: 24
+      cfg: 1.0
+      sampler: euler
+      scheduler: simple
+      negative_prompt: "blurry, soft focus, low detail, watercolor wash, fog, haze, terrain tile, platform, pedestal, scene background, multiple objects, dark ground, colored ground, person, human, character, face"
+    limits:
+      steps_max: 60
+      n_max: 2
+      size_max_pixels: 1572864
+    vram_estimate_gb: 10
+
   - name: flux1-dev-q8-tree-vae-bfl
     backend: comfyui
     family: flux
